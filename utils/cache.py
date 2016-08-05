@@ -10,6 +10,8 @@ from __future__ import division
 
 import collections
 
+import numpy as np
+
 
 
 class DictFiniteCapacity(collections.OrderedDict):
@@ -163,3 +165,29 @@ class PersistentDict(collections.MutableMapping):
     def __iter__(self):
         for row in self._con.execute("SELECT key FROM cache").fetchall():
             yield row[0]
+
+
+
+class CachedArray(object):
+    """
+    class that provides an array of given shape when called. If the shape is
+    consistent with the last call, a stored copy will be returned. Otherwise a
+    new array will be constructed.
+    """
+    
+    def __init__(self, value=None):
+        self._data = np.empty(0)
+        self.value = value
+    
+    def __call__(self, shape):
+        if self._data.shape == shape:
+            if self.value is not None:
+                self._data.fill(self.value)
+        else:
+            if self.value is None:
+                self._data = np.empty(shape)
+            elif self.value == 0:
+                self._data = np.zeros(shape)
+            else: 
+                self._data = np.full(shape, self.value, np.double)
+        return self._data

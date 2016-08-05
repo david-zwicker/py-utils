@@ -9,8 +9,13 @@ This module contains math functions
 from __future__ import division
 
 
+from collections import Counter
+
 import numpy as np
 from scipy import interpolate
+from scipy.stats import itemfreq
+
+from .misc import estimate_computation_speed
 
 
 
@@ -176,6 +181,85 @@ def round_to_odd(value):
     """ rounds the value to the nearest odd integer """
     return 2*int(value/2) + 1
 
+
+
+def get_fastest_entropy_function():
+    """ returns a function that calculates the entropy of a array of integers
+    Here, several alternative definitions are tested and the fastest one is
+    returned """
+    
+    # define a bunch of functions that act the same but have different speeds 
+    
+    def entropy_numpy(arr):
+        """ calculate the entropy of the distribution given in `arr` """
+        fs = np.unique(arr, return_counts=True)[1]
+        return np.sum(fs*np.log2(fs))
+    
+    def entropy_scipy(arr):
+        """ calculate the entropy of the distribution given in `arr` """
+        fs = itemfreq(arr)[:, 1]
+        return np.sum(fs*np.log2(fs))
+    
+    def entropy_counter1(arr):
+        """ calculate the entropy of the distribution given in `arr` """
+        return sum(val*np.log2(val)
+                   for val in Counter(arr).itervalues())
+        
+    def entropy_counter2(arr):
+        """ calculate the entropy of the distribution given in `arr` """
+        return sum(val*np.log2(val)
+                   for val in Counter(arr).values())
+
+    # test all functions against a random array to find the fastest one
+    test_array = np.random.random_integers(0, 10, 100)
+    func_fastest, speed_max = None, 0
+    for test_func in (entropy_numpy, entropy_scipy, entropy_counter1,
+                      entropy_counter2):
+        try:
+            speed = estimate_computation_speed(test_func, test_array)
+        except (TypeError, AttributeError):
+            # TypeError: older numpy versions don't support `return_counts`
+            # AttributeError: python3 does not have iteritems
+            pass
+        else:
+            if speed > speed_max:
+                func_fastest, speed_max = test_func, speed
+
+    return func_fastest
+
+
+def calc_entropy(arr):
+    """ calculate the entropy of the distribution given in `arr` """
+    # find the fastest entropy function on the first call of this function
+    # and bind it to the same name such that it is used in future times
+    global calc_entropy
+    calc_entropy = get_fastest_entropy_function()
+    return calc_entropy(arr)
+
+
+
+def popcount(x):
+    """
+    count the number of high bits in the integer `x`.
+    Taken from https://en.wikipedia.org/wiki/Hamming_weight
+    """
+    # put count of each 2 bits into those 2 bits 
+    x -= (x >> 1) & 0x5555555555555555 
+    # put count of each 4 bits into those 4 bits
+    x = (x & 0x3333333333333333) + ((x >> 2) & 0x3333333333333333)
+    # put count of each 8 bits into those 8 bits 
+    x = (x + (x >> 4)) & 0x0f0f0f0f0f0f0f0f  
+    x += x >>  8 # put count of each 16 bits into their lowest 8 bits
+    x += x >> 16 # put count of each 32 bits into their lowest 8 bits
+    x += x >> 32 # put count of each 64 bits into their lowest 8 bits
+    return x & 0x7f
+
+
+
+def take_popcount(arr, n):
+    """ returns only those parts of an array whose indices have a given
+    popcount """
+    return [v for i, v in enumerate(arr) if popcount(i) == n]
 
 
 def get_number_range(dtype):

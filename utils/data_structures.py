@@ -94,7 +94,7 @@ def save_dict_to_csv(data, filename, first_columns=None, **kwargs):
             assert len(units) == 1
             
             # construct key and values
-            key += ' [%s]' % value[0].units
+            key += ' [%s]' % units.pop()
             value = [item.magnitude if item is not None else None
                      for item in value]
             

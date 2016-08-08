@@ -33,17 +33,16 @@ def determine_matlab_command():
             return sorted(choices)[-1]
     
     # otherwise, look in all the application paths
-    paths = os.environ.get("PATH")
+    paths = os.environ.get("PATH", "").split(os.pathsep)
     if 'MATLABROOT' in os.environ:
         paths.insert(0, os.environ['MATLABROOT'])
 
-    if paths:
-        for path in paths.split(os.pathsep):
-            candidate = os.path.realpath(os.path.join(path, 'matlab'))
-            if os.path.isfile(candidate):
-                return candidate
-            elif os.path.isfile(candidate + '.exe'):
-                return candidate + '.exe'
+    for path in paths:
+        candidate = os.path.realpath(os.path.join(path, 'matlab'))
+        if os.path.isfile(candidate):
+            return candidate
+        elif os.path.isfile(candidate + '.exe'):
+            return candidate + '.exe'
 
     raise RuntimeError('Could not find matlab')
     

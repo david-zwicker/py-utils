@@ -27,9 +27,10 @@ def determine_matlab_command():
     # look for matlab in Applications folder on mac     
     if sys.platform == 'darwin':
         pattern = "/Applications/MATLAB_R?????.app/bin/matlab"
-        choices = list(sorted(glob.glob(pattern)))
+        choices = glob.glob(pattern)
         if choices:
-            return choices[-1]
+            # return last item from sorted results
+            return sorted(choices)[-1]
     
     # otherwise, look in all the application paths
     paths = os.environ.get("PATH")

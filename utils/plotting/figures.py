@@ -9,88 +9,24 @@ purpose.
 
 from __future__ import division
 
+import itertools
 import logging
 import os
-import pipes
 from contextlib import contextmanager
-import itertools
 
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.colors as mclr
 from matplotlib.figure import Figure
-from matplotlib.ticker import FormatStrFormatter, FuncFormatter, MaxNLocator
+
+from . import style
+from ..link.shell import shellquote
 
 
-from ..link.latex import number2latex
-
-__all__ = [
-    'invert_color',
-    'FigureLatex', 'FigurePresentation',
-    'figure_display', 'figure_file', 'figures'
-]
 
 GOLDEN_MEAN = 2/(np.sqrt(5) - 1)
 INCHES_PER_PT = 1.0/72.27 # Convert pt to inch
 
-# colors suitable for color-blind people
-#COLOR_BLUE = '#0072B2'
-COLOR_BLUE_SAFE = '#0673B7'
-COLOR_ORANGE_SAFE = '#EFE342'
-COLOR_GREEN_SAFE = '#009D73'
-COLOR_RED_SAFE = '#D45F14'
-
-# my nice colors
-COLOR_BLUE = '#0673B7'
-COLOR_ORANGE = '#FF7600'
-COLOR_GREEN = '#00A919'
-COLOR_RED = '#E6001C'
-
-COLOR_LIST_STANDARD = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
-COLOR_LIST_SAFE = [
-    COLOR_BLUE_SAFE, COLOR_RED_SAFE, COLOR_GREEN_SAFE, COLOR_ORANGE_SAFE, 'k'
-]
-COLOR_LIST = [COLOR_BLUE, COLOR_ORANGE, COLOR_GREEN, COLOR_RED, 'k']
-
-# initialize the color converted and keep it as a global variable
-color_converter = mclr.ColorConverter()
-
-
-def invert_color(color):
-    """ Returns the inverted value of a matplotlib color """
-    # get the color value
-    c = color_converter.to_rgba(color)
-    # keep alpha value intact!
-    return (1-c[0], 1-c[1], 1-c[2], c[3])
-
-
-def shellquote(s):
-    """ Quotes characters problematic for most shells """
-    return pipes.quote(s)
-
-
-def set_presentation_style_of_axis(axis, num_ticks=7, use_tex=True):
-    """ private function setting a single axis to presentation style """
-
-    # adjust tick formatter
-    if use_tex:
-        def apply_format(val, val_str):
-            """ Helper function applying the format """
-            return number2latex(val, add_dollar=True)
-        axis.set_major_formatter(FuncFormatter(apply_format))
-        if axis.get_scale() == 'linear':
-            axis.set_minor_formatter(FuncFormatter(apply_format))
-    else:
-        axis.set_major_formatter(FormatStrFormatter('%g'))
-        if axis.get_scale() == 'linear':
-            axis.set_minor_formatter(FormatStrFormatter('%g'))
-
-    # adjust the number of ticks
-    if num_ticks == 0:
-        axis.set_ticks([])
-    elif axis.get_scale() == 'linear':
-        axis.set_major_locator(MaxNLocator(num_ticks, steps=[1, 2, 5, 10]))
 
 
 class FigureBase(Figure):
@@ -127,9 +63,9 @@ class FigureBase(Figure):
 
         # choose the color list used in this figure
         if safe_colors:
-            self.colors = COLOR_LIST_SAFE
+            self.colors = style.COLOR_LIST_SAFE
         else:
-            self.colors = COLOR_LIST
+            self.colors = style.COLOR_LIST
 
         # set the number of ticks
         if num_ticks:
@@ -180,7 +116,7 @@ class FigureBase(Figure):
 
     def get_color_iter(self, color=None):
         """
-        Transforms the given color into a cycle or returns default colors.
+        Transforms the given color into a cycle or returns default style.
         """
         if color is None:
             color = self.colors
@@ -241,14 +177,14 @@ class FigureBase(Figure):
 
         for o in self.findobj(get_filter('facecolor')):
             if o not in visited:
-                o.set_facecolor(invert_color(o.get_facecolor()))
+                o.set_facecolor(style.invert_color(o.get_facecolor()))
                 if hasattr(o, 'set_edgecolor') and hasattr(o, 'get_edgecolor'):
-                    o.set_edgecolor(invert_color(o.get_edgecolor()))
+                    o.set_edgecolor(style.invert_color(o.get_edgecolor()))
                 visited.add(o)
 
         for o in self.findobj(get_filter('color')):
             if o not in visited:
-                o.set_color(invert_color(o.get_color()))
+                o.set_color(style.invert_color(o.get_color()))
                 visited.add(o)
 
         # update canvas
@@ -275,14 +211,16 @@ class FigureBase(Figure):
                 num_ticks_x = self.num_ticks[0]
             else:
                 num_ticks_x = self.xtick_factor*plt.rcParams['figure.figsize'][0]
-            set_presentation_style_of_axis(ax.get_xaxis(), int(num_ticks_x))
+            style.set_presentation_style_of_axis(ax.get_xaxis(),
+                                                 int(num_ticks_x))
 
             # adjust the ticks of the y-axis
             if self.num_ticks[1] is not None:
                 num_ticks_y = self.num_ticks[1]
             else:
                 num_ticks_y = self.ytick_factor*plt.rcParams['figure.figsize'][1]
-            set_presentation_style_of_axis(ax.get_yaxis(), int(num_ticks_y))
+            style.set_presentation_style_of_axis(ax.get_yaxis(),
+                                                 int(num_ticks_y))
 
             # adjust the legend
             legend = ax.get_legend()
@@ -332,14 +270,14 @@ class FigureBase(Figure):
         ):
         """ Saves the figure to `filename` with inverted colors """
 
-        rgb = color_converter.to_rgb
+        rgb = style.get_color_converter().to_rgb
 
         if background_facecolor is None:
             bg_face = self.get_facecolor()
             if rgb(bg_face) == rgb(mpl.rcParamsDefault['figure.facecolor']):
                 bg_face = 'k'
             else:
-                bg_face = invert_color(bg_face)
+                bg_face = style.invert_color(bg_face)
         else:
             bg_face = background_facecolor
 
@@ -348,7 +286,7 @@ class FigureBase(Figure):
             if rgb(bg_edge) == rgb(mpl.rcParamsDefault['figure.edgecolor']):
                 bg_edge = 'none'
             else:
-                bg_edge = invert_color(bg_edge)
+                bg_edge = style.invert_color(bg_edge)
         else:
             bg_edge = background_edgecolor
 
@@ -496,6 +434,83 @@ def figures(filename, **kwargs):
             
 
 
+def axes_broken_y(axes, upper_frac=0.5, break_frac=0.02, ybounds=None,
+                  xlabel=None, ylabel=None):
+    """
+    Replace the current axes with a set of upper and lower axes.
+
+    The new axes will be transparent, with a breakmark drawn between them.
+    They share the x-axis.  Returns (upper_axes, lower_axes).
+
+    If ybounds=[ymin_lower, ymax_lower, ymin_upper, ymax_upper] is defined,
+    upper_frac will be ignored, and the y-axis bounds will be fixed with the
+    specified values.
+    """
+    def breakmarks(axes, y_min, y_max, xwidth=0.008):
+        x1, _, x2, _ = axes.get_position().get_points().flatten().tolist()
+        segment_height = (y_max - y_min) / 3.
+        xoffsets = [0, +xwidth, -xwidth, 0]
+        yvalues  = [y_min + (i * segment_height) for i in range(4)]
+        # Get color of y-axis
+        for loc, spine in axes.spines.items():
+            if loc  == 'left':
+                color = spine.get_edgecolor()
+        for x_position in [x1, x2]:
+            line = mpl.lines.Line2D(
+                [x_position + offset for offset in xoffsets], yvalues,
+                transform=plt.gcf().transFigure, clip_on=False,
+                color=color)
+            axes.add_line(line)
+    # Readjust upper_frac if ybounds are defined
+    if ybounds:
+        if len(ybounds) != 4:
+            print("len(ybounds) != 4; aborting...")
+            return
+        ymin1, ymax1, ymin2, ymax2 = [float(value) for value in ybounds]
+        data_height1, data_height2 = (ymax1 - ymin1), (ymax2 - ymin2)
+        upper_frac = data_height2 / (data_height1 + data_height2)
+    x1, y1, x2, y2 = axes.get_position().get_points().flatten().tolist()
+    width = x2 - x1
+    lower_height = (y2 - y1) * ((1 - upper_frac) - 0.5 * break_frac)
+    upper_height = (y2 - y1) * (upper_frac - 0.5 * break_frac)
+    upper_bottom = (y2 - y1) - upper_height + y1
+    lower_axes = plt.axes([x1, y1, width, lower_height], axisbg='None')
+    upper_axes = plt.axes([x1, upper_bottom, width, upper_height],
+                          axisbg='None', sharex=lower_axes)
+    # Erase the edges between the axes
+    for loc, spine in upper_axes.spines.items():
+        if loc == 'bottom':
+            spine.set_color('none')
+    for loc, spine in lower_axes.spines.items():
+        if loc == 'top':
+            spine.set_color('none')
+            
+    upper_axes.get_xaxis().set_ticks_position('top')
+    lower_axes.get_xaxis().set_ticks_position('bottom')
+    plt.setp(upper_axes.get_xticklabels(), visible=False)
+    breakmarks(upper_axes, y1 + lower_height, upper_bottom)
+    
+    # Set ylims if ybounds are defined
+    if ybounds:
+        lower_axes.set_ylim(ymin1, ymax1)
+        upper_axes.set_ylim(ymin2, ymax2)
+        lower_axes.set_autoscaley_on(False)
+        upper_axes.set_autoscaley_on(False)
+        
+        label_pos_upper = (0, 1 - (0.5 /(upper_frac/(1+break_frac))))
+        upper_axes.yaxis.get_label().set_position(label_pos_upper)
+        label_pos_lower = (0, 0.5 / ((1 - upper_frac)/(1+break_frac)))
+        lower_axes.yaxis.get_label().set_position(label_pos_lower)
+        
+    # Make original axes invisible
+    axes.set_xticks([])
+    axes.set_yticks([])
+    for loc, spine in axes.spines.items():
+        spine.set_color('none')
+    return upper_axes, lower_axes
+
+
+
 if __name__ == "__main__":
     print('This file is intended to be used as a module.')
     print('This code serves as a test for the defined methods.')
@@ -509,3 +524,13 @@ if __name__ == "__main__":
         plt.ylabel("f(x)")
         plt.title("Simple Plot")
         plt.legend(("sin(x)","cos(x)"))
+        
+        
+    # test these
+    ax = plt.axes()
+    upper, lower = axes_broken_y(ax, ybounds=[-2., 2.9, 22.1, 30.])
+    upper.plot(range(30), range(30))
+    lower.plot(range(30), range(30))
+    upper.set_ylabel('Data')
+    plt.show()
+        

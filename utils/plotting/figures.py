@@ -56,7 +56,7 @@ class FigureBase(Figure):
             self.backend_old = plt.get_backend()
             plt.switch_backend(backend)
             if backend.lower() != plt.get_backend().lower():
-                logging.warn(
+                logging.warning(
                     'Backend could not be switched from `%s` to `%s`',
                     plt.get_backend(), backend
                 )

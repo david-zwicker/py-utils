@@ -1,1 +1,1 @@
-from _math import *
+from ._math import *

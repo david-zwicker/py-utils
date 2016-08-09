@@ -98,7 +98,6 @@ class cached_property(object):
                 cache = getattr(obj, self.cache)
             except:
                 cache = {}
-                print self.cache
                 setattr(obj, self.cache, cache)
                 
         # try to retrieve from cache or call and store result in cache

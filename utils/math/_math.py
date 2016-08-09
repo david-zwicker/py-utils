@@ -8,14 +8,20 @@ This module contains math functions
 
 from __future__ import division
 
-
 from collections import Counter
+import fractions
+import math
 
 import numpy as np
 from scipy import interpolate
 from scipy.stats import itemfreq
 
-from .misc import estimate_computation_speed
+from ..misc import estimate_computation_speed
+
+
+
+# constants
+PI2 = 2*np.pi
 
 
 
@@ -28,6 +34,36 @@ def xlog2x(x):
 
 # vectorize the function above
 xlog2x = np.vectorize(xlog2x, otypes='d')
+
+
+
+def average_angles(data, period=PI2):
+    """ averages a list of cyclic values (angles by default)
+    data  The list of angles
+    per   The period of the angular variables
+    """
+    data = np.asarray(data)    
+    if period is not PI2:
+        data *= PI2/period
+    data = math.atan2(np.sin(data).sum(), np.cos(data).sum())
+    if period is not PI2:
+        data *= period/PI2
+    return data
+
+
+
+def euler_phi(n):
+    """ evaluates the Euler phi function for argument `n`
+    See http://en.wikipedia.org/wiki/Euler%27s_totient_function
+    Implementation based on http://stackoverflow.com/a/18114286/932593
+    """
+    amount = 0
+
+    for k in xrange(1, n + 1):
+        if fractions.gcd(n, k) == 1:
+            amount += 1
+
+    return amount
 
 
 
@@ -61,6 +97,17 @@ def arrays_close(arr1, arr2, rtol=1e-05, atol=1e-08, equal_nan=False):
             is_close = False
         
     return is_close
+
+
+
+
+def logspace(start, end, num=None, dtype=None):
+    """ Returns an ordered sequence of `num` numbers from `start` to `end`,
+    which are spaced logarithmically """
+    if num is None:
+        return np.logspace(np.log10(start), np.log10(end), dtype=dtype)
+    else:
+        return np.logspace(np.log10(start), np.log10(end), num=num, dtype=dtype)
 
 
 
@@ -364,132 +411,5 @@ def safe_typecast(data, dtype):
     info = np.iinfo(dtype)
     return np.clip(data, info.min, info.max).astype(dtype)
     
-        
-
-class StatisticsAccumulator(object):
-    """ class that can be used to calculate statistics of sets of arbitrarily
-    shaped data sets. This uses an online algorithm, allowing the data to be
-    added one after another """
-    
-    
-    def __init__(self, ddof=0, shape=None, dtype=np.double, ret_cov=False):
-        """ initialize the accumulator
-        `ddof` is the  delta degrees of freedom, which is used in the formula 
-            for the standard deviation.
-        `shape` is the shape of the data. If omitted it will be read from the
-            first value
-        `dtype` is the numpy dtype of the internal accumulator
-        `ret_cov` determines whether the covariances are also calculated
-        """ 
-        self.count = 0
-        self.ddof = ddof
-        self.dtype = dtype
-        self.ret_cov = ret_cov
-        
-        if shape is None:
-            self.shape = None
-            self._mean = None
-            self._M2 = None
-        else:
-            self.shape = shape
-            size = np.prod(shape)
-            self._mean = np.zeros(size, dtype=dtype)
-            if ret_cov:
-                self._M2 = np.zeros((size, size), dtype=dtype)
-            else:
-                self._M2 = np.zeros(size, dtype=dtype)
-            
-            
-    @property
-    def mean(self):
-        """ return the mean """
-        if self.shape is None:
-            return self._mean
-        else:
-            return self._mean.reshape(self.shape)
-        
-        
-    @property
-    def cov(self):
-        """ return the variance """
-        if self.count <= self.ddof:
-            raise RuntimeError('Too few items to calculate variance')
-        elif not self.ret_cov:
-            raise ValueError('The covariance matrix was not calculated')
-        else:
-            return self._M2 / (self.count - self.ddof)
-        
-        
-    @property
-    def var(self):
-        """ return the variance """
-        if self.count <= self.ddof:
-            raise RuntimeError('Too few items to calculate variance')
-        elif self.ret_cov:
-            var = np.diag(self._M2) / (self.count - self.ddof)
-        else:
-            var = self._M2 / (self.count - self.ddof)
-
-        if self.shape is None:
-            return var
-        else:
-            return var.reshape(self.shape)
-        
-        
-    @property
-    def std(self):
-        """ return the standard deviation """
-        return np.sqrt(self.var)
-            
-            
-    def _initialize(self, value):
-        """ initialize the internal state with a given value """
-        # state needs to be initialized
-        self.count = 1
-        if hasattr(value, '__iter__'):
-            # make sure the value is a numpy array
-            value_arr = np.asarray(value, self.dtype)
-            self.shape = value_arr.shape
-            size = value_arr.size
-
-            # store 1d version of it
-            self._mean = value.flatten()
-            if self.ret_cov:
-                self._M2 = np.zeros((size, size), self.dtype)
-            else:
-                self._M2 = np.zeros(size, self.dtype)
-                
-        else:
-            # simple scalar value
-            self.shape = None
-            self._mean = value
-            self._M2 = 0
-        
-            
-    def add(self, value):
-        """ add a value to the accumulator """
-        if self._mean is None:
-            self._initialize(value)
-            
-        else:
-            # update internal state
-            if self.shape is not None:
-                value = np.ravel(value)
-            
-            self.count += 1
-            delta = value - self._mean
-            self._mean += delta / self.count
-            if self.ret_cov:
-                self._M2 += ((self.count - 1) * np.outer(delta, delta)
-                            - self._M2 / self.count)
-            else:
-                self._M2 += delta * (value - self._mean)
-            
-    
-    def add_many(self, iterator):
-        """ adds many values from an array or an iterator """
-        for value in iterator:
-            self.add(value)
-                    
         
         

@@ -10,14 +10,14 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 
-def backend_supports_blitting():
+def supports_blitting():
     """ returns a flag indicating whether the current backend supports blitting.
     """
     # retrieve or initialize cache
     try:
-        blitting_support = backend_supports_blitting._cache
+        blitting_support = supports_blitting._cache
     except AttributeError:
-        blitting_support = backend_supports_blitting._cache = {}
+        blitting_support = supports_blitting._cache = {}
     
     # get currently active backend
     backend = mpl.get_backend().lower()

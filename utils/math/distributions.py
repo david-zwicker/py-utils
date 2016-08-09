@@ -12,15 +12,7 @@ from __future__ import division
 import numpy as np
 from scipy import stats, special, linalg, optimize
 
-from .cache import cached_property
-
-
-
-def lognorm_mean(mean, sigma):
-    """ returns a lognormal distribution parameterized by its mean and a spread
-    parameter `sigma` """
-    mu = mean * np.exp(-0.5 * sigma**2)
-    return stats.lognorm(scale=mu, s=sigma)
+from ..data_structures.cache import cached_property
 
 
 
@@ -38,6 +30,14 @@ def lognorm_mean_var_to_mu_sigma(mean, variance, definition='scipy'):
         return np.log(mu), sigma
     else:
         raise ValueError('Unknown definition `%s`' % definition)
+
+
+
+def lognorm_mean(mean, sigma):
+    """ returns a lognormal distribution parameterized by its mean and a spread
+    parameter `sigma` """
+    mu = mean * np.exp(-0.5 * sigma**2)
+    return stats.lognorm(scale=mu, s=sigma)
 
 
 

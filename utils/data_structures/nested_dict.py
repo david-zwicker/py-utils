@@ -1,109 +1,19 @@
 '''
-Created on Dec 19, 2014
+Created on Aug 9, 2016
 
 @author: David Zwicker <dzwicker@seas.harvard.edu>
-
-This module contains several data structures and functions for manipulating them
 '''
 
 from __future__ import division
 
 import collections
 import datetime
-import os
+import os.path
 import sys
 import warnings
 
-import numpy as np
 import h5py
-
-
-
-def transpose_list_of_dicts(data, missing=None):
-    """ turns a list of dictionaries into a dictionary of lists, filling in
-    `missing` for items that are not available in some dictionaries """
-    result = {}
-    result_len = 0
-    keys = set()
-    
-    # iterate through the whole list and add items one by one
-    for item in data:
-        # add the items to the result dictionary
-        for k, v in item.iteritems():
-            try:
-                result[k].append(v)
-            except KeyError:
-                keys.add(k)
-                result[k] = [missing] * result_len + [v]
-                
-        # add missing items
-        for k in keys - set(item.keys()):
-            result[k].append(missing)
-                
-        result_len += 1
-    
-    return result
-
-
-
-def save_dict_to_csv(data, filename, first_columns=None, **kwargs):
-    """ function that takes a dictionary of lists and saves it as a csv file """
-    if first_columns is None:
-        first_columns = []
-
-    # sort the columns 
-    sorted_index = {c: k for k, c in enumerate(sorted(data.keys()))}
-    def column_key(col):
-        """ helper function for sorting the columns in the given order """
-        try:
-            return first_columns.index(col)
-        except ValueError:
-            return len(first_columns) + sorted_index[col]
-    sorted_keys = sorted(data.keys(), key=column_key)
-        
-    # create a data table and indicated potential units associated with the data
-    # in the header
-    table = collections.OrderedDict()
-    for key in sorted_keys:
-        value = data[key]
-        
-        # check if value has a unit
-        if hasattr(value, 'units'):
-            # value is single item with unit
-            key += ' [%s]' % value.units
-            value = value.magnitude
-            
-        elif len(value) > 0 and any(hasattr(v, 'units') for v in value):
-            # value is a list with at least one unit attached to it
-            
-            try:
-                # get list of units ignoring empty items
-                units = set(str(item.units)
-                            for item in value
-                            if item is not None)
-            except AttributeError:
-                # one item did not have a unit
-                for k, item in enumerate(value):
-                    if not hasattr(item, 'units'):
-                        print([val[k] for val in data.values()])
-                        raise AttributeError('Value `%s = %s` does not have '
-                                             'any units' % (key, item))
-                raise
-            
-            # make sure that the units are all the same
-            assert len(units) == 1
-            
-            # construct key and values
-            key += ' [%s]' % units.pop()
-            value = [item.magnitude if item is not None else None
-                     for item in value]
-            
-        table[key] = value
-
-    # create a pandas data frame to save data to CSV
-    import pandas as pd
-    pd.DataFrame(table).to_csv(filename, **kwargs)
-
+import numpy as np
 
 
 
@@ -116,22 +26,6 @@ def get_chunk_size(shape, num_elements):
         chunks[dim_long] = 1 #< temporary set to one for np.prod 
         chunks[dim_long] = max(1, num_elements // np.prod(chunks))
     return tuple(chunks)
-    
-
-
-class OmniContainer(object):
-    """ helper class that acts as a container that contains everything """
-    def __bool__(self, key):
-        return True
-    
-    def __contains__(self, key):
-        return True
-    
-    def __delitem__(self, key):
-        pass
-    
-    def __repr__(self):
-        return '%s()' % self.__class__.__name__
     
     
 
@@ -281,27 +175,6 @@ class LazyHDFCollection(LazyHDFValue):
                 result = self.data_cls()
                 
         return result
-
-
-
-def prepare_data_for_yaml(data):
-    """ recursively converts all numpy types to their closest python equivalents """
-    if isinstance(data, np.ndarray):
-        return data.tolist()
-    elif isinstance(data, np.floating):
-        return float(data)
-    elif isinstance(data, np.integer):
-        return int(data)
-    elif isinstance(data, collections.MutableMapping):
-        return {k: prepare_data_for_yaml(v) for k, v in data.iteritems()}
-    elif isinstance(data, (list, tuple)):
-        return [prepare_data_for_yaml(v) for v in data]
-    elif isinstance(data, LazyHDFValue):
-        return data.get_yaml_string()
-    elif data is not None and not isinstance(data, (bool, int, float, list, basestring)):
-        warnings.warn('Encountered unknown instance of `%s` in YAML preparation' %
-                      data.__class__)
-    return data
 
 
 
@@ -574,3 +447,23 @@ class LazyNestedDict(NestedDict):
             
         return value
     
+    
+
+def prepare_data_for_yaml(data):
+    """ recursively converts all numpy types to their closest python equivalents """
+    if isinstance(data, np.ndarray):
+        return data.tolist()
+    elif isinstance(data, np.floating):
+        return float(data)
+    elif isinstance(data, np.integer):
+        return int(data)
+    elif isinstance(data, collections.MutableMapping):
+        return {k: prepare_data_for_yaml(v) for k, v in data.iteritems()}
+    elif isinstance(data, (list, tuple)):
+        return [prepare_data_for_yaml(v) for v in data]
+    elif isinstance(data, LazyHDFValue):
+        return data.get_yaml_string()
+    elif data is not None and not isinstance(data, (bool, int, float, list, basestring)):
+        warnings.warn('Encountered unknown instance of `%s` in YAML preparation' %
+                      data.__class__)
+    return data    

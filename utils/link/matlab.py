@@ -9,81 +9,52 @@ Code for interacting with matlab
 from __future__ import division
 
 import glob
-import subprocess
 import sys
 import os
 
-import six
+from .base import ExecutableBase
 
 
 
-MATLAB_CMD = None
-
-
-
-def determine_matlab_command():
-    """ tries to locate matlab. If successful, the function returns the
-    command to run matlab """
-    # look for matlab in Applications folder on mac     
-    if sys.platform == 'darwin':
-        pattern = "/Applications/MATLAB_R?????.app/bin/matlab"
-        choices = glob.glob(pattern)
-        if choices:
-            # return last item from sorted results
-            return sorted(choices)[-1]
+class Matlab(ExecutableBase):
+    """ class that connects to Matlab """ 
     
-    # otherwise, look in all the application paths
-    paths = os.environ.get("PATH", "").split(os.pathsep)
-    if 'MATLABROOT' in os.environ:
-        paths.insert(0, os.environ['MATLABROOT'])
-
-    for path in paths:
-        candidate = os.path.realpath(os.path.join(path, 'matlab'))
-        if os.path.isfile(candidate):
-            return candidate
-        elif os.path.isfile(candidate + '.exe'):
-            return candidate + '.exe'
-
-    raise RuntimeError('Could not find matlab')
+    name = 'Matlab'
+    standards_args = ["-nojvm", "-nodisplay", "-nosplash", "-nodesktop"]
+    skip_init_lines = 12
     
-
-
-def _run_matlab_commandline(command, skip_startup_lines=12, **kwargs):
-    """ runs the matlab script `filename` and returns the output """
-    # make sure we find matlab
-    global MATLAB_CMD
-    if MATLAB_CMD is None:
-        MATLAB_CMD = determine_matlab_command()
     
-    # build the command to run matlab
-    cmd = [MATLAB_CMD,
-           "-nojvm", "-nodisplay", "-nosplash", "-nodesktop"]
-    if isinstance(command, six.string_types):
-        cmd.append(command)
-    else:
-        cmd.extend(command)
+    def find_program(self):
+        """ tries to locate matlab. If successful, the function returns the
+        command to run matlab """
+        # look for matlab in Applications folder on mac     
+        if sys.platform == 'darwin':
+            pattern = "/Applications/MATLAB_R?????.app/bin/matlab"
+            choices = glob.glob(pattern)
+            if choices:
+                # return last item from sorted results
+                return sorted(choices)[-1]
+        
+        # otherwise, look in all the application paths
+        paths = os.environ.get("PATH", "").split(os.pathsep)
+        if 'MATLABROOT' in os.environ:
+            paths.insert(0, os.environ['MATLABROOT'])
     
-    # run matlab in a separate process and capture output
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, shell=False, **kwargs)
-    stdout, stderr = process.communicate()
+        for path in paths:
+            candidate = os.path.realpath(os.path.join(path, 'matlab'))
+            if os.path.isfile(candidate):
+                return candidate
+            elif os.path.isfile(candidate + '.exe'):
+                return candidate + '.exe'
     
-    # process output if necessary
-    if skip_startup_lines > 0:
-        stdout = stdout.split("\n", skip_startup_lines + 1)[-1]
+        raise RuntimeError('Could not find Matlab')
+
     
-    return stdout, stderr
-
-
-
-def run_matlab_code(code, skip_startup_lines=12, **kwargs):
-    """ runs the matlab script `filename` and returns the output """
-    return _run_matlab_commandline("-r \"%s;exit;\"" % code, skip_startup_lines,
-                                   **kwargs)
-
-
-
-def run_matlab_script(filename, skip_startup_lines=12, **kwargs):
-    """ runs the matlab script `filename` and returns the output """
-    return _run_matlab_commandline(["-r", filename], skip_startup_lines,
-                                   **kwargs)
+    def run_code(self, code, **kwargs):
+        """ runs matlab code and returns the output """
+        return self._run_command("-r \"%s;exit;\"" % code, **kwargs)
+    
+    
+    def run_script(self, filename, **kwargs):
+        """ runs the matlab script `filename` and returns the output """
+        return self._run_command(["-r", filename], **kwargs)

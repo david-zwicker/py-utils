@@ -98,6 +98,7 @@ def number2latex(val, **kwargs):
 
 
 def tex2pdf(tex_source, outfile, use_pdflatex=True, verbose=False):
+    """ takes latex source code and compiles it into a PDF file """
 
     if verbose:
         verbosity = ""

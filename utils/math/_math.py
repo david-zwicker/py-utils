@@ -337,6 +337,29 @@ def homogenize_arraylist(data):
 
 
 
+def homogenize_unit_array(arr, unit=None):
+    """ takes an list with quantities and turns it into a numpy array with a
+    single associated unit
+    
+    `arr` is the (not nested) list of values
+    `unit` defines the unit to which all items are converted. If it is omitted,
+        the unit is determined automatically from the first array element
+    """
+    if unit is None:
+        if len(arr) > 0:
+            # extract unit from array
+            unit = arr[0] / arr[0].magnitude
+        else:
+            unit = 1
+        
+    # convert all values to this unit and return their magnitude
+    arr = [val.to(unit).magnitude for val in arr]
+    
+    # return the array with units
+    return arr * unit
+        
+
+
 def is_equidistant(data):
     """ checks whether the 1d array given by `data` is equidistant """
     if len(data) < 2:
@@ -413,25 +436,3 @@ def safe_typecast(data, dtype):
     
 
     
-def homogenize_unit_array(arr, unit=None):
-    """ takes an list with quantities and turns it into a numpy array with a
-    single associated unit
-    
-    `arr` is the (not nested) list of values
-    `unit` defines the unit to which all items are converted. If it is omitted,
-        the unit is determined automatically from the first array element
-    """
-    if unit is None:
-        if len(arr) > 0:
-            # extract unit from array
-            unit = arr[0] / arr[0].magnitude
-        else:
-            unit = 1
-        
-    # convert all values to this unit and return their magnitude
-    arr = [val.to(unit).magnitude for val in arr]
-    
-    # return the array with units
-    return arr * unit
-        
-        

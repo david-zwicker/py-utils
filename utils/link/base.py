@@ -39,8 +39,8 @@ class ExecutableBase(object):
             additional command line arguments
         `show_cmd` is a flag that if enabled, outputs the command for debugging
         `stdin` is a string that will be send to the program's stdin
-        `skip_stdout_lines` defines the number of lines that will be removed from
-            the stdout (usually because they are some kind of startup message)
+        `skip_stdout_lines` defines the number of lines that will be removed
+            from stdout (usually because they are some kind of startup message)
         """
         # build the command to run the program
         cmd = [self.program_path] + self.standards_args
@@ -74,5 +74,6 @@ class ExecutableBase(object):
         if skip_stdout_lines > 0:
             stdout = stdout.split("\n", skip_stdout_lines + 1)[-1]
         
-        return stdout, stderr       
+        return stdout, stderr
+    
         

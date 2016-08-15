@@ -39,7 +39,8 @@ class Mathematica(ExecutableBase):
             # search `MathKernel.exe` in all paths
             paths = os.environ.get("PATH", "").split(os.pathsep)
             for path in paths:
-                candidate = os.path.realpath(os.path.join(path, 'MathKernel.exe'))
+                candidate = os.path.join(path, 'MathKernel.exe')
+                candidate = os.path.realpath(candidate)
                 if os.path.isfile(candidate):
                     return candidate
                 

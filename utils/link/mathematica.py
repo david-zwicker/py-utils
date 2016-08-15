@@ -8,6 +8,7 @@ Code for interacting with Mathematica
 
 from __future__ import division
 
+import collections
 import sys
 import os
 
@@ -68,3 +69,60 @@ class Mathematica(ExecutableBase):
         return self._run_command(["-noprompt", "-run", "<<%s" % filename],
                                  **kwargs)
     
+    
+    def extract_output_cell(self, output, cell_nr):
+        """ parse the `output` to extract the output cell given by `cell_nr` """
+        # define the token the signifies the begin of the output cell
+        token = 'Out[%d]= ' % cell_nr
+    
+        res = None
+        for line in output.split('\n'):
+            if line.startswith(token):
+                # found the beginning of the output cell
+                res = line[len(token):]
+            elif res is not None:
+                # the output cell has been found
+                if line.startswith('In') or line.startswith('Out'):
+                    # a new cell begins and we're thus finished
+                    break
+                else:
+                    # append the output, since it belongs to the target cell
+                    res += '\n' + line
+        
+        return res
+    
+    
+    def extract_output_cells(self, output):
+        """ parse the `output` to extract all output cells """
+        # collect all cells in an ordered dictionary
+        cells = collections.OrderedDict()
+        
+        cell_id, cell_content = None, None
+        for line in output.split('\n'):
+            if line.startswith('Out['):
+                # store the old cell
+                if cell_id is not None:
+                    cells[cell_id] = cell_content.rstrip()
+                # extract cell index
+                cell_header = line.split(']')[0]
+                cell_id = int(cell_header[4:])
+                cell_content = line[len(cell_header) + 3:]
+    
+            elif cell_id is not None:
+                # the output cell has been found
+                if line.startswith('In['):
+                    # store the old cell
+                    if cell_id is not None:
+                        cells[cell_id] = cell_content.rstrip()
+                    # we don't store the input cells
+                    cell_id, cell_content = None, None
+                else:
+                    # append the output, since it belongs to the cell
+                    cell_content += '\n' + line
+    
+        # store the last cell
+        if cell_id is not None:
+            cells[cell_id] = cell_content.rstrip()
+                    
+        return cells
+        

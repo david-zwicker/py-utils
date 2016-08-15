@@ -21,7 +21,7 @@ class Matlab(ExecutableBase):
     
     name = 'Matlab'
     standards_args = ["-nojvm", "-nodisplay", "-nosplash", "-nodesktop"]
-    skip_init_lines = 12
+    skip_stdout_lines = 12
     
     
     def find_program(self):
@@ -58,3 +58,4 @@ class Matlab(ExecutableBase):
     def run_script(self, filename, **kwargs):
         """ runs the matlab script `filename` and returns the output """
         return self._run_command(["-r", filename], **kwargs)
+    

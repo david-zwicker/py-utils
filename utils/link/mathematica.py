@@ -19,7 +19,7 @@ class Mathematica(ExecutableBase):
     """ class that connects to Mathematica """ 
     
     name = 'Mathematica'
-    standards_args = ["-noprompt"]
+    standards_args = []
     
     
     def find_program(self):
@@ -56,9 +56,14 @@ class Mathematica(ExecutableBase):
 
     def run_code(self, code, **kwargs):
         """ runs Mathematica code and returns the output """
-        return self._run_command(["-run", "%s" % code], **kwargs)
+        kwargs.setdefault('skip_stdout_lines', 2)
+        code += '\nExit[]' #< make sure the program exits
+        return self._run_command("", stdin=code, **kwargs)
+        #return self._run_command(["-run", "%s" % code], **kwargs)
         
 
     def run_script(self, filename, **kwargs):
         """ runs the Mathematica script `filename` and returns the output """
-        return self._run_command(["-run", "<<%s" % filename], **kwargs)
+        return self._run_command(["-noprompt", "-run", "<<%s" % filename],
+                                 **kwargs)
+    

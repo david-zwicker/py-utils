@@ -74,6 +74,29 @@ def silent_stdout():
     sys.stdout = save_stdout
     
     
+    
+class DisableLogging(object):
+    """ class that temporarily disables all logging """
+    
+    def __init__(self):
+        """ initialize the class properties """
+        self._root_logger = None
+        self._state = None
+    
+    
+    def __enter__(self):
+        """ store the state of the root logger and disable it """
+        if self._root_logger is None:
+            self._root_logger = logging.getLogger()
+        self._state = self._root_logger.disabled
+        self._root_logger.disabled = True
+
+
+    def __exit__(self, *args):
+        """ restore the state of the root logger """
+        self._root_logger.disabled = self._state
+    
+    
 
 if sys.version_info[0] == 2:
     # python 2 version

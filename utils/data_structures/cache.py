@@ -9,6 +9,13 @@ This module contains functions that can be used to manage cache structures
 from __future__ import division
 
 import collections
+import functools
+import types
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 import numpy as np
 
@@ -164,6 +171,164 @@ class PersistentDict(collections.MutableMapping):
     def __iter__(self):
         for row in self._con.execute("SELECT key FROM cache").fetchall():
             yield row[0]
+
+
+
+class PersistentSerializedDict(PersistentDict):
+    """ a key value database which is stored on the disk
+    This class provides hooks for converting arbitrary keys and values to
+    strings, which are then stored in the database. If not overwritten, pickled
+    strings are used by default
+    """
+    
+    def __init__(self, pickle_keys=True, pickle_values=True):
+        self.pickle_keys = pickle_keys
+        self.pickle_values = pickle_values
+    
+    
+    def key_to_str(self, key):
+        """ converts an arbitrary key to a string """
+        return pickle.dumps(key) if self.pickle_keys else key
+    
+    
+    def value_to_str(self, value):
+        """ converts an arbitrary value to a string """
+        return pickle.dumps(value) if self.pickle_value else value
+    
+    
+    def str_to_value(self, value):
+        """ converts a string into a value object """
+        return pickle.loads(value) if self.pickle_value else value
+    
+    
+    def __getitem__(self, key):
+        # convert key to its string representation
+        key = self.key_to_str(key)
+        # fetch the value
+        value = super(PersistentSerializedDict, self).__getitem__()
+        # convert the value to its object representation
+        return self.str_to_value(value)
+        
+        
+    def __setitem__(self, key, value):
+        # convert key and value to their string representations
+        key = self.key_to_str(key)
+        value = self.value_to_str(value)
+        super(PersistentSerializedDict, self).__setitem__(key, value)
+
+
+    def __delitem__(self, key):
+        # convert key to its string representation
+        key = self.key_to_str(key)
+        super(PersistentSerializedDict, self).__delitem__(key)
+    
+    
+    def __contains__(self, key):
+        # convert key to its string representation
+        key = self.key_to_str(key)
+        super(PersistentSerializedDict, self).__contains__(key)
+    
+    
+    def __iter__(self):
+        for value in super(PersistentSerializedDict, self).__iter__():
+            # convert the value to its object representation
+            yield self.str_to_value(value)
+
+
+
+def cached_method(method, doc=None, name=None):
+    """ decorator that caches method calls in a dictionary attached to the
+    object. This can be used with most classes
+
+        class Foo(object):
+
+            @cached_method
+            def foo(self):
+                return "Cached"
+    
+            @cached_method
+            def bar(self):
+                return "Cached"
+                
+    
+        foo = Foo()
+        foo.bar()
+        
+        # The cache is now stored in foo._cache
+        
+    This class also plays together with user-supplied storage backends, if the
+    method `get_cache` is defined.  
+    
+        class Foo(object):
+        
+            def __init__(self):
+                self._cache = {}
+                
+            def get_cache(self, name):
+                try:
+                    return self._cache[name]
+                except:
+                    cache = {}
+                    self._cache[name] = cache
+                    return cache
+
+            @cached_method
+            def foo(self):
+                return "Cached"
+    """
+
+    if name is None:
+        name = method.__name__
+
+    def get_cache_method(obj, name):
+        """ universial method that returns a dict cache for name `name` """
+        try:
+            return obj._cache[name]
+        except AttributeError:
+            try:
+                obj.init_cache(obj)
+            except AttributeError:
+                obj._cache = collections.defaultdict(dict)
+            return obj._cache[name]
+
+    def make_cache_key_method(args, kwargs):
+        """ universial method that converts methods arguments to a string """
+        return pickle.dumps((args, kwargs))
+
+
+    @functools.wraps(method)
+    def wrapper(obj, *args, **kwargs):
+        try:
+            # try loading the cache_getter from the object
+            get_cache = obj._get_cache
+        except AttributeError:
+            # otherwise use the default method from DictCache
+            obj._get_cache = types.MethodType(get_cache_method, obj.__class__)
+            get_cache = obj._get_cache
+
+        try:
+            # try loading the cache_getter from the object
+            make_cache_key = obj._make_cache_key
+        except AttributeError:
+            # otherwise use the default method from DictCache
+            obj._make_cache_key = make_cache_key_method
+            make_cache_key = obj._make_cache_key
+
+        # obtain the actual cache associated with this method
+        cache = get_cache(name)
+        # determine the key that encodes the current arguments
+        cache_key = make_cache_key(args, kwargs)
+
+        try:
+            # try loading the results from the cache
+            result = cache[cache_key]
+        except KeyError:
+            # if this failed, compute and store the results
+            result = method(obj, *args, **kwargs)
+            cache[cache_key] = result
+        return result
+
+    return wrapper
 
 
 

@@ -181,9 +181,10 @@ class PersistentSerializedDict(PersistentDict):
     strings are used by default
     """
     
-    def __init__(self, pickle_keys=True, pickle_values=True):
-        self.pickle_keys = pickle_keys
-        self.pickle_values = pickle_values
+    def __init__(self, filename, serialize_keys=True, serialize_values=True):
+        super(PersistentSerializedDict, self).__init__(filename)
+        self.pickle_keys = serialize_keys
+        self.pickle_values = serialize_values
     
     
     def key_to_str(self, key):
@@ -193,19 +194,19 @@ class PersistentSerializedDict(PersistentDict):
     
     def value_to_str(self, value):
         """ converts an arbitrary value to a string """
-        return pickle.dumps(value) if self.pickle_value else value
+        return pickle.dumps(value) if self.pickle_values else value
     
     
     def str_to_value(self, value):
         """ converts a string into a value object """
-        return pickle.loads(value) if self.pickle_value else value
+        return pickle.loads(str(value)) if self.pickle_values else value
     
     
     def __getitem__(self, key):
         # convert key to its string representation
         key = self.key_to_str(key)
         # fetch the value
-        value = super(PersistentSerializedDict, self).__getitem__()
+        value = super(PersistentSerializedDict, self).__getitem__(key)
         # convert the value to its object representation
         return self.str_to_value(value)
         
@@ -300,19 +301,19 @@ def cached_method(method, doc=None, name=None):
     def wrapper(obj, *args, **kwargs):
         try:
             # try loading the cache_getter from the object
-            get_cache = obj._get_cache
+            get_cache = obj.get_cache
         except AttributeError:
             # otherwise use the default method from DictCache
-            obj._get_cache = types.MethodType(get_cache_method, obj.__class__)
-            get_cache = obj._get_cache
+            obj.get_cache = types.MethodType(get_cache_method, obj.__class__)
+            get_cache = obj.get_cache
 
         try:
             # try loading the cache_getter from the object
-            make_cache_key = obj._make_cache_key
+            make_cache_key = obj.make_cache_key
         except AttributeError:
             # otherwise use the default method from DictCache
-            obj._make_cache_key = make_cache_key_method
-            make_cache_key = obj._make_cache_key
+            obj.make_cache_key = make_cache_key_method
+            make_cache_key = obj.make_cache_key
 
         # obtain the actual cache associated with this method
         cache = get_cache(name)

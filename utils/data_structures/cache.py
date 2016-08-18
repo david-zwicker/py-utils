@@ -10,7 +10,6 @@ from __future__ import division
 
 import collections
 import functools
-import types
 
 try:
     import cPickle as pickle
@@ -281,42 +280,37 @@ def cached_method(method, doc=None, name=None):
     if name is None:
         name = method.__name__
 
-    def get_cache_method(obj, name):
-        """ universial method that returns a dict cache for name `name` """
-        try:
-            return obj._cache[name]
-        except AttributeError:
-            try:
-                obj.init_cache(obj)
-            except AttributeError:
-                obj._cache = collections.defaultdict(dict)
-            return obj._cache[name]
-
     def make_cache_key_method(args, kwargs):
-        """ universial method that converts methods arguments to a string """
+        """ universal method that converts methods arguments to a string """
         return pickle.dumps((args, kwargs))
 
 
     @functools.wraps(method)
     def wrapper(obj, *args, **kwargs):
+        # try accessing the cache
         try:
-            # try loading the cache_getter from the object
-            get_cache = obj.get_cache
+            cache = wrapper._cache
         except AttributeError:
-            # otherwise use the default method from DictCache
-            obj.get_cache = types.MethodType(get_cache_method, obj.__class__)
-            get_cache = obj.get_cache
+            # cache was not available and we thus need to create it
+            
+            try:
+                # try accessing a custom `get_cache` method
+                get_cache = obj.get_cache
+            except AttributeError:
+                # use a dictionary if it is not available
+                cache = {}
+            else:
+                # get the cache using the custom method
+                cache = get_cache(name)
 
         try:
-            # try loading the cache_getter from the object
+            # try loading the function making the cache key from the object
             make_cache_key = obj.make_cache_key
         except AttributeError:
             # otherwise use the default method from DictCache
             obj.make_cache_key = make_cache_key_method
             make_cache_key = obj.make_cache_key
 
-        # obtain the actual cache associated with this method
-        cache = get_cache(name)
         # determine the key that encodes the current arguments
         cache_key = make_cache_key(args, kwargs)
 

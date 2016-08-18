@@ -346,11 +346,12 @@ def homogenize_unit_array(arr, unit=None):
         the unit is determined automatically from the first array element
     """
     if unit is None:
-        if len(arr) > 0:
+        try:
             # extract unit from array
             unit = arr[0] / arr[0].magnitude
-        else:
-            unit = 1
+        except (AttributeError, IndexError):
+            # either `arr` was not an array or it didn't carry units 
+            return arr
         
     # convert all values to this unit and return their magnitude
     arr = [val.to(unit).magnitude for val in arr]

@@ -238,7 +238,7 @@ class PersistentSerializedDict(PersistentDict):
 
 def cached_method(method, doc=None, name=None):
     """ decorator that caches method calls in a dictionary attached to the
-    object. This can be used with most classes
+    methods. This can be used with most classes
 
         class Foo(object):
 
@@ -254,36 +254,27 @@ def cached_method(method, doc=None, name=None):
         foo = Foo()
         foo.bar()
         
-        # The cache is now stored in foo._cache
+        # The cache is now stored in foo.foo._cache and foo.bar._cache
         
     This class also plays together with user-supplied storage backends, if the
     method `get_cache` is defined.  
     
         class Foo(object):
-        
-            def __init__(self):
-                self._cache = {}
                 
             def get_cache(self, name):
-                try:
-                    return self._cache[name]
-                except:
-                    cache = {}
-                    self._cache[name] = cache
-                    return cache
+                # `name` is the name of the method for which this cache is used
+                return DictFiniteCapacity()
 
             @cached_method
             def foo(self):
                 return "Cached"
     """
-
     if name is None:
         name = method.__name__
 
     def make_cache_key_method(args, kwargs):
         """ universal method that converts methods arguments to a string """
         return pickle.dumps((args, kwargs))
-
 
     @functools.wraps(method)
     def wrapper(obj, *args, **kwargs):
@@ -302,6 +293,9 @@ def cached_method(method, doc=None, name=None):
             else:
                 # get the cache using the custom method
                 cache = get_cache(name)
+                
+            # attach the cache to the wrapper
+            wrapper._cache = cache
 
         try:
             # try loading the function making the cache key from the object

@@ -4,6 +4,7 @@ Created on Aug 14, 2016
 @author: David Zwicker <dzwicker@seas.harvard.edu>
 '''
 
+import logging
 import subprocess
 
 import six
@@ -29,15 +30,14 @@ class ExecutableBase(object):
         raise RuntimeError('Could not find %s' % self.name)
         
         
-    def _run_command(self, command, show_cmd=False, stdin=None,
-                     skip_stdout_lines=None, **kwargs):
+    def _run_command(self, command, stdin=None, skip_stdout_lines=None,
+                     **kwargs):
         """ runs the script adding `command` to the command line and piping
         `stdin` to its stdin. The function returns the text written to stdout
         and stderr of the script.
         
         `command` can be either a string or a list of strings. Both give the
             additional command line arguments
-        `show_cmd` is a flag that if enabled, outputs the command for debugging
         `stdin` is a string that will be send to the program's stdin
         `skip_stdout_lines` defines the number of lines that will be removed
             from stdout (usually because they are some kind of startup message)
@@ -49,9 +49,7 @@ class ExecutableBase(object):
         else:
             cmd.extend(command)
             
-        if show_cmd:
-            print('Command to be executed:')
-            print(cmd)
+        logging.debug('Command to be executed: %s', cmd)
 
         if stdin is None:        
             # run program in a separate process and capture output
@@ -73,6 +71,9 @@ class ExecutableBase(object):
             skip_stdout_lines = self.skip_stdout_lines
         if skip_stdout_lines > 0:
             stdout = stdout.split("\n", skip_stdout_lines + 1)[-1]
+        
+        logging.debug('stdout:\n%s', stdout)
+        logging.debug('stderr:\n%s', stderr)
         
         return stdout, stderr
     

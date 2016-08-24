@@ -208,6 +208,11 @@ class PersistentDict(collections.MutableMapping):
     def __iter__(self):
         for row in self._con.execute("SELECT key FROM cache").fetchall():
             yield row[0]
+            
+            
+    def clear(self):
+        """ clears all records in the dictionary """
+        return self._con.execute("DELETE FROM cache ")
 
 
 
@@ -226,6 +231,7 @@ class PersistentSerializedDict(PersistentDict):
         super(PersistentSerializedDict, self).__init__(filename)
         
         self.serialize_key = make_serializer(key_serialization)
+        self.unserialize_key = make_unserializer(key_serialization)
         self.serialize_value = make_serializer(value_serialization)
         self.unserialize_value = make_unserializer(value_serialization)
     
@@ -263,9 +269,9 @@ class PersistentSerializedDict(PersistentDict):
     
     def __iter__(self):
         # iterate  dictionary
-        for value in super(PersistentSerializedDict, self).__iter__():
+        for key in super(PersistentSerializedDict, self).__iter__():
             # convert the value to its object representation
-            yield self.unserialize_value(value)
+            yield self.unserialize_key(key)
 
 
 
@@ -290,10 +296,11 @@ class cached_method(object):
             foo = Foo()
             foo.bar()
             
-            # The cache is now stored in foo.foo._cache and foo.bar._cache
+            # The caches are now stored in foo.foo._cache and foo.bar._cache
             
         This class also plays together with user-supplied storage backends by 
-        defining a cache factory
+        defining a cache factory. The cache factory should return a dict-like
+        object that handles the cache for the given method.
         
             class Foo(object):
                     

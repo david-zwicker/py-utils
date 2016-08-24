@@ -14,6 +14,50 @@ import numpy as np
 
 
 
+def make_serializer(method):
+    """ returns a function that serialize data with the  given method """
+    if method is None or not method:
+        return lambda s: s
+
+    elif method == 'json':
+        import json
+        return lambda s: json.dumps(s, sort_keys=True)
+
+    elif method == 'pickle':
+        import cPickle
+        return cPickle.dumps
+
+    elif method == 'yaml':
+        import yaml
+        return yaml.dump
+    
+    else:
+        raise ValueError('Unknown serialization method `%s`' % method)
+
+
+
+def make_unserializer(method):
+    """ returns a function that unserialize data with the  given method """
+    if method is None or not method:
+        return lambda s: s
+
+    elif method == 'json':
+        import json
+        return json.loads
+
+    elif method == 'pickle':
+        import cPickle
+        return lambda s: cPickle.loads(str(s))
+
+    elif method == 'yaml':
+        import yaml
+        return yaml.load
+    
+    else:
+        raise ValueError('Unknown serialization method `%s`' % method)
+    
+    
+
 class DictFiniteCapacity(collections.OrderedDict):
     """ cache with a limited number of items """
     
@@ -170,60 +214,20 @@ class PersistentDict(collections.MutableMapping):
 class PersistentSerializedDict(PersistentDict):
     """ a key value database which is stored on the disk
     This class provides hooks for converting arbitrary keys and values to
-    strings, which are then stored in the database. If not overwritten, pickled
-    strings are used by default
+    strings, which are then stored in the database.
     """
     
-    def __init__(self, filename, key_serialization='json', value_serialization='pickle'):
+    def __init__(self, filename, key_serialization='json',
+                 value_serialization='pickle'):
+        """ initializes a persistent dictionary whose keys and values are
+        serialized transparently. The serialization methods are determined by
+        `key_serialization` and `value_serialization`.
+        """
         super(PersistentSerializedDict, self).__init__(filename)
         
-        self.serialize_key = self.make_serializer(key_serialization)
-        self.serialize_value = self.make_serializer(value_serialization)
-        self.unserialize_value = self.make_unserializer(value_serialization)
-    
-    
-    def make_serializer(self, method):
-        """ returns a function that can be used to serialize data with the 
-        given method """
-        if method is None or not method:
-            return lambda key: key
-
-        elif method == 'json':
-            import json
-            return lambda key: json.dumps(key, sort_keys=True)
-
-        elif method == 'pickle':
-            import cPickle
-            return pickle.dumps
-    
-        elif method == 'yaml':
-            import yaml
-            return yaml.dump
-        
-        else:
-            raise ValueError('Unknown serialization method `%s`' % method)
-    
-    
-    def make_unserializer(self, method):
-        """ returns a function that can be used to unserialize data with the 
-        given method """
-        if method is None or not method:
-            return lambda key: key
-
-        elif method == 'json':
-            import json
-            return json.loads
-
-        elif method == 'pickle':
-            import cPickle
-            return pickle.loads
-    
-        elif method == 'yaml':
-            import yaml
-            return yaml.load
-        
-        else:
-            raise ValueError('Unknown serialization method `%s`' % method)
+        self.serialize_key = make_serializer(key_serialization)
+        self.serialize_value = make_serializer(value_serialization)
+        self.unserialize_value = make_unserializer(value_serialization)
     
     
     def __getitem__(self, key):
@@ -268,7 +272,7 @@ class PersistentSerializedDict(PersistentDict):
 class cached_method(object):
     """ class handling the caching of results of methods """
     
-    def __init__(self, factory=None, doc=None, name=None):
+    def __init__(self, factory=None, serializer='json', doc=None, name=None):
         """ decorator that caches method calls in a dictionary attached to the
         methods. This can be used with most classes
     
@@ -308,6 +312,7 @@ class cached_method(object):
                              '@{0}() instead of @{0}'.format(class_name))
             
         self.factory = factory
+        self.serializer = serializer
         self.name = name
         
     
@@ -317,9 +322,7 @@ class cached_method(object):
         if self.name is None:
             self.name = method.__name__
     
-        def make_cache_key_method(args, kwargs):
-            """ universal method that converts methods arguments to a string """
-            return pickle.dumps((args, kwargs))
+        serialize_key = make_serializer(self.serializer)
     
         @functools.wraps(method)
         def wrapper(obj, *args, **kwargs):
@@ -336,16 +339,8 @@ class cached_method(object):
                 # attach the cache to the wrapper
                 wrapper._cache = cache
     
-            try:
-                # try loading the function making the cache key from the object
-                make_cache_key = obj.make_cache_key
-            except AttributeError:
-                # otherwise use the default method from DictCache
-                obj.make_cache_key = make_cache_key_method
-                make_cache_key = obj.make_cache_key
-    
             # determine the key that encodes the current arguments
-            cache_key = make_cache_key(args, kwargs)
+            cache_key = serialize_key((args, kwargs))
     
             try:
                 # try loading the results from the cache

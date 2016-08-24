@@ -236,88 +236,98 @@ class PersistentSerializedDict(PersistentDict):
 
 
 
-def cached_method(method, doc=None, name=None):
-    """ decorator that caches method calls in a dictionary attached to the
-    methods. This can be used with most classes
-
-        class Foo(object):
-
-            @cached_method
-            def foo(self):
-                return "Cached"
+class cached_method(object):
+    """ class handling the caching of results of methods """
     
-            @cached_method
-            def bar(self):
-                return "Cached"
-                
+    def __init__(self, factory=None, doc=None, name=None):
+        """ decorator that caches method calls in a dictionary attached to the
+        methods. This can be used with most classes
     
-        foo = Foo()
-        foo.bar()
+            class Foo(object):
+    
+                @cached_method()
+                def foo(self):
+                    return "Cached"
         
-        # The cache is now stored in foo.foo._cache and foo.bar._cache
+                @cached_method()
+                def bar(self):
+                    return "Cached"
+                    
         
-    This class also plays together with user-supplied storage backends, if the
-    method `get_cache` is defined.  
-    
-        class Foo(object):
-                
-            def get_cache(self, name):
-                # `name` is the name of the method for which this cache is used
-                return DictFiniteCapacity()
-
-            @cached_method
-            def foo(self):
-                return "Cached"
-    """
-    if name is None:
-        name = method.__name__
-
-    def make_cache_key_method(args, kwargs):
-        """ universal method that converts methods arguments to a string """
-        return pickle.dumps((args, kwargs))
-
-    @functools.wraps(method)
-    def wrapper(obj, *args, **kwargs):
-        # try accessing the cache
-        try:
-            cache = wrapper._cache
-        except AttributeError:
-            # cache was not available and we thus need to create it
+            foo = Foo()
+            foo.bar()
             
+            # The cache is now stored in foo.foo._cache and foo.bar._cache
+            
+        This class also plays together with user-supplied storage backends by 
+        defining a cache factory
+        
+            class Foo(object):
+                    
+                def get_cache(self, name):
+                    # `name` is the name of the method to cache 
+                    return DictFiniteCapacity()
+    
+                @cached_method(factory='get_cache')
+                def foo(self):
+                    return "Cached"
+        """
+        # check whether the decorator has been applied correctly
+        if callable(factory):
+            class_name = self.__class__.__name__
+            raise ValueError('Missing function call. Call this decorator as '
+                             '@{0}() instead of @{0}'.format(class_name))
+            
+        self.factory = factory
+        self.name = name
+        
+    
+    def __call__(self, method):
+        """ apply the cache decorator """
+        
+        if self.name is None:
+            self.name = method.__name__
+    
+        def make_cache_key_method(args, kwargs):
+            """ universal method that converts methods arguments to a string """
+            return pickle.dumps((args, kwargs))
+    
+        @functools.wraps(method)
+        def wrapper(obj, *args, **kwargs):
+            # try accessing the cache
             try:
-                # try accessing a custom `get_cache` method
-                get_cache = obj.get_cache
+                cache = wrapper._cache
             except AttributeError:
-                # use a dictionary if it is not available
-                cache = {}
-            else:
-                # get the cache using the custom method
-                cache = get_cache(name)
-                
-            # attach the cache to the wrapper
-            wrapper._cache = cache
-
-        try:
-            # try loading the function making the cache key from the object
-            make_cache_key = obj.make_cache_key
-        except AttributeError:
-            # otherwise use the default method from DictCache
-            obj.make_cache_key = make_cache_key_method
-            make_cache_key = obj.make_cache_key
-
-        # determine the key that encodes the current arguments
-        cache_key = make_cache_key(args, kwargs)
-
-        try:
-            # try loading the results from the cache
-            result = cache[cache_key]
-        except KeyError:
-            # if this failed, compute and store the results
-            result = method(obj, *args, **kwargs)
-            cache[cache_key] = result
-        return result
-
-    return wrapper
+                # cache was not available and we thus need to create it
+                if self.factory is None:
+                    cache = {}
+                else:
+                    cache = getattr(obj, self.factory)(self.name)
+                    
+                # attach the cache to the wrapper
+                wrapper._cache = cache
+    
+            try:
+                # try loading the function making the cache key from the object
+                make_cache_key = obj.make_cache_key
+            except AttributeError:
+                # otherwise use the default method from DictCache
+                obj.make_cache_key = make_cache_key_method
+                make_cache_key = obj.make_cache_key
+    
+            # determine the key that encodes the current arguments
+            cache_key = make_cache_key(args, kwargs)
+    
+            try:
+                # try loading the results from the cache
+                result = cache[cache_key]
+            except KeyError:
+                # if this failed, compute and store the results
+                result = method(obj, *args, **kwargs)
+                cache[cache_key] = result
+            return result
+    
+        return wrapper
 
 
 

@@ -10,6 +10,8 @@ from __future__ import division
 
 import collections
 import functools
+import os
+
 import numpy as np
 
 
@@ -160,17 +162,30 @@ class PersistentDict(collections.MutableMapping):
     """
     
     def __init__(self, filename):
+        # open the sqlite table
+        self.filename = filename
+        self.open()
+        
+    
+    def open(self):
+        """ opens the database assuming that it is not open """
         # lazy import
         import sqlite3
-        # open the sqlite table
-        self._con = sqlite3.connect(filename)
+        self._con = sqlite3.connect(self.filename)
         # make sure that the cache table exists
         with self._con:
             self._con.execute("CREATE table IF NOT EXISTS cache ("
                                   "key TEXT PRIMARY KEY, "
                                   "value TEXT"
                               ");")
-        
+            
+            
+    def clear(self):
+        """ closes and opens the database """
+        self._con.close()
+        os.remove(self.filename)
+        self.open()
+            
         
     def __del__(self):
         self._con.close()
@@ -210,11 +225,6 @@ class PersistentDict(collections.MutableMapping):
             yield row[0]
             
             
-    def clear(self):
-        """ clears all records in the dictionary """
-        return self._con.execute("DELETE FROM cache ")
-
-
 
 class PersistentSerializedDict(PersistentDict):
     """ a key value database which is stored on the disk
@@ -329,6 +339,7 @@ class cached_method(object):
         if self.name is None:
             self.name = method.__name__
     
+        # create the function to serialize the keys
         serialize_key = make_serializer(self.serializer)
     
         @functools.wraps(method)
@@ -342,7 +353,6 @@ class cached_method(object):
                     cache = {}
                 else:
                     cache = getattr(obj, self.factory)(self.name)
-                    
                 # attach the cache to the wrapper
                 wrapper._cache = cache
     
@@ -357,6 +367,9 @@ class cached_method(object):
                 result = method(obj, *args, **kwargs)
                 cache[cache_key] = result
             return result
+    
+        # save name, e.g., to be able to delete cache later
+        wrapper._cache_name = self.name
     
         return wrapper
 

@@ -217,7 +217,7 @@ class PersistentSerializedDict(PersistentDict):
     strings, which are then stored in the database.
     """
     
-    def __init__(self, filename, key_serialization='json',
+    def __init__(self, filename, key_serialization='pickle',
                  value_serialization='pickle'):
         """ initializes a persistent dictionary whose keys and values are
         serialized transparently. The serialization methods are determined by
@@ -272,7 +272,7 @@ class PersistentSerializedDict(PersistentDict):
 class cached_method(object):
     """ class handling the caching of results of methods """
     
-    def __init__(self, factory=None, serializer='json', doc=None, name=None):
+    def __init__(self, factory=None, serializer='pickle', doc=None, name=None):
         """ decorator that caches method calls in a dictionary attached to the
         methods. This can be used with most classes
     

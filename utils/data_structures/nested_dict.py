@@ -107,7 +107,8 @@ class LazyHDFValue(LazyValue):
             else:
                 chunks = get_chunk_size(data_array.shape, cls.chunk_elements)
                 hdf_file.create_dataset(key, data=data_array, track_times=True,
-                                        chunks=chunks, compression=cls.compression)
+                                        chunks=chunks,
+                                        compression=cls.compression)
                 
             # add attributes to describe data 
             hdf_file[key].attrs['written_on'] = str(datetime.datetime.now())
@@ -131,7 +132,8 @@ class LazyHDFValue(LazyValue):
 
 
 class LazyHDFCollection(LazyHDFValue):
-    """ class that represents a collection of values that are only loaded when they are accessed """
+    """ class that represents a collection of values that are only loaded when 
+    they are accessed """
 
     @classmethod    
     def create_from_data(cls, key, data, hdf_filename):
@@ -273,7 +275,7 @@ class NestedDict(collections.MutableMapping):
 
 
     def __contains__(self, key):
-        """ returns True if the item identified by key is contained in the data """
+        """ returns True if the key is contained in the data """
         if isinstance(key, basestring) and self.sep in key:
             child, grandchildren = key.split(self.sep, 1)
             try:
@@ -382,7 +384,8 @@ class NestedDict(collections.MutableMapping):
     def to_dict(self, flatten=False):
         """ convert object to a nested dictionary structure.
         If flatten is True a single dictionary with complex keys is returned.
-        If flatten is False, a nested dictionary with simple keys is returned """
+        If flatten is False, a nested dictionary with simple keys is returned
+        """
         res = self.dict_class()
         for key, value in self.iteritems():
             if isinstance(value, NestedDict):
@@ -392,8 +395,9 @@ class NestedDict(collections.MutableMapping):
                         try:
                             res[key + self.sep + k] = v
                         except TypeError:
-                            raise TypeError('Keys for NestedDict must be strings '
-                                            '(`%s` or `%s` is invalid)' % (key, k))
+                            raise TypeError('Keys for NestedDict must be '
+                                            'strings (`%s` or `%s` is invalid)'
+                                            % (key, k))
                 else:
                     res[key] = value
             else:
@@ -436,10 +440,10 @@ class LazyNestedDict(NestedDict):
                 value = value.load()
             except KeyError as err:
                 # we have to relabel KeyErrors, since they otherwise shadow
-                # KeyErrors raised by the item actually not being in the NestedDict
-                # This then allows us to distinguish between items not found in
-                # NestedDict (raising KeyError) and items not being able to load
-                # (raising LazyLoadError)
+                # KeyErrors raised by the item actually not being in the
+                # NestedDict. This then allows us to distinguish between items
+                # not found in NestedDict (raising KeyError) and items not being
+                # able to load (raising LazyLoadError)
                 err_msg = ('Cannot load item `%s`.\nThe original error was: %s'
                            % (key, err)) 
                 raise LazyLoadError, err_msg, sys.exc_info()[2] 
@@ -450,7 +454,7 @@ class LazyNestedDict(NestedDict):
     
 
 def prepare_data_for_yaml(data):
-    """ recursively converts all numpy types to their closest python equivalents """
+    """ recursively converts some special types to close python equivalents """
     if isinstance(data, np.ndarray):
         return data.tolist()
     elif isinstance(data, np.floating):
@@ -463,7 +467,8 @@ def prepare_data_for_yaml(data):
         return [prepare_data_for_yaml(v) for v in data]
     elif isinstance(data, LazyHDFValue):
         return data.get_yaml_string()
-    elif data is not None and not isinstance(data, (bool, int, float, list, basestring)):
+    elif (data is not None and 
+          not isinstance(data, (bool, int, float, list, basestring))):
         warnings.warn('Encountered unknown instance of `%s` in YAML '
                       'preparation' % data.__class__)
     return data    

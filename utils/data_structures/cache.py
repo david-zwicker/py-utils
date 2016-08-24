@@ -10,12 +10,6 @@ from __future__ import division
 
 import collections
 import functools
-
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
 import numpy as np
 
 
@@ -180,59 +174,94 @@ class PersistentSerializedDict(PersistentDict):
     strings are used by default
     """
     
-    def __init__(self, filename, serialize_keys=True, serialize_values=True):
+    def __init__(self, filename, key_serialization='json', value_serialization='pickle'):
         super(PersistentSerializedDict, self).__init__(filename)
-        self.pickle_keys = serialize_keys
-        self.pickle_values = serialize_values
+        
+        self.serialize_key = self.make_serializer(key_serialization)
+        self.serialize_value = self.make_serializer(value_serialization)
+        self.unserialize_value = self.make_unserializer(value_serialization)
     
     
-    def key_to_str(self, key):
-        """ converts an arbitrary key to a string """
-        return pickle.dumps(key) if self.pickle_keys else key
+    def make_serializer(self, method):
+        """ returns a function that can be used to serialize data with the 
+        given method """
+        if method is None or not method:
+            return lambda key: key
+
+        elif method == 'json':
+            import json
+            return lambda key: json.dumps(key, sort_keys=True)
+
+        elif method == 'pickle':
+            import cPickle
+            return pickle.dumps
+    
+        elif method == 'yaml':
+            import yaml
+            return yaml.dump
+        
+        else:
+            raise ValueError('Unknown serialization method `%s`' % method)
     
     
-    def value_to_str(self, value):
-        """ converts an arbitrary value to a string """
-        return pickle.dumps(value) if self.pickle_values else value
+    def make_unserializer(self, method):
+        """ returns a function that can be used to unserialize data with the 
+        given method """
+        if method is None or not method:
+            return lambda key: key
+
+        elif method == 'json':
+            import json
+            return json.loads
+
+        elif method == 'pickle':
+            import cPickle
+            return pickle.loads
     
-    
-    def str_to_value(self, value):
-        """ converts a string into a value object """
-        return pickle.loads(str(value)) if self.pickle_values else value
+        elif method == 'yaml':
+            import yaml
+            return yaml.load
+        
+        else:
+            raise ValueError('Unknown serialization method `%s`' % method)
     
     
     def __getitem__(self, key):
         # convert key to its string representation
-        key = self.key_to_str(key)
+        key = self.serialize_key(key)
         # fetch the value
         value = super(PersistentSerializedDict, self).__getitem__(key)
         # convert the value to its object representation
-        return self.str_to_value(value)
+        return self.unserialize_value(value)
         
         
     def __setitem__(self, key, value):
         # convert key and value to their string representations
-        key = self.key_to_str(key)
-        value = self.value_to_str(value)
+        key = self.serialize_key(key)
+        value = self.serialize_value(value)
+        # add the item to the dictionary
         super(PersistentSerializedDict, self).__setitem__(key, value)
 
 
     def __delitem__(self, key):
         # convert key to its string representation
-        key = self.key_to_str(key)
+        key = self.serialize_key(key)
+        # delete the item from the dictionary
         super(PersistentSerializedDict, self).__delitem__(key)
     
     
     def __contains__(self, key):
         # convert key to its string representation
-        key = self.key_to_str(key)
+        key = self.serialize_key(key)
+        # check whether this items exists in the dictionary
         super(PersistentSerializedDict, self).__contains__(key)
     
     
     def __iter__(self):
+        # iterate  dictionary
         for value in super(PersistentSerializedDict, self).__iter__():
             # convert the value to its object representation
-            yield self.str_to_value(value)
+            yield self.unserialize_value(value)
 
 
 

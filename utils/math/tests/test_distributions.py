@@ -79,7 +79,7 @@ class TestMathDistributions(unittest.TestCase):
                                                                     'numpy')
         rvs = np.random.lognormal(mu, sigma, size=1000000)
         self.assertAlmostEqual(rvs.mean(), mean, places=2)
-        self.assertAlmostEqual(rvs.var(), var, places=1)
+        self.assertAllClose(rvs.var(), var, rtol=0.4, atol=0.2)
 
 
     def test_gamma(self):

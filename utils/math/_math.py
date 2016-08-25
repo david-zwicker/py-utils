@@ -15,6 +15,7 @@ import math
 import numpy as np
 from scipy import interpolate
 from scipy.stats import itemfreq
+from six.moves import range
 
 from ..misc import estimate_computation_speed
 
@@ -39,15 +40,16 @@ xlog2x = np.vectorize(xlog2x, otypes='d')
 
 def average_angles(data, period=PI2):
     """ averages a list of cyclic values (angles by default)
-    data  The list of angles
-    per   The period of the angular variables
+    
+    `data` is the list of angles
+    `period` denotes the period of the angles (default: 2*pi)
     """
-    data = np.asarray(data)    
+    data = np.asarray(data)
     if period is not PI2:
-        data *= PI2/period
+        data *= PI2 / period
     data = math.atan2(np.sin(data).sum(), np.cos(data).sum())
     if period is not PI2:
-        data *= period/PI2
+        data *= period / PI2
     return data
 
 
@@ -59,7 +61,7 @@ def euler_phi(n):
     """
     amount = 0
 
-    for k in xrange(1, n + 1):
+    for k in range(1, n + 1):
         if fractions.gcd(n, k) == 1:
             amount += 1
 
@@ -87,12 +89,12 @@ def arrays_close(arr1, arr2, rtol=1e-05, atol=1e-08, equal_nan=False):
         arr2 = arr2[idx]
     
     # get the scale of the first array
-    scale = np.linalg.norm(arr1.flat, np.inf)
+    scale = np.abs(arr1.mean())
     
     # try to compare the arrays
     with np.errstate(invalid='raise'):
         try:
-            is_close = np.any(np.abs(arr1 - arr2) <= (atol + rtol * scale))
+            is_close = np.all(np.abs(arr1 - arr2) <= (atol + rtol * scale))
         except FloatingPointError:
             is_close = False
         
@@ -121,30 +123,31 @@ def trim_nan(data, left=True, right=True):
     """ removes nan values from the either end of the array `data`.
     `left` and `right` determine whether these ends of the array are processed.
     The default is to process both ends.
+    
     If data has more than one dimension, the reduction is done along the first
     dimension if any of entry along the other dimension is nan.
     """
     if left:
         # trim left side
-        for s in xrange(len(data)):
-            if not np.any(np.isnan(data[s])):
+        for start, value in enumerate(data):
+            if not np.any(np.isnan(value)):
                 break
     else:
         # don't trim the left side
-        s = 0
+        start = 0
         
     if right:
         # trim right side
-        for e in xrange(len(data) - 1, s, -1):
-            if not np.any(np.isnan(data[e])):
+        for end in range(len(data) - 1, start, -1):
+            if not np.any(np.isnan(data[end])):
                 # trim right side
-                return data[s:e + 1]
+                return data[start:end + 1]
         # array is all nan
         return []
     
     else:
         # don't trim the right side
-        return data[s:]
+        return data[start:]
     
 
 
@@ -167,7 +170,7 @@ def moving_average(data, window=1):
     result = np.zeros_like(data) + np.nan
     size = 2*window + 1
     assert height >= size
-    for pos in xrange(height):
+    for pos in range(height):
         # determine the window
         if pos < window:
             rows = slice(0, size)

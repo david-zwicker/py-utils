@@ -18,7 +18,7 @@ import numpy as np
 
 def make_serializer(method):
     """ returns a function that serialize data with the  given method """
-    if method is None or not method:
+    if method is None:
         return lambda s: s
 
     elif method == 'json':
@@ -40,7 +40,7 @@ def make_serializer(method):
 
 def make_unserializer(method):
     """ returns a function that unserialize data with the  given method """
-    if method is None or not method:
+    if method is None:
         return lambda s: s
 
     elif method == 'json':

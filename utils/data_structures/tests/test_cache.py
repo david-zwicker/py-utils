@@ -8,7 +8,7 @@ from __future__ import division
 
 import unittest
 
-from ..cache import cached_property, cached_method, DictFiniteCapacity
+from ..cache import *  # @UnusedWildImport
 
 
 
@@ -16,6 +16,21 @@ class TestCaching(unittest.TestCase):
     """ test collection for caching methods """
 
     _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+
+
+    def test_serializer(self):
+        """ test the make_serializer and make_unserializer """
+        methods = [None, 'json', 'yaml', 'pickle']
+        
+        data = [None, 1, [1, 2], {'b': 1, 'a': 2}]
+        for method, data in zip(methods, data):
+            encode = make_serializer(method)
+            decode = make_unserializer(method)
+            self.assertEquals(data, decode(encode(data)))
+            
+        self.assertRaises(ValueError, lambda: make_serializer('non-sense'))
+        self.assertRaises(ValueError, lambda: make_unserializer('non-sense'))
+    
 
     def test_property_cache(self):
         """ test cached_property decorator """

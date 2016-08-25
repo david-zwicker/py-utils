@@ -9,6 +9,7 @@ This module contains several data structures and functions for manipulating them
 from __future__ import division
 
 import collections
+import logging
 
 
 
@@ -78,7 +79,7 @@ def save_dict_to_csv(data, filename, first_columns=None, **kwargs):
                 # one item did not have a unit
                 for k, item in enumerate(value):
                     if not hasattr(item, 'units'):
-                        print([val[k] for val in data.values()])
+                        logging.info([val[k] for val in data.values()])
                         raise AttributeError('Value `%s = %s` does not have '
                                              'any units' % (key, item))
                 raise
@@ -101,7 +102,11 @@ def save_dict_to_csv(data, filename, first_columns=None, **kwargs):
 
 class OmniContainer(object):
     """ helper class that acts as a container that contains everything """
+    
     def __bool__(self, key):
+        return True
+    
+    def __nonzero__(self, key):
         return True
     
     def __contains__(self, key):

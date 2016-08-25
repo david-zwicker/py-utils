@@ -389,7 +389,7 @@ class NestedDict(collections.MutableMapping):
         res = self.dict_class()
         for key, value in self.iteritems():
             if isinstance(value, NestedDict):
-                value = value.to_dict(flatten)
+                value = value.to_dict(flatten=flatten)
                 if flatten:
                     for k, v in value.iteritems():
                         try:

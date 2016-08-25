@@ -11,7 +11,7 @@ import unittest
 import numpy as np
 from scipy import stats 
 
-from . import distributions
+from .. import distributions
       
 
       
@@ -40,7 +40,7 @@ class TestMathDistributions(unittest.TestCase):
         
         # calculate random variates and compare them to the given mean and var.
         for dist in distribution_list:
-            rvs = dist.rvs(100000)
+            rvs = dist.rvs(1000000)
             self.assertAllClose(dist.mean(), rvs.mean(), rtol=0.02,
                                 msg='Mean of the distribution is not '
                                     'consistent.')

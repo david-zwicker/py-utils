@@ -329,7 +329,8 @@ def homogenize_arraylist(data):
     This is achieved by appending np.nan as necessary.
     """
     len_max = max(len(d) for d in data)
-    result = np.empty((len(data), len_max) + data[0].shape[1:], dtype=data[0].dtype)
+    result = np.empty((len(data), len_max) + data[0].shape[1:],
+                      dtype=data[0].dtype)
     result.fill(np.nan)
     for k, d in enumerate(data):
         result[k, :len(d), ...] = d

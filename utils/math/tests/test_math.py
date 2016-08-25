@@ -14,6 +14,8 @@ from .._math import *  # @UnusedWildImport
 
 class TestMath(unittest.TestCase):
     """ test generic math functions """
+
+    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
     
     def test_xlog2x(self):
         """ test the xlog2x function """

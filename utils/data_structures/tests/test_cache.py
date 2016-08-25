@@ -15,6 +15,8 @@ from ..cache import cached_property, cached_method, DictFiniteCapacity
 class TestCaching(unittest.TestCase):
     """ test collection for caching methods """
 
+    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+
     def test_property_cache(self):
         """ test cached_property decorator """
         

@@ -3,9 +3,15 @@ Created on Aug 25, 2016
 
 @author: David Zwicker <dzwicker@seas.harvard.edu>
 '''
+
+from __future__ import division
+
 import unittest
 
-from ..stats import *  # @UnusedWildImport
+import numpy as np
+
+from .. import stats
+
 
 
 class TestStats(unittest.TestCase):
@@ -17,15 +23,15 @@ class TestStats(unittest.TestCase):
         """ test the mean_std_online function """
         x = np.random.random(10)
         
-        mean, std = mean_std_online(x)
+        mean, std = stats.mean_std_online(x)
         self.assertAlmostEqual(mean, x.mean())
         self.assertAlmostEqual(std, x.std())
         
-        mean, std = mean_std_online(iter(x))
+        mean, std = stats.mean_std_online(iter(x))
         self.assertAlmostEqual(mean, x.mean())
         self.assertAlmostEqual(std, x.std())
 
-        mean, std = mean_std_online(x, ddof=2)
+        mean, std = stats.mean_std_online(x, ddof=2)
         self.assertAlmostEqual(mean, x.mean())
         self.assertAlmostEqual(std, x.std(ddof=2))
         
@@ -35,7 +41,7 @@ class TestStats(unittest.TestCase):
         x = np.random.randint(0, 5, 10)
         f = np.bincount(x)
         for ddof in (0, 2):
-            mean, std = mean_std_frequency_table(f, ddof=ddof)
+            mean, std = stats.mean_std_frequency_table(f, ddof=ddof)
             self.assertAlmostEqual(mean, x.mean())
             self.assertAlmostEqual(std, x.std(ddof=ddof))
             
@@ -43,7 +49,7 @@ class TestStats(unittest.TestCase):
     def test_lognorm_mean_var(self):
         """ test the lognorm_mean_var function """
         for mean, var in [(0.1, 1), (1, 0.1)]:
-            dist = lognorm_mean_var(mean, var)
+            dist = stats.lognorm_mean_var(mean, var)
             self.assertAlmostEqual(dist.mean(), mean)
             self.assertAlmostEqual(dist.var(), var)
             
@@ -55,7 +61,7 @@ class TestStats(unittest.TestCase):
         else:
             x = np.random.random([10] + shape)
         
-        acc = StatisticsAccumulator(shape=shape, ddof=ddof)
+        acc = stats.StatisticsAccumulator(shape=shape, ddof=ddof)
         acc.add_many(x)
         np.testing.assert_allclose(acc.mean, x.mean(axis=0))
         np.testing.assert_allclose(acc.std, x.std(axis=0, ddof=ddof))

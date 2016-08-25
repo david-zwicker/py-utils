@@ -8,11 +8,11 @@ from __future__ import division
 
 import unittest
 
-from ..cache import *  # @UnusedWildImport
+from .. import cache
 
 
 
-class TestCaching(unittest.TestCase):
+class TestCache(unittest.TestCase):
     """ test collection for caching methods """
 
     _multiprocess_can_split_ = True #< let nose know that tests can run parallel
@@ -24,12 +24,14 @@ class TestCaching(unittest.TestCase):
         
         data = [None, 1, [1, 2], {'b': 1, 'a': 2}]
         for method, data in zip(methods, data):
-            encode = make_serializer(method)
-            decode = make_unserializer(method)
+            encode = cache.make_serializer(method)
+            decode = cache.make_unserializer(method)
             self.assertEquals(data, decode(encode(data)))
             
-        self.assertRaises(ValueError, lambda: make_serializer('non-sense'))
-        self.assertRaises(ValueError, lambda: make_unserializer('non-sense'))
+        self.assertRaises(ValueError,
+                          lambda: cache.make_serializer('non-sense'))
+        self.assertRaises(ValueError,
+                          lambda: cache.make_unserializer('non-sense'))
     
 
     def test_property_cache(self):
@@ -41,12 +43,13 @@ class TestCaching(unittest.TestCase):
             
             def __init__(self): self.counter = 0
             
-            def get_finite_dict(self, n): return DictFiniteCapacity(capacity=1)
+            def get_finite_dict(self, n):
+                return cache.DictFiniteCapacity(capacity=1)
             
             @property
             def uncached(self): self.counter += 1; return 1
             
-            @cached_property
+            @cache.cached_property
             def cached(self): self.counter += 1; return 2    
             
         # initialize object
@@ -75,14 +78,15 @@ class TestCaching(unittest.TestCase):
             
             def __init__(self): self.counter = 0
             
-            def get_finite_dict(self, n): return DictFiniteCapacity(capacity=1)
+            def get_finite_dict(self, n):
+                return cache.DictFiniteCapacity(capacity=1)
             
             def uncached(self, arg): self.counter += 1; return arg
             
-            @cached_method(serializer=serializer, factory=cache_factory)
+            @cache.cached_method(serializer=serializer, factory=cache_factory)
             def cached(self, arg): self.counter += 1; return arg    
             
-            @cached_method(serializer=serializer, factory=cache_factory)
+            @cache.cached_method(serializer=serializer, factory=cache_factory)
             def cached_kwarg(self, a=0, b=0): self.counter += 1; return a + b
             
         # initialize object

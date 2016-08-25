@@ -103,10 +103,10 @@ def save_dict_to_csv(data, filename, first_columns=None, **kwargs):
 class OmniContainer(object):
     """ helper class that acts as a container that contains everything """
     
-    def __bool__(self, key):
+    def __bool__(self):
         return True
     
-    def __nonzero__(self, key):
+    def __nonzero__(self):
         return True
     
     def __contains__(self, key):

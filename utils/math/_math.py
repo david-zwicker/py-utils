@@ -131,16 +131,20 @@ def trim_nan(data, left=True, right=True):
         # trim left side
         for start, value in enumerate(data):
             if not np.any(np.isnan(value)):
+                # found a value that did not contain any nan
                 break
+        else:
+            # array is all nan
+            return []
     else:
         # don't trim the left side
         start = 0
         
     if right:
         # trim right side
-        for end in range(len(data) - 1, start, -1):
+        for end in range(len(data) - 1, start - 1, -1):
             if not np.any(np.isnan(data[end])):
-                # trim right side
+                # found a value that did not contain any nan
                 return data[start:end + 1]
         # array is all nan
         return []

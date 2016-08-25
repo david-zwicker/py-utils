@@ -93,6 +93,14 @@ class TestMath(unittest.TestCase):
         np.testing.assert_array_equal(trim_nan(arr, right=False),
                                       [1, 2, np.nan, np.nan])
         
+        arr = [np.nan, np.nan]
+        np.testing.assert_array_equal(trim_nan(arr), [])
+        np.testing.assert_array_equal(trim_nan(arr, left=False), [])
+        np.testing.assert_array_equal(trim_nan(arr, right=False), [])
+
+        np.testing.assert_array_equal(trim_nan([1, np.nan], left=False), [1])
+        np.testing.assert_array_equal(trim_nan([np.nan, 1], right=False), [1])
+        
     
     def test_mean(self):
         """ test the mean function """

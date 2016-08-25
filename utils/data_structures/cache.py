@@ -26,8 +26,11 @@ def make_serializer(method):
         return lambda s: json.dumps(s, sort_keys=True)
 
     elif method == 'pickle':
-        import cPickle
-        return cPickle.dumps
+        try:
+            import cPickle as pickle
+        except ImportError:
+            import pickle
+        return pickle.dumps
 
     elif method == 'yaml':
         import yaml
@@ -48,8 +51,11 @@ def make_unserializer(method):
         return json.loads
 
     elif method == 'pickle':
-        import cPickle
-        return lambda s: cPickle.loads(str(s))
+        try:
+            import cPickle as pickle
+        except ImportError:
+            import pickle
+        return lambda s: pickle.loads(s)
 
     elif method == 'yaml':
         import yaml

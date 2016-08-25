@@ -23,7 +23,7 @@ def transpose_list_of_dicts(data, missing=None):
     # iterate through the whole list and add items one by one
     for item in data:
         # add the items to the result dictionary
-        for k, v in item.iteritems():
+        for k, v in item.items():
             try:
                 result[k].append(v)
             except KeyError:

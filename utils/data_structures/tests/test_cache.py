@@ -22,11 +22,17 @@ class TestCache(unittest.TestCase):
         """ test the make_serializer and make_unserializer """
         methods = [None, 'json', 'yaml', 'pickle']
         
+        # check whether yaml is actually available
+        try:
+            import yaml  # @UnusedImport
+        except ImportError:
+            methods.remove('yaml')
+        
         data = [None, 1, [1, 2], {'b': 1, 'a': 2}]
         for method, data in zip(methods, data):
             encode = cache.make_serializer(method)
             decode = cache.make_unserializer(method)
-            self.assertEquals(data, decode(encode(data)))
+            self.assertEqual(data, decode(encode(data)))
             
         self.assertRaises(ValueError,
                           lambda: cache.make_serializer('non-sense'))
@@ -141,7 +147,14 @@ class TestCache(unittest.TestCase):
 
     def test_method_cache(self):
         """ test the cached_method decorator with several parameters """
-        for serializer in ['json', 'yaml', 'pickle']:
+        serializer = ['json', 'yaml', 'pickle']
+        # check whether yaml is actually available
+        try:
+            import yaml  # @UnusedImport
+        except ImportError:
+            serializer.remove('yaml')
+        
+        for serializer in serializer:
             for cache_factory in [None, 'get_finite_dict']:
                 self._test_method_cache(serializer, cache_factory)
 

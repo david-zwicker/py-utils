@@ -10,8 +10,6 @@ import csv
 import unittest
 import tempfile
 
-import pint
-
 from .. import misc
 
 
@@ -54,6 +52,12 @@ class TestMisc(unittest.TestCase):
 
     def test_save_dict_to_csv_units(self):
         """ test the save_to_dict function with units """
+        try:
+            import pint
+        except ImportError:
+            # Units are not available and we thus don't test this
+            return
+
         ureg = pint.UnitRegistry()
         tmpfile = tempfile.NamedTemporaryFile(mode='w+')
         

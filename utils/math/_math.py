@@ -103,13 +103,13 @@ def arrays_close(arr1, arr2, rtol=1e-05, atol=1e-08, equal_nan=False):
 
 
 
-def logspace(start, end, num=None, dtype=None):
+def logspace(start, end, num=None, **kwargs):
     """ Returns an ordered sequence of `num` numbers from `start` to `end`,
     which are spaced logarithmically """
     if num is None:
-        return np.logspace(np.log10(start), np.log10(end), dtype=dtype)
+        return np.logspace(np.log10(start), np.log10(end), **kwargs)
     else:
-        return np.logspace(np.log10(start), np.log10(end), num=num, dtype=dtype)
+        return np.logspace(np.log10(start), np.log10(end), num=num, **kwargs)
 
 
 

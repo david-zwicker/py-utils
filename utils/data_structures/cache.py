@@ -11,6 +11,9 @@ from __future__ import division
 import collections
 import functools
 import os
+import sys
+
+import six
 
 import numpy as np
 
@@ -55,7 +58,12 @@ def make_unserializer(method):
             import cPickle as pickle
         except ImportError:
             import pickle
-        return lambda s: pickle.loads(s)
+            
+        if sys.version_info[0] > 2:
+            return lambda s: pickle.loads(s)
+        else:
+            # python 2 sometimes needs an explicit conversion to string
+            return lambda s: pickle.loads(str(s))
 
     elif method == 'yaml':
         import yaml
@@ -133,6 +141,8 @@ class PersistentDict(collections.MutableMapping):
     
     
     def __getitem__(self, key):
+        if not isinstance(key, six.string_types):
+            raise TypeError('Keys must be strings')
         res = self._con.execute("SELECT value FROM cache WHERE key=? "
                                 "LIMIT 1", (key,)).fetchone()
         if res:
@@ -142,17 +152,24 @@ class PersistentDict(collections.MutableMapping):
         
         
     def __setitem__(self, key, value):
+        if not (isinstance(key, six.string_types) and
+                isinstance(value, six.string_types)):
+            raise TypeError('Keys and values must be strings')
         with self._con:
             self._con.execute("INSERT OR REPLACE INTO cache VALUES (?, ?)",
                               (key, value))
 
 
     def __delitem__(self, key):
+        if not isinstance(key, six.string_types):
+            raise TypeError('Keys must be strings')
         with self._con:
             self._con.execute("DELETE FROM cache where key=?", (key,))
     
     
     def __contains__(self, key):
+        if not isinstance(key, six.string_types):
+            raise TypeError('Keys must be strings')
         return self._con.execute("SELECT EXISTS(SELECT 1 FROM cache "
                                  "WHERE key=? LIMIT 1);", (key,)).fetchone()[0]
     
@@ -163,62 +180,74 @@ class PersistentDict(collections.MutableMapping):
             
             
 
-class PersistentSerializedDict(PersistentDict):
+class SerializedDict(collections.MutableMapping):
     """ a key value database which is stored on the disk
     This class provides hooks for converting arbitrary keys and values to
     strings, which are then stored in the database.
     """
     
-    def __init__(self, filename, key_serialization='pickle',
-                 value_serialization='pickle'):
-        """ initializes a persistent dictionary whose keys and values are
-        serialized transparently. The serialization methods are determined by
+    def __init__(self, key_serialization='pickle',
+                 value_serialization='pickle', storage_dict=None):
+        """ provides a dictionary whose keys and values are serialized
+        transparently. The serialization methods are determined by
         `key_serialization` and `value_serialization`.
-        """
-        super(PersistentSerializedDict, self).__init__(filename)
         
+        `storage_dict` can be used to chose a different dictionary for the
+            underlying storage mechanism, e.g., storage_dict = PersistentDict() 
+        """
+        # initialize the dictionary that actually stores the data
+        if storage_dict is None:
+            self._data = {}
+        else:
+            self._data = storage_dict
+        
+        # define the methods that serialize and unserialize the data
         self.serialize_key = make_serializer(key_serialization)
         self.unserialize_key = make_unserializer(key_serialization)
         self.serialize_value = make_serializer(value_serialization)
         self.unserialize_value = make_unserializer(value_serialization)
     
     
+    def __len__(self):
+        return len(self._data)
+    
+    
     def __getitem__(self, key):
         # convert key to its string representation
-        key = self.serialize_key(key)
+        key_s = self.serialize_key(key)
         # fetch the value
-        value = super(PersistentSerializedDict, self).__getitem__(key)
+        value = self._data[key_s]
         # convert the value to its object representation
         return self.unserialize_value(value)
         
         
     def __setitem__(self, key, value):
         # convert key and value to their string representations
-        key = self.serialize_key(key)
-        value = self.serialize_value(value)
+        key_s = self.serialize_key(key)
+        value_s = self.serialize_value(value)
         # add the item to the dictionary
-        super(PersistentSerializedDict, self).__setitem__(key, value)
+        self._data[key_s] = value_s
 
 
     def __delitem__(self, key):
         # convert key to its string representation
-        key = self.serialize_key(key)
+        key_s = self.serialize_key(key)
         # delete the item from the dictionary
-        super(PersistentSerializedDict, self).__delitem__(key)
+        del self._data[key_s]
     
     
     def __contains__(self, key):
         # convert key to its string representation
-        key = self.serialize_key(key)
+        key_s = self.serialize_key(key)
         # check whether this items exists in the dictionary
-        super(PersistentSerializedDict, self).__contains__(key)
+        return key_s in self._data
     
     
     def __iter__(self):
         # iterate  dictionary
-        for key in super(PersistentSerializedDict, self).__iter__():
+        for key_s in self._data.__iter__():
             # convert the value to its object representation
-            yield self.unserialize_key(key)
+            yield self.unserialize_key(key_s)
 
 
 

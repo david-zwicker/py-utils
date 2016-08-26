@@ -369,12 +369,12 @@ def homogenize_unit_array(arr, unit=None):
         
 
 
-def is_equidistant(data):
+def is_equidistant(data, **kwargs):
     """ checks whether the 1d array given by `data` is equidistant """
     if len(data) < 2:
         return True
     diff = np.diff(data)
-    return np.allclose(diff, diff.mean())
+    return np.allclose(diff, diff.mean(), **kwargs)
 
 
     
@@ -392,7 +392,7 @@ def contiguous_true_regions(condition):
     
     # Find the indices of changes in "condition"
     d = np.diff(condition)
-    idx, = d.nonzero() 
+    idx = np.flatnonzero(d)
 
     # We need to start things after the change in "condition". Therefore, 
     # we'll shift the index by 1 to the right.
@@ -407,14 +407,12 @@ def contiguous_true_regions(condition):
         idx = np.r_[idx, condition.size]
 
     # Reshape the result into two columns
-    idx.shape = (-1, 2)
-    return idx
+    return idx.reshape(-1, 2)
 
 
 
 def contiguous_int_regions_iter(data):
-    """ Finds contiguous regions of the integer array "data". Regions that
-    have falsey (0 or False) values are not returned.
+    """ Finds contiguous regions of the integer array "data". 
     Returns three values (value, start, end), denoting the value and the pairs
     of indices and indicating the start index and end index of the region.
     """

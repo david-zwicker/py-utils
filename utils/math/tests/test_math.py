@@ -11,6 +11,7 @@ import unittest
 import numpy as np
 
 from .. import _math as m
+from utils.math._math import is_equidistant
 
 
 
@@ -129,5 +130,41 @@ class TestMath(unittest.TestCase):
         """ tests the popcount function """
         for x in (0, 1, 34, 1984):
             self.assertEqual(m.popcount(x), bin(x).count('1'))
+            
+            
+    def test_is_equidistant(self):
+        """ test the is_equidistant function """
+        self.assertTrue(is_equidistant([]))
+        self.assertTrue(is_equidistant([1]))
+        self.assertTrue(is_equidistant([1, 2]))
+        self.assertTrue(is_equidistant([1, 2, 3]))
+        self.assertFalse(is_equidistant([1, 2, 3.001]))
+    
+            
+    def test_contiguous_true_regions(self):
+        """ tests the contiguous_true_regions function """
+        self.assertListEqual(m.contiguous_true_regions([]), [])
+
+        # test several representations of False and True
+        for f in [0, False]:
+            for t in [1, True]:
+                res = np.array(m.contiguous_true_regions([f, t, t, f]))
+                np.testing.assert_array_equal(res, np.array([(1, 3)]))
+                
+                res = np.array(m.contiguous_true_regions([t, f, f, t]))
+                np.testing.assert_array_equal(res, np.array([(0, 1), (3, 4)]))
+                    
+            
+    def test_contiguous_int_regions_iter(self):
+        """ tests the contiguous_int_regions_iter function """
+        data = [1, 1, 2, 2]
+        result = [(1, 0, 2), (2, 2, 4)]
+        self.assertListEqual(list(m.contiguous_int_regions_iter(data)), result)
+        
+        data = [1, 2, 1]
+        result = [(1, 0, 1), (2, 1, 2), (1, 2, 3)]
+        self.assertListEqual(list(m.contiguous_int_regions_iter(data)), result)
+        
+        
         
         

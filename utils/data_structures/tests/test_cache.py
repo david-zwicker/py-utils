@@ -106,28 +106,32 @@ class TestCache(unittest.TestCase):
             
             # test cached methods
             for method in (obj.cached, obj.cached_kwarg):
-                # test simple caching behavior
-                self.assertEqual(method(1), 1)
-                self.assertEqual(obj.counter, 1)
-                self.assertEqual(method(1), 1)
-                self.assertEqual(obj.counter, 1)
-                self.assertEqual(method(2), 2)
-                self.assertEqual(obj.counter, 2)
-                self.assertEqual(method(2), 2)
-                self.assertEqual(obj.counter, 2)
-                
-                # test special properties of cache_factories
-                if cache_factory is None:
+                # run twice to test clearing the cache
+                for _ in (None, None):
+                    # test simple caching behavior
                     self.assertEqual(method(1), 1)
+                    self.assertEqual(obj.counter, 1)
+                    self.assertEqual(method(1), 1)
+                    self.assertEqual(obj.counter, 1)
+                    self.assertEqual(method(2), 2)
                     self.assertEqual(obj.counter, 2)
-                elif cache_factory == 'get_finite_dict':
-                    self.assertEqual(method(1), 1)
-                    self.assertEqual(obj.counter, 3)
-                else:
-                    raise ValueError('Unknown cache_factory `%s`'
-                                     % cache_factory)
-    
-                obj.counter = 0
+                    self.assertEqual(method(2), 2)
+                    self.assertEqual(obj.counter, 2)
+                    
+                    # test special properties of cache_factories
+                    if cache_factory is None:
+                        self.assertEqual(method(1), 1)
+                        self.assertEqual(obj.counter, 2)
+                    elif cache_factory == 'get_finite_dict':
+                        self.assertEqual(method(1), 1)
+                        self.assertEqual(obj.counter, 3)
+                    else:
+                        raise ValueError('Unknown cache_factory `%s`'
+                                         % cache_factory)
+        
+                    obj.counter = 0
+                    # clear cache to test the second run
+                    method.clear_cache(obj)
             
             # test complex cached method
             self.assertEqual(obj.cached_kwarg(1, b=2), 3)

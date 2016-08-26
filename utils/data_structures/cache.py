@@ -319,6 +319,12 @@ class cached_method(object):
             # cache for each method.
             
         The cache can be cleared by setting foo._cache_methods = {}
+        Alternatively, each cached method has a `clear_cache` method, which
+        clears the cache of this particular method. In the example above we
+        could thus call `foo.bar.clear_cache(foo)` to clear the cache. Note
+        that the object instance has to be passed as a parameter, since the
+        method `bar` is defined on the class, not the instance, i.e., we could
+        also call Foo.bar.clear_cache(foo). 
             
         This class also plays together with user-supplied storage backends by 
         defining a cache factory. The cache factory should return a dict-like
@@ -384,8 +390,30 @@ class cached_method(object):
                 cache[cache_key] = result
             return result
     
+
+        def clear_cache(obj):
+            """ clears the cache associated with this method """
+            try:
+                # try getting an initialized cache
+                cache = obj._cache_methods[self.name]
+                
+            except (AttributeError, KeyError):
+                # the cache was not initialized
+                if self.factory is None:
+                    # the cache would be a dictionary, but it is not yet
+                    # initialized => we don't need to clear anything
+                    return
+                # initialize the cache, since it might open a persistent
+                # database, which needs to be cleared
+                cache = getattr(obj, self.factory)(self.name)
+                
+            # clear the cache
+            cache.clear()
+    
+    
         # save name, e.g., to be able to delete cache later
         wrapper._cache_name = self.name
+        wrapper.clear_cache = clear_cache
     
         return wrapper
 

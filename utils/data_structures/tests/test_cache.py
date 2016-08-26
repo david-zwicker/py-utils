@@ -58,21 +58,20 @@ class TestCache(unittest.TestCase):
             @cache.cached_property
             def cached(self): self.counter += 1; return 2    
             
-        # initialize object
-        obj = CacheTest()        
-        
-        # test uncached method
-        self.assertEqual(obj.uncached, 1)
-        self.assertEqual(obj.counter, 1)
-        self.assertEqual(obj.uncached, 1)
-        self.assertEqual(obj.counter, 2)
-        obj.counter = 0
-        
-        # test cached methods
-        self.assertEqual(obj.cached, 2)
-        self.assertEqual(obj.counter, 1)
-        self.assertEqual(obj.cached, 2)
-        self.assertEqual(obj.counter, 1)
+        # try to objects to make sure caching is done on the instance level
+        for obj in [CacheTest(), CacheTest()]:        
+            # test uncached method
+            self.assertEqual(obj.uncached, 1)
+            self.assertEqual(obj.counter, 1)
+            self.assertEqual(obj.uncached, 1)
+            self.assertEqual(obj.counter, 2)
+            obj.counter = 0
+            
+            # test cached methods
+            self.assertEqual(obj.cached, 2)
+            self.assertEqual(obj.counter, 1)
+            self.assertEqual(obj.cached, 2)
+            self.assertEqual(obj.counter, 1)
             
             
     def _test_method_cache(self, serializer, cache_factory=None):
@@ -95,54 +94,54 @@ class TestCache(unittest.TestCase):
             @cache.cached_method(serializer=serializer, factory=cache_factory)
             def cached_kwarg(self, a=0, b=0): self.counter += 1; return a + b
             
-        # initialize object
-        obj = CacheTest()        
-        
-        # test uncached method
-        self.assertEqual(obj.uncached(1), 1)
-        self.assertEqual(obj.counter, 1)
-        self.assertEqual(obj.uncached(1), 1)
-        self.assertEqual(obj.counter, 2)
-        obj.counter = 0
-        
-        # test cached methods
-        for method in (obj.cached, obj.cached_kwarg):
-            # test simple caching behavior
-            self.assertEqual(method(1), 1)
-            self.assertEqual(obj.counter, 1)
-            self.assertEqual(method(1), 1)
-            self.assertEqual(obj.counter, 1)
-            self.assertEqual(method(2), 2)
-            self.assertEqual(obj.counter, 2)
-            self.assertEqual(method(2), 2)
-            self.assertEqual(obj.counter, 2)
+        # try to objects to make sure caching is done on the instance level
+        for obj in [CacheTest(), CacheTest()]:        
             
-            # test special properties of cache_factories
-            if cache_factory is None:
-                self.assertEqual(method(1), 1)
-                self.assertEqual(obj.counter, 2)
-            elif cache_factory == 'get_finite_dict':
-                self.assertEqual(method(1), 1)
-                self.assertEqual(obj.counter, 3)
-            else:
-                raise ValueError('Unknown cache_factory `%s`' % cache_factory)
-
+            # test uncached method
+            self.assertEqual(obj.uncached(1), 1)
+            self.assertEqual(obj.counter, 1)
+            self.assertEqual(obj.uncached(1), 1)
+            self.assertEqual(obj.counter, 2)
             obj.counter = 0
-        
-        # test complex cached method
-        self.assertEqual(obj.cached_kwarg(1, b=2), 3)
-        self.assertEqual(obj.counter, 1)
-        self.assertEqual(obj.cached_kwarg(1, b=2), 3)
-        self.assertEqual(obj.counter, 1)
-        self.assertEqual(obj.cached_kwarg(2, b=2), 4)
-        self.assertEqual(obj.counter, 2)
-        self.assertEqual(obj.cached_kwarg(2, b=2), 4)
-        self.assertEqual(obj.counter, 2)
-        self.assertEqual(obj.cached_kwarg(1, b=3), 4)
-        self.assertEqual(obj.counter, 3)
-        self.assertEqual(obj.cached_kwarg(1, b=3), 4)
-        self.assertEqual(obj.counter, 3)
-        obj.counter = 0
+            
+            # test cached methods
+            for method in (obj.cached, obj.cached_kwarg):
+                # test simple caching behavior
+                self.assertEqual(method(1), 1)
+                self.assertEqual(obj.counter, 1)
+                self.assertEqual(method(1), 1)
+                self.assertEqual(obj.counter, 1)
+                self.assertEqual(method(2), 2)
+                self.assertEqual(obj.counter, 2)
+                self.assertEqual(method(2), 2)
+                self.assertEqual(obj.counter, 2)
+                
+                # test special properties of cache_factories
+                if cache_factory is None:
+                    self.assertEqual(method(1), 1)
+                    self.assertEqual(obj.counter, 2)
+                elif cache_factory == 'get_finite_dict':
+                    self.assertEqual(method(1), 1)
+                    self.assertEqual(obj.counter, 3)
+                else:
+                    raise ValueError('Unknown cache_factory `%s`'
+                                     % cache_factory)
+    
+                obj.counter = 0
+            
+            # test complex cached method
+            self.assertEqual(obj.cached_kwarg(1, b=2), 3)
+            self.assertEqual(obj.counter, 1)
+            self.assertEqual(obj.cached_kwarg(1, b=2), 3)
+            self.assertEqual(obj.counter, 1)
+            self.assertEqual(obj.cached_kwarg(2, b=2), 4)
+            self.assertEqual(obj.counter, 2)
+            self.assertEqual(obj.cached_kwarg(2, b=2), 4)
+            self.assertEqual(obj.counter, 2)
+            self.assertEqual(obj.cached_kwarg(1, b=3), 4)
+            self.assertEqual(obj.counter, 3)
+            self.assertEqual(obj.cached_kwarg(1, b=3), 4)
+            self.assertEqual(obj.counter, 3)
         
 
     def test_method_cache(self):

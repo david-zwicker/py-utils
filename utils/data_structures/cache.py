@@ -91,75 +91,6 @@ class DictFiniteCapacity(collections.OrderedDict):
         super(DictFiniteCapacity, self).update(values)
         self.check_length()
         
-    
-
-class cached_property(object):
-    """Decorator to use a function as a cached property.
-
-    The function is only called the first time and each successive call returns
-    the cached result of the first call.
-
-        class Foo(object):
-
-            @cached_property
-            def foo(self):
-                return "Cached"
-                
-    The data is stored in a dictionary named `_cache` attached to the instance
-    of each object. The cache can thus be cleared by setting self._cache = {}
-
-    Adapted from <http://wiki.python.org/moin/PythonDecoratorLibrary>.
-    """
-
-    def __init__(self, *args, **kwargs):
-        """ setup the decorator """
-        self.cache = None
-        if len(args) > 0:
-            if callable(args[0]):
-                # called as a plain decorator
-                self.__call__(*args, **kwargs)
-            else:
-                # called with arguments
-                self.cache = args[0]
-        else:
-            # called with arguments
-            self.cache = kwargs.pop('cache', self.cache)
-            
-
-    def __call__(self, func, doc=None, name=None):
-        """ save the function to decorate """
-        self.func = func
-        self.__doc__ = doc or func.__doc__
-        self.__name__ = name or func.__name__
-        self.__module__ = func.__module__
-        return self
-
-
-    def __get__(self, obj, owner):
-        if obj is None:
-            return self
-
-        # load the cache structure
-        if self.cache is None:
-            try:
-                cache = obj._cache
-            except AttributeError:
-                cache = obj._cache = {}
-        else:
-            try:
-                cache = getattr(obj, self.cache)
-            except:
-                cache = {}
-                setattr(obj, self.cache, cache)
-                
-        # try to retrieve from cache or call and store result in cache
-        try:
-            value = cache[self.__name__]
-        except KeyError:
-            value = self.func(obj)
-            cache[self.__name__] = value
-        return value
-    
 
 
 class PersistentDict(collections.MutableMapping):
@@ -291,12 +222,83 @@ class PersistentSerializedDict(PersistentDict):
 
 
 
+class cached_property(object):
+    """Decorator to use a function as a cached property.
+
+    The function is only called the first time and each successive call returns
+    the cached result of the first call.
+
+        class Foo(object):
+
+            @cached_property
+            def foo(self):
+                return "Cached"
+                
+    The data is stored in a dictionary named `_cache_properties` attached to the
+    instance of each object. The cache can thus be cleared by setting
+    self._cache_properties = {}
+
+    Adapted from <http://wiki.python.org/moin/PythonDecoratorLibrary>.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """ setup the decorator """
+        self.cache = None
+        
+        if len(args) > 0:
+            if callable(args[0]):
+                # called as a plain decorator
+                self.__call__(*args, **kwargs)
+            else:
+                # called with arguments
+                self.cache = args[0]
+        else:
+            # called with arguments
+            self.cache = kwargs.pop('cache', self.cache)
+            
+
+    def __call__(self, func, doc=None, name=None):
+        """ save the function to decorate """
+        self.func = func
+        self.__doc__ = doc or func.__doc__
+        self.__name__ = name or func.__name__
+        self.__module__ = func.__module__
+        return self
+
+
+    def __get__(self, obj, owner):
+        if obj is None:
+            return self
+
+        # load the cache structure
+        if self.cache is None:
+            try:
+                cache = obj._cache_properties
+            except AttributeError:
+                cache = obj._cache_properties = {}
+        else:
+            try:
+                cache = getattr(obj, self.cache)
+            except:
+                cache = {}
+                setattr(obj, self.cache, cache)
+                
+        # try to retrieve from cache or call and store result in cache
+        try:
+            value = cache[self.__name__]
+        except KeyError:
+            value = self.func(obj)
+            cache[self.__name__] = value
+        return value
+    
+
+
 class cached_method(object):
     """ class handling the caching of results of methods """
     
     def __init__(self, factory=None, serializer='pickle', doc=None, name=None):
         """ decorator that caches method calls in a dictionary attached to the
-        methods. This can be used with most classes
+        instances. This can be used with most classes
     
             class Foo(object):
     
@@ -312,7 +314,11 @@ class cached_method(object):
             foo = Foo()
             foo.bar()
             
-            # The caches are now stored in foo.foo._cache and foo.bar._cache
+            # The first call to a cached method creates the attribute
+            # `foo._cache_methods`, which is a dictionary containing the
+            # cache for each method.
+            
+        The cache can be cleared by setting foo._cache_methods = {}
             
         This class also plays together with user-supplied storage backends by 
         defining a cache factory. The cache factory should return a dict-like
@@ -352,15 +358,19 @@ class cached_method(object):
         def wrapper(obj, *args, **kwargs):
             # try accessing the cache
             try:
-                cache = wrapper._cache
-            except AttributeError:
-                # cache was not available and we thus need to create it
+                cache = obj._cache_methods[self.name]
+            except (AttributeError, KeyError) as err:
+                # the cache was not initialized
+                if isinstance(err, AttributeError):
+                    # the cache dictionary is not even present
+                    obj._cache_methods = {}
+                # create cache using the right factory method
                 if self.factory is None:
                     cache = {}
                 else:
                     cache = getattr(obj, self.factory)(self.name)
-                # attach the cache to the wrapper
-                wrapper._cache = cache
+                # store the cache in the dictionary
+                obj._cache_methods[self.name] = cache
     
             # determine the key that encodes the current arguments
             cache_key = serialize_key((args, kwargs))

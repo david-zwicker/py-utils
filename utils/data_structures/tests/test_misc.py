@@ -83,6 +83,7 @@ class TestMisc(unittest.TestCase):
         del container['item']
         self.assertTrue(container)
         self.assertTrue('anything' in container)
+        self.assertTrue(isinstance(repr(container), str))
         
 
 

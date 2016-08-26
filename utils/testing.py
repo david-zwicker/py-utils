@@ -6,6 +6,7 @@ Created on Aug 21, 2015
 
 from __future__ import division
 
+import logging
 import unittest
 
 import numpy as np
@@ -13,6 +14,43 @@ from six.moves import zip_longest
 
 from .math import arrays_close
       
+
+
+class MockLoggingHandler(logging.Handler):
+    """ Mock logging handler to check for expected logs.
+
+    Messages are available from an instance's ``messages`` dict, in order,
+    indexed by a lowercase log level string (e.g., 'debug', 'info', etc.).
+    
+    Adapted from http://stackoverflow.com/a/20553331/932593
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.messages = {'debug': [], 'info': [], 'warning': [], 'error': [],
+                         'critical': []}
+        super(MockLoggingHandler, self).__init__(*args, **kwargs)
+
+
+    def emit(self, record):
+        """ 
+        Store a message from ``record`` in the instance's ``messages`` dict.
+        """
+        self.acquire()
+        try:
+            self.messages[record.levelname.lower()].append(record.getMessage())
+        finally:
+            self.release()
+
+
+    def reset(self):
+        """ reset all messages """
+        self.acquire()
+        try:
+            for message_list in self.messages.values():
+                message_list.clear()
+        finally:
+            self.release()
+            
 
       
 class TestBase(unittest.TestCase):

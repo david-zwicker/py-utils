@@ -9,6 +9,8 @@ from __future__ import division
 import unittest
 import tempfile
 
+import numpy as np
+
 from .. import cache
 
 
@@ -260,8 +262,8 @@ class TestCache(unittest.TestCase):
         obj1, obj2 = CacheTest(), CacheTest()
         for k, obj in enumerate([obj1, obj2, obj1]):        
             
-            # clear the cache before the last pass
-            if k == 2:
+            # clear the cache before the first and the last pass
+            if k == 0 or k == 2:
                 CacheTest.cached.clear_cache(obj)
                 CacheTest.cached_kwarg.clear_cache(obj)
                 obj.counter = 0
@@ -323,6 +325,23 @@ class TestCache(unittest.TestCase):
             for cache_factory in [None, 'get_finite_dict']:
                 self._test_method_cache(serializer, cache_factory)
 
+
+
+    def test_CachedArray(self):
+        """ test the CachedArray class """
+        for value in (None, 0, 1):
+            array_cache = cache.CachedArray(value=value)
+            
+            a = array_cache((2, 2))
+            b = array_cache((2, 2))
+            self.assertIs(a, b)
+            b = array_cache((2, 3))
+            b = array_cache((2, 2))
+            self.assertIsNot(a, b)
+            
+            if value is not None:
+                np.testing.assert_equal(a, value)
+                np.testing.assert_equal(b, value)
 
 
 

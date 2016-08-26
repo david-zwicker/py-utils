@@ -182,7 +182,7 @@ class TestCache(unittest.TestCase):
                         storage.clear()
         
 
-    def test_property_cache(self):
+    def _test_property_cache(self, cache_storage):
         """ test cached_property decorator """
         
         # create test class
@@ -197,8 +197,16 @@ class TestCache(unittest.TestCase):
             @property
             def uncached(self): self.counter += 1; return 1
             
-            @cache.cached_property
             def cached(self): self.counter += 1; return 2    
+        
+        # apply the cache with the given storage
+        if cache_storage is False:
+            decorator = cache.cached_property
+        elif cache_storage is None: 
+            decorator = cache.cached_property()
+        else:
+            decorator = cache.cached_property(cache_storage)
+        CacheTest.cached = decorator(CacheTest.cached)
             
         # try to objects to make sure caching is done on the instance level
         for obj in [CacheTest(), CacheTest()]:        
@@ -214,6 +222,12 @@ class TestCache(unittest.TestCase):
             self.assertEqual(obj.counter, 1)
             self.assertEqual(obj.cached, 2)
             self.assertEqual(obj.counter, 1)
+
+
+    def test_property_cache(self):
+        """ test cached_property decorator """
+        for cache_storage in [False, None, "my_cache"]:
+            self._test_property_cache(cache_storage)
             
             
     def _test_method_cache(self, serializer, cache_factory=None):
@@ -236,8 +250,21 @@ class TestCache(unittest.TestCase):
             @cache.cached_method(serializer=serializer, factory=cache_factory)
             def cached_kwarg(self, a=0, b=0): self.counter += 1; return a + b
             
-        # try to objects to make sure caching is done on the instance level
-        for obj in [CacheTest(), CacheTest()]:        
+        # test what happens when the decorator is applied wrongly
+        def apply_decorator_wrongly():
+            cache.cached_method(CacheTest.cached)
+        self.assertRaises(ValueError, apply_decorator_wrongly)
+            
+        # try to objects to make sure caching is done on the instance level and
+        # that clearing the cache works
+        obj1, obj2 = CacheTest(), CacheTest()
+        for k, obj in enumerate([obj1, obj2, obj1]):        
+            
+            # clear the cache before the last pass
+            if k == 2:
+                CacheTest.cached.clear_cache(obj)
+                CacheTest.cached_kwarg.clear_cache(obj)
+                obj.counter = 0
             
             # test uncached method
             self.assertEqual(obj.uncached(1), 1)

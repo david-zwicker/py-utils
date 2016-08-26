@@ -9,17 +9,7 @@ This module contains functions that can be used to handle files and directories
 from __future__ import division
 
 import contextlib
-import os.path
-
-
-# get parent directory
-MAIN_DIRECTORY = os.path.dirname(os.path.dirname(__file__))
-
-
-def get_full_path(*path):
-    """ returns the path relative to the root directory.
-    Inspired by http://codereview.stackexchange.com/a/20449 """
-    return os.path.join(MAIN_DIRECTORY, *path)
+import os
 
 
 

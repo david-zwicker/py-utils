@@ -131,15 +131,3 @@ def tex2pdf(tex_source, outfile, use_pdflatex=True, verbose=False):
     # house keeping
     os.system("rm -rf %s" % tmp)
     os.chdir(cwd)
-
-
-
-if __name__ == "__main__":
-    print('This file is intended to be used as a module.')
-    print('This code serves as a test for the defined methods.')
-    testvalues = (
-        0.1, 1., 1.0001, -0.1, -1, 1e-8, 1e8,
-        3.4567e-4, 3.4567e4, -3.4567e-4, -3.4567e4
-    )
-    for testval in testvalues:
-        print("%s\t%s" % (testval, number2latex(testval, precision=3)))

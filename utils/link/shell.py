@@ -10,6 +10,4 @@ import pipes
 
 
 
-def shellquote(s):
-    """ Quotes characters problematic for most shells """
-    return pipes.quote(s)
+shellquote = pipes.quote

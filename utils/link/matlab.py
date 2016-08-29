@@ -52,10 +52,23 @@ class Matlab(ExecutableBase):
     
     def run_code(self, code, **kwargs):
         """ runs matlab code and returns the output """
-        return self._run_command("-r \"%s;exit;\"" % code, **kwargs)
+        return self._run_command([], stdin="%s;exit;" % code, **kwargs)
     
     
     def run_script(self, filename, **kwargs):
         """ runs the matlab script `filename` and returns the output """
-        return self._run_command(["-r", filename], **kwargs)
+        return self.run_code("run('%s')" % filename, **kwargs)
+    
+
+    def extract_output_cells(self, output):
+        """ parse the `output` to extract all output cells """
+        cells = []
+        
+        for line in output.split('\n'):
+            if line.startswith('>>      '):
+                cells.append(line[8:])
+            elif cells:
+                cells[-1] += line
+                    
+        return cells
     

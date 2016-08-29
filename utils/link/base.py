@@ -54,16 +54,14 @@ class ExecutableBase(object):
         if stdin is None:        
             # run program in a separate process and capture output
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE,
-                                       shell=False, **kwargs)
+                                       stderr=subprocess.PIPE, **kwargs)
             stdout, stderr = process.communicate()
             
         else:
             # run program in a separate process, send stdin, and capture output
             process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE,
-                                       shell=False, **kwargs)
+                                       stderr=subprocess.PIPE, **kwargs)
             stdout, stderr = process.communicate(stdin)
 
         # process output if necessary

@@ -21,6 +21,7 @@ class Mathematica(ExecutableBase):
     
     name = 'Mathematica'
     standards_args = []
+    skip_stdout_lines = 0
     
     
     def find_program(self):
@@ -59,9 +60,8 @@ class Mathematica(ExecutableBase):
     def run_code(self, code, **kwargs):
         """ runs Mathematica code and returns the output """
         kwargs.setdefault('skip_stdout_lines', 2)
-        code += '\nExit[]' #< make sure the program exits
+        code += '\nExit[];' #< make sure the program exits
         return self._run_command("", stdin=code, **kwargs)
-        #return self._run_command(["-run", "%s" % code], **kwargs)
         
 
     def run_script(self, filename, **kwargs):
@@ -89,7 +89,7 @@ class Mathematica(ExecutableBase):
                     # append the output, since it belongs to the target cell
                     res += '\n' + line
         
-        return res
+        return res.rstrip()
     
     
     def extract_output_cells(self, output):

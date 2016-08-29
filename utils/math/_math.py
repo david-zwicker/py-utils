@@ -325,7 +325,7 @@ def get_number_range(dtype):
     elif np.issubdtype(dtype, np.floating):
         info = np.finfo(dtype)
     else:
-        raise ValueError('Unsupported data type `%r`' % dtype)
+        raise TypeError('Unsupported data type `%r`' % dtype)
 
     return info.min, info.max
         
@@ -335,9 +335,19 @@ def homogenize_arraylist(data):
     """ stores a list of arrays of different length in a single array.
     This is achieved by appending np.nan as necessary.
     """
-    len_max = max(len(d) for d in data)
-    result = np.empty((len(data), len_max) + data[0].shape[1:],
-                      dtype=data[0].dtype)
+    if len(data) == 0:
+        return data
+
+    # try getting the lengths of the items
+    try:    
+        len_max = max(len(d) for d in data)
+    except TypeError:
+        raise TypeError('Expected list of lists/arrays.')
+    
+    data0 = np.asarray(data[0])
+    
+    result = np.empty((len(data), len_max) + data0.shape[1:],
+                      dtype=data0.dtype)
     result.fill(np.nan)
     for k, d in enumerate(data):
         result[k, :len(d), ...] = d
@@ -436,10 +446,12 @@ def contiguous_int_regions_iter(data):
 def safe_typecast(data, dtype):
     """
     truncates the data such that it fits within the supplied dtype.
-    This function only supports integer data types so far.
+    This function only supports integer data types.
+    This function fails if the magnitude of the input is above
+    18446744073709551615, which is np.iinfo(np.uint64).max
     """
     info = np.iinfo(dtype)
-    return np.clip(data, info.min, info.max).astype(dtype)
+    return dtype(np.clip(data, info.min, info.max))
     
 
     

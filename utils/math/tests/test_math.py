@@ -132,6 +132,77 @@ class TestMath(unittest.TestCase):
             self.assertEqual(m.popcount(x), bin(x).count('1'))
             
             
+    def test_take_popcount(self):
+        """ test the take_popcount function """
+        self.assertEqual(m.take_popcount([], 0), []) 
+        self.assertEqual(m.take_popcount([], 1), []) 
+        self.assertEqual(m.take_popcount([3, 4], 0), [3]) 
+        self.assertEqual(m.take_popcount([3, 4], 1), [4]) 
+        self.assertEqual(m.take_popcount([3, 4, 5, 6], 1), [4, 5]) 
+        self.assertEqual(m.take_popcount([3, 4, 5, 6], 2), [6]) 
+            
+            
+    def test_get_number_range(self):
+        """ test the get_number_range function """
+        # test unsupported types
+        from decimal import Decimal
+        self.assertRaises(TypeError, lambda: m.get_number_range(Decimal(1)))
+        self.assertRaises(TypeError, lambda: m.get_number_range(np.str))
+        
+        # test integer ranges
+        self.assertEqual(m.get_number_range(np.uint8), (0, 255))
+        self.assertEqual(m.get_number_range(np.int8), (-128, 127))
+        self.assertEqual(m.get_number_range(np.uint16), (0, 65535))
+        self.assertEqual(m.get_number_range(np.int16), (-32768, 32767))
+        self.assertEqual(m.get_number_range(np.uint32), (0, 4294967295))
+        self.assertEqual(m.get_number_range(np.int32),
+                         (-2147483648, 2147483647))
+        self.assertEqual(m.get_number_range(np.uint64),
+                         (0, 18446744073709551615))
+        self.assertEqual(m.get_number_range(np.int64),
+                         (-9223372036854775808, 9223372036854775807))
+        
+        # test float ranges
+        np.testing.assert_allclose(m.get_number_range(np.single),
+                                   (-3.4028235e+38, 3.4028235e+38))
+        np.testing.assert_allclose(m.get_number_range(np.double),
+                                   (-1.7976931348623157e+308,
+                                    1.7976931348623157e+308))
+            
+            
+    def test_homogenize_arraylist(self):
+        """ test the homogenize_arraylist function """
+        self.assertEqual(m.homogenize_arraylist([]), [])
+        self.assertRaises(TypeError, lambda: m.homogenize_arraylist([1]))
+        self.assertEqual(m.homogenize_arraylist([[1]]), np.array([[1]]))
+        np.testing.assert_array_equal(m.homogenize_arraylist([[1, 2]]),
+                                      np.array([[1, 2]]))
+        np.testing.assert_array_equal(m.homogenize_arraylist([[1, 2], [3, 4]]),
+                                      np.array([[1, 2], [3, 4]]))
+        np.testing.assert_array_equal(m.homogenize_arraylist([[1., 2], [3]]),
+                                      np.array([[1, 2], [3, np.nan]]))
+        np.testing.assert_array_equal(m.homogenize_arraylist([[1.], [3, 4]]),
+                                      np.array([[1, np.nan], [3, 4]]))
+            
+            
+    def test_homogenize_unit_array(self):
+        """ test the homogenize_unit_array function """
+        from pint import UnitRegistry
+        ureg = UnitRegistry()
+        cm = ureg.centimeter
+        mm = ureg.millimeter
+        
+        self.assertEqual(m.homogenize_unit_array([]), [])
+        self.assertEqual(m.homogenize_unit_array([1]), [1])
+        self.assertEqual(m.homogenize_unit_array([1] * cm), [1] * cm)
+        np.testing.assert_array_equal(m.homogenize_unit_array([1, 2] * cm),
+                                      [1, 2] * cm)
+        np.testing.assert_array_equal(m.homogenize_unit_array([1*cm, 20*mm]),
+                                      [1, 2] * cm)
+        res = m.homogenize_unit_array([1*cm, 20*mm], unit=mm)
+        np.testing.assert_array_equal(res, [10, 20] * mm)
+        
+            
     def test_is_equidistant(self):
         """ test the is_equidistant function """
         self.assertTrue(is_equidistant([]))
@@ -166,5 +237,17 @@ class TestMath(unittest.TestCase):
         self.assertListEqual(list(m.contiguous_int_regions_iter(data)), result)
         
         
-        
-        
+    def test_safe_typecast(self):
+        """ test the safe_typecast function """
+        for dtype in [np.int8, np.int16, np.int32, np.int64, np.uint8,
+                      np.uint16, np.uint32]:
+            iinfo = np.iinfo(dtype)
+            
+            val = m.safe_typecast(int(iinfo.min) - 1, dtype)
+            self.assertEqual(val, iinfo.min)
+            self.assertEqual(val.dtype, dtype)
+            
+            val = m.safe_typecast(int(iinfo.max) + 1, dtype)
+            self.assertEqual(val, iinfo.max)
+            self.assertEqual(val.dtype, dtype)
+    

@@ -13,7 +13,7 @@ import numpy as np
 from .. import random
 
 
-class Test(unittest.TestCase):
+class TestRandom(unittest.TestCase):
 
 
     _multiprocess_can_split_ = True #< let nose know that tests can run parallel

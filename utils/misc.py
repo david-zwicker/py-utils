@@ -125,19 +125,23 @@ class DeprecationHelper(object):
     copied from http://stackoverflow.com/a/9008509/932593
     """
     
-    def __init__(self, new_target, warning_class=Warning):
+    def __init__(self, new_target, warning_class=DeprecationWarning):
+        """ intialize the decorator """
         self.new_target = new_target
         self.warning_class = warning_class
 
     def _warn(self):
+        """ emit a warning that the class was renamed """
         msg = "The class was renamed to `%s`"  % self.new_target.__name__
         warnings.warn(msg, self.warning_class, stacklevel=3)
 
     def __call__(self, *args, **kwargs):
+        """ this should catch the normal initialization """
         self._warn()
         return self.new_target(*args, **kwargs)
 
     def __getattr__(self, attr):
+        """ overwrite this to also capture classmethods """
         self._warn()
         return getattr(self.new_target, attr)
     

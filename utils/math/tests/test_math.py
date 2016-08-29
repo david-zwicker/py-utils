@@ -61,7 +61,7 @@ class TestMath(unittest.TestCase):
             self.assertTrue(m.arrays_close(a, b, rtol, atol), msg=msg)
             b = (1 + 2*rtol)*a + atol
             self.assertFalse(m.arrays_close(a, b, rtol, atol), msg=msg)
-            b = (1 + rtol)*a + 2 * atol
+            b = (1 + 1.1*rtol)*(a + 2*atol)
             self.assertFalse(m.arrays_close(a, b, rtol, atol), msg=msg)
         
         

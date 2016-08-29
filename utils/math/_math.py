@@ -88,8 +88,8 @@ def arrays_close(arr1, arr2, rtol=1e-05, atol=1e-08, equal_nan=False):
         arr1 = arr1[idx]
         arr2 = arr2[idx]
     
-    # get the scale of the first array
-    scale = np.abs(arr1.mean())
+    # get the scale of the arrays
+    scale = 0.5*(np.abs(arr1) + np.abs(arr2))
     
     # try to compare the arrays
     with np.errstate(invalid='raise'):

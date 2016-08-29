@@ -11,7 +11,6 @@ import unittest
 import numpy as np
 
 from .. import _math as m
-from utils.math._math import is_equidistant
 
 
 
@@ -125,6 +124,17 @@ class TestMath(unittest.TestCase):
         self.assertEqual(m.round_to_odd(1.9), 1)
         self.assertEqual(m.round_to_odd(2), 3)
         
+    
+    def test_calc_entropy(self):
+        """ test the calc_entropy function """
+        entropy_functions = (m._ENTROPY_FUNCTIONS + [m.calc_entropy])
+        for entropy in entropy_functions:
+            msg = 'Entropy function `%s` failed' % entropy.__name__
+            self.assertEqual(entropy([]), 0, msg=msg)
+            self.assertEqual(entropy([1]), 0, msg=msg)
+            self.assertEqual(entropy([1, 1]), 0, msg=msg)
+            self.assertAlmostEqual(entropy([0, 1]), 1, msg=msg)
+        
         
     def test_popcount(self):
         """ tests the popcount function """
@@ -205,11 +215,11 @@ class TestMath(unittest.TestCase):
             
     def test_is_equidistant(self):
         """ test the is_equidistant function """
-        self.assertTrue(is_equidistant([]))
-        self.assertTrue(is_equidistant([1]))
-        self.assertTrue(is_equidistant([1, 2]))
-        self.assertTrue(is_equidistant([1, 2, 3]))
-        self.assertFalse(is_equidistant([1, 2, 3.001]))
+        self.assertTrue(m.is_equidistant([]))
+        self.assertTrue(m.is_equidistant([1]))
+        self.assertTrue(m.is_equidistant([1, 2]))
+        self.assertTrue(m.is_equidistant([1, 2, 3]))
+        self.assertFalse(m.is_equidistant([1, 2, 3.001]))
     
             
     def test_contiguous_true_regions(self):

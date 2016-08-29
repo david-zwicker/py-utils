@@ -13,12 +13,19 @@ import fractions
 import math
 
 import numpy as np
-from scipy import interpolate
-from scipy.stats import itemfreq
+from scipy import interpolate, stats
 from six.moves import range
 
 from ..misc import estimate_computation_speed
 
+
+__all__ = ['xlog2x', 'average_angles', 'euler_phi', 'arrays_close', 'logspace',
+           'is_pos_semidef', 'trim_nan', 'mean', 'moving_average',
+           'Interpolate_1D_Extrapolated', 'round_to_even', 'round_to_odd',
+           'get_fastest_entropy_function', 'calc_entropy', 'popcount',
+           'take_popcount', 'get_number_range', 'homogenize_arraylist',
+           'homogenize_unit_array', 'is_equidistant', 'contiguous_true_regions',
+           'contiguous_int_regions_iter', 'safe_typecast']
 
 
 # constants
@@ -237,38 +244,65 @@ def round_to_odd(value):
 
 
 
-def get_fastest_entropy_function():
-    """ returns a function that calculates the entropy of a array of integers
-    Here, several alternative definitions are tested and the fastest one is
-    returned """
-    
-    # define a bunch of functions that act the same but have different speeds 
-    
-    def entropy_numpy(arr):
-        """ calculate the entropy of the distribution given in `arr` """
-        fs = np.unique(arr, return_counts=True)[1]
-        return np.sum(fs*np.log2(fs))
-    
-    def entropy_scipy(arr):
-        """ calculate the entropy of the distribution given in `arr` """
-        fs = itemfreq(arr)[:, 1]
-        return np.sum(fs*np.log2(fs))
-    
-    def entropy_counter1(arr):
-        """ calculate the entropy of the distribution given in `arr` """
-        return sum(val*np.log2(val)
-                   for val in Counter(arr).itervalues())
-        
-    def entropy_counter2(arr):
-        """ calculate the entropy of the distribution given in `arr` """
-        return sum(val*np.log2(val)
-                   for val in Counter(arr).values())
+def _entropy_numpy(arr):
+    """
+    calculate the base 2 entropy of the distribution given in `arr` using the
+    numpy.unique function
+    """
+    counts = np.unique(arr, return_counts=True)[1]
+    fs = np.true_divide(counts, len(arr))
+    return -np.sum(fs * np.log2(fs))
 
+
+def _entropy_scipy(arr):
+    """
+    calculate the base 2 entropy of the distribution given in `arr` using the
+    scipy.stats.itemfreq function
+    """
+    counts = stats.itemfreq(arr)[:, 1]
+    fs = np.true_divide(counts, len(arr))
+    return -np.sum(fs * np.log2(fs))
+
+
+def _entropy_counter1(arr):
+    """
+    calculate the base 2 entropy of the distribution given in `arr` using a
+    `Counter` and the `itervalues` method (for python2)
+    """
+    arr_len = len(arr)
+    if arr_len == 0:
+        return 0
+    log_arr_len = np.log2(len(arr))
+    return -sum(val * (np.log2(val) - log_arr_len)
+                for val in Counter(arr).itervalues()) / arr_len
+
+    
+def _entropy_counter2(arr):
+    """
+    calculate the base 2 entropy of the distribution given in `arr` using a
+    `Counter` and the `values` method (for python3)
+    """
+    arr_len = len(arr)
+    if arr_len == 0:
+        return 0
+    log_arr_len = np.log2(len(arr))
+    return -sum(val * (np.log2(val) - log_arr_len)
+                for val in Counter(arr).values()) / arr_len
+
+
+# compile the list of functions that can calculate an entropy
+_ENTROPY_FUNCTIONS = [_entropy_numpy, _entropy_scipy, _entropy_counter1,
+                      _entropy_counter2]
+
+
+def get_fastest_entropy_function():
+    """ returns a function that calculates the base 2 entropy of a array of
+    integers. Here, several alternative definitions are tested and the fastest
+    one is returned """
     # test all functions against a random array to find the fastest one
     test_array = np.random.random_integers(0, 10, 100)
     func_fastest, speed_max = None, 0
-    for test_func in (entropy_numpy, entropy_scipy, entropy_counter1,
-                      entropy_counter2):
+    for test_func in _ENTROPY_FUNCTIONS:
         try:
             speed = estimate_computation_speed(test_func, test_array)
         except (TypeError, AttributeError):
@@ -282,13 +316,18 @@ def get_fastest_entropy_function():
     return func_fastest
 
 
+
 def calc_entropy(arr):
-    """ calculate the entropy of the distribution given in `arr` """
-    # find the fastest entropy function on the first call of this function
-    # and bind it to the same name such that it is used in future times
-    global calc_entropy
-    calc_entropy = get_fastest_entropy_function()
-    return calc_entropy(arr)
+    """ calculate the base 2 entropy of the array given by `arr`.
+    The first time this function is called, it runs a benchmark to determine the
+    fastest method to calculate the entropy. All subsequent calls then use this
+    method.
+    """
+    try:
+        return calc_entropy._function(arr)
+    except AttributeError:
+        calc_entropy._function = get_fastest_entropy_function()
+        return calc_entropy._function(arr)
 
 
 

@@ -134,6 +134,7 @@ class TestMath(unittest.TestCase):
             self.assertEqual(entropy([1]), 0, msg=msg)
             self.assertEqual(entropy([1, 1]), 0, msg=msg)
             self.assertAlmostEqual(entropy([0, 1]), 1, msg=msg)
+            self.assertAlmostEqual(entropy([0, 0.5, 1]), np.log2(3), msg=msg)
         
         
     def test_popcount(self):

@@ -95,6 +95,14 @@ def arrays_close(arr1, arr2, rtol=1e-05, atol=1e-08, equal_nan=False):
         arr1 = arr1[idx]
         arr2 = arr2[idx]
     
+    # handle infinities separately
+    idx_inf = (np.isinf(arr1) | np.isinf(arr2))
+    if np.any(arr1[idx_inf] != arr2[idx_inf]):
+        # the arrays differed in a place where at least one was infinite
+        return False
+
+    # handle the rest of the entries
+    arr1, arr2 = arr1[~idx_inf], arr2[~idx_inf]
     # get the scale of the arrays
     scale = 0.5*(np.abs(arr1) + np.abs(arr2))
     
@@ -176,26 +184,12 @@ def mean(values, empty=0):
 def moving_average(data, window=1):
     """ calculates a moving average with a given window along the first axis
     of the given data.
+    Inspired by http://stackoverflow.com/a/14314054/932593
     """
-    height = len(data)
-    result = np.zeros_like(data) + np.nan
-    size = 2*window + 1
-    assert height >= size
-    for pos in range(height):
-        # determine the window
-        if pos < window:
-            rows = slice(0, size)
-        elif pos > height - window:
-            rows = slice(height - size, height)
-        else:
-            rows = slice(pos - window, pos + window + 1)
+    ret = np.cumsum(data, dtype=float, axis=0)
+    ret[window:] = ret[window:] - ret[:-window]
+    return ret[window - 1:] / window
             
-        # find indices where all values are valid
-        cols = np.all(np.isfinite(data[rows, :]), axis=0)
-        result[pos, cols] = data[rows, cols].mean(axis=0)
-    return result
-            
-
 
 
 class Interpolate_1D_Extrapolated(interpolate.interp1d):
@@ -206,8 +200,9 @@ class Interpolate_1D_Extrapolated(interpolate.interp1d):
     
     def __call__(self, x, dtype=np.double):
         """ call the interpolator with appropriate bounds """
-        if isinstance(x, np.ndarray):
-            # x is a numpy array for which we can have vectorized results
+        if hasattr(x, '__iter__'):
+            # interpret x as a numpy array
+            x = np.asarray(x)
             
             # determine indices
             i_left = (x <= self.x[0])

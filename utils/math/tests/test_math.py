@@ -62,6 +62,14 @@ class TestMath(unittest.TestCase):
             self.assertFalse(m.arrays_close(a, b, rtol, atol), msg=msg)
             b = (1 + 1.1*rtol)*(a + 2*atol)
             self.assertFalse(m.arrays_close(a, b, rtol, atol), msg=msg)
+            
+        # test special cases
+        self.assertFalse(m.arrays_close([0], [np.nan], equal_nan=True))
+        self.assertFalse(m.arrays_close([0], [np.nan], equal_nan=False))
+        self.assertTrue(m.arrays_close([np.nan], [np.nan], equal_nan=True))
+        self.assertFalse(m.arrays_close([np.nan], [np.nan], equal_nan=False))
+        self.assertTrue(m.arrays_close([np.inf], [np.inf]))
+        self.assertFalse(m.arrays_close([-np.inf], [np.inf]))
         
         
     def test_logspace(self):
@@ -109,6 +117,40 @@ class TestMath(unittest.TestCase):
         x = np.random.random(10)
         self.assertAlmostEqual(m.mean(x), x.mean())
         self.assertAlmostEqual(m.mean(iter(x)), x.mean())
+        
+        
+    def test_moving_average(self):
+        """ test the moving_average function """
+        np.testing.assert_allclose(m.moving_average([]), [])
+        
+        arr = np.arange(4)
+        np.testing.assert_allclose(m.moving_average(arr, 2), [0.5,  1.5,  2.5])
+        np.testing.assert_allclose(m.moving_average(arr, 3), [1, 2])
+
+        arr = np.random.random((10, 10))
+        res1 = m.moving_average(arr)
+        res2 = np.apply_along_axis(m.moving_average, axis=0, arr=arr)
+        np.testing.assert_allclose(res1, res2)
+        
+        arr = np.random.random(10)
+        np.testing.assert_allclose(m.moving_average(arr, 1), arr)
+        np.testing.assert_allclose(m.moving_average(arr, len(arr)),
+                                   [arr.mean()])
+        
+        
+    def test_Interpolate_1D_Extrapolated(self):
+        """ test the Interpolate_1D_Extrapolated class """
+        interp = m.Interpolate_1D_Extrapolated([0, 1], [0, 1])
+        self.assertEqual(interp(-1), 0)
+        self.assertEqual(interp(0), 0)
+        self.assertEqual(interp(0.5), 0.5)
+        self.assertEqual(interp(1), 1)
+        self.assertEqual(interp(2), 1)
+        np.testing.assert_allclose(interp([-0.1, 0, 0.5, 1, 1.1]),
+                                   [0, 0, 0.5, 1, 1])
+        np.testing.assert_allclose(interp(np.array([-0.1, 0, 0.5, 1, 1.1])),
+                                   [0, 0, 0.5, 1, 1])
+                                   
         
         
     def test_round(self):

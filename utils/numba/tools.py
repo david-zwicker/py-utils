@@ -70,8 +70,8 @@ if numba:
         parameterized by its `mean` and variance `var` """
         mean2 = mean**2
         return 0.5 * math.erfc(
-            np.log(mean2 / (x*np.sqrt(mean2 + var)))
-            /(np.sqrt(2*np.log(1 + var/mean2)))
+            np.log(mean2 / (x*np.sqrt(mean2 + var))) /
+            (np.sqrt(2 * np.log(1 + var / mean2)))
         )
 
 

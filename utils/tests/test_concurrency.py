@@ -26,7 +26,7 @@ class TestConcurrency(unittest.TestCase):
         
         for arg in [1, None, [1, 2]]:
             worker_thread.put(arg)
-            time.sleep(0.001) #< wait a bit until the thread finished
+            time.sleep(0.001)  # wait a bit until the thread finished
             self.assertEqual(worker_thread.get(), arg)
 
 

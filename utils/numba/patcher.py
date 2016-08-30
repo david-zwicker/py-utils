@@ -52,7 +52,7 @@ class NumbaPatcher(object):
         self.module = module
         self.numba_methods = {}
         self.saved_python_functions = False
-        self.enabled = False #< whether numba speed-up is enabled or not
+        self.enabled = False  # whether numba speed-up is enabled or not
     
 
     @property
@@ -148,7 +148,8 @@ class NumbaPatcher(object):
 
     
     def _prepare_functions(self, data):
-        """ prepares the arguments for the two functions that we want to test """
+        """ prepares the arguments for the two functions that we want to test
+        """
         # prepare the arguments
         test_args = data['test_arguments'].copy()
         for key, value in test_args.items():

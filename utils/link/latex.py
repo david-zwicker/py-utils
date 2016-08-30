@@ -120,7 +120,7 @@ def tex2pdf(tex_source, outfile, use_pdflatex=True, verbose=False):
     os.chdir(tmp)
     if use_pdflatex:
         os.system("pdflatex document.tex" + verbosity)
-    else: # use ordinary latex
+    else:  # use ordinary latex
         os.system("latex document.tex" + verbosity)
         os.system("dvips document.dvi" + verbosity)
         os.system("ps2pdf document.ps" + verbosity)

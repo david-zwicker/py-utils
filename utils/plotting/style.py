@@ -22,7 +22,6 @@ COLOR_GREEN_OLD = '#00A919'
 COLOR_RED_OLD = '#E6001C'
 
 # colors suitable for color blind people
-#COLOR_BLUE = '#0072B2'
 COLOR_BLUE_SAFE = '#0673B7'
 COLOR_ORANGE_SAFE = '#EFE342'
 COLOR_GREEN_SAFE = '#009D73'
@@ -36,14 +35,14 @@ COLOR_RED = '#E6001C'
 # this list has been taken from
 # Wong. Color blindness. Nat Methods (2011) vol. 8 (6) pp. 441
 COLOR_LIST_SAFE = [
-    '#0072B2', # Blue
-    '#D55E00', # Vermillion
-    '#009E73', # Bluish green
-    '#E69F00', # Orange
-    '#56B4E9', # Sky blue
-    '#F0E442', # Yellow
-    '#CC79A7', # Reddish purple
-    'k'        # Black
+    '#0072B2',  # Blue
+    '#D55E00',  # Vermillion
+    '#009E73',  # Bluish green
+    '#E69F00',  # Orange
+    '#56B4E9',  # Sky blue
+    '#F0E442',  # Yellow
+    '#CC79A7',  # Reddish purple
+    'k'         # Black
 ]
 COLOR_LIST = [COLOR_BLUE, COLOR_ORANGE, COLOR_GREEN, COLOR_RED, 'k']
 COLOR_LIST_STANDARD = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
@@ -75,15 +74,15 @@ def get_style_iter(color=True, dashes=None, extra=None):
     # prepare the data
     if color in [True, None]:
         icolor = itertools.cycle(COLOR_LIST)
-    elif color == False:
+    elif color is False:
         icolor = itertools.repeat('k')
     else:
         icolor = itertools.cycle(color)
 
     if dashes in [False, None]:
         idashes = itertools.repeat('-')
-    elif dashes == True:
-        idashes = itertools.cycle(['-', '--', ':', '-.' ])
+    elif dashes is True:
+        idashes = itertools.cycle(['-', '--', ':', '-.'])
     else:
         idashes = itertools.cycle(dashes)
 
@@ -322,9 +321,10 @@ if __name__ == "__main__":
         plt.xlabel("x")
         plt.ylabel("f(x)")
         plt.title("Simple Plot")
-        plt.legend(("sin(x)","cos(x)"))
+        plt.legend(("sin(x)", "cos(x)"))
 
         # apply presentation style to plot
         set_presentation_style()
 
         plt.show()
+        

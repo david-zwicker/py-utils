@@ -17,7 +17,7 @@ from .. import files
 class TestFiles(unittest.TestCase):
 
 
-    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
 
 
     def test_change_directory(self):

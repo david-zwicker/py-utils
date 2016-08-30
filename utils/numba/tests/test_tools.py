@@ -10,15 +10,15 @@ import unittest
 
 import numpy as np
 
-from ..math import distributions
-from .tools import lognorm_cdf, lognorm_pdf
+from ...math import distributions
+from ..tools import lognorm_cdf, lognorm_pdf
 
       
      
 class TestMathDistributions(unittest.TestCase):
     """ unit tests for the continuous library """
 
-    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
     
     
     def test_numba_stats(self):

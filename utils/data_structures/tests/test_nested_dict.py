@@ -15,7 +15,7 @@ from .. import nested_dict
 class TestNestedDict(unittest.TestCase):
 
 
-    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
 
 
     def test_simple(self):
@@ -38,3 +38,4 @@ class TestNestedDict(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+    

@@ -119,7 +119,7 @@ def loguniform_mean(mean, sigma):
     """ returns a loguniform distribution parameterized by its mean and a spread
     parameter `sigma`. The ratio between the maximal value and the minimal value
     is given by sigma**2 """
-    scale =  mean * (2*sigma*np.log(sigma)) / (sigma**2 - 1)
+    scale = mean * (2*sigma*np.log(sigma)) / (sigma**2 - 1)
     return LogUniformDistribution(scale=scale, s=sigma)
 
 
@@ -171,7 +171,7 @@ class LogUniformDistribution_gen(stats.rv_continuous):
     
     def _pdf(self, x, s):
         """ probability density function """
-        s = s[0] #< reset broadcasting
+        s = s[0]  # reset broadcasting
         res = np.zeros_like(x)
         idx = (1 < x*s) & (x < s)
         res[idx] = 1/(x[idx] * np.log(s*s))
@@ -180,7 +180,7 @@ class LogUniformDistribution_gen(stats.rv_continuous):
         
     def _cdf(self, x, s): 
         """ cumulative probability function """
-        s = s[0] #< reset broadcasting
+        s = s[0]  # reset broadcasting
         res = np.zeros_like(x)
         idx = (1 < x*s) & (x < s)
         log_s = np.log(s)
@@ -192,7 +192,7 @@ class LogUniformDistribution_gen(stats.rv_continuous):
 
     def _ppf(self, q, s):
         """ percent point function (inverse of cdf) """
-        s = s[0] #< reset broadcasting
+        s = s[0]  # reset broadcasting
         res = np.zeros_like(q)
         idx = (q > 0)
         res[idx] = s**(2*q[idx] - 1)
@@ -202,7 +202,8 @@ class LogUniformDistribution_gen(stats.rv_continuous):
     def _stats(self, s):
         """ calculates statistics of the distribution """
         mean = (s**2 - 1)/(2*s*np.log(s))
-        var = ((s**4 - 1)*np.log(s) - (s**2 - 1)**2)/(4* s**2 *np.log(s)**2)
+        var = ((s**4 - 1) * np.log(s) - (s**2 - 1)**2) \
+                / (4 * s**2 * np.log(s)**2)
         return mean, var, None, None
 
     
@@ -241,7 +242,8 @@ class HypoExponentialDistribution(object):
         
         # calculate terms that we need later
         with np.errstate(divide='ignore'):
-            mat = self.alpha[:, None] / (self.alpha[:, None] - self.alpha[None, :])
+            mat = self.alpha[:, None] \
+                    / (self.alpha[:, None] - self.alpha[None, :])
         mat[(self.alpha[:, None] - self.alpha[None, :]) == 0] = 1
         self._terms = np.prod(mat, 1)
         
@@ -260,8 +262,8 @@ class HypoExponentialDistribution(object):
     
     def variance(self):
         """ variance of the distribution """
-        return (2 * np.sum(self.alpha**2 * self._terms)
-                - (self.alpha.sum())**2)
+        return (2 * np.sum(self.alpha**2 * self._terms) - 
+                (self.alpha.sum())**2)
     
 
     def pdf(self, x):
@@ -272,12 +274,15 @@ class HypoExponentialDistribution(object):
             nz = (x > 0)
             if np.any(nz):
                 if self.method == 'sum':
-                    factor = np.exp(-x[nz, None]*self.rates[..., :])/self.rates[..., :]
+                    factor = np.exp(-x[nz, None] * self.rates[..., :]) \
+                                / self.rates[..., :]
                     res[nz] = np.sum(self._terms[..., :] * factor, axis=1)
                 else:
-                    Theta = np.diag(-self.rates, 0) + np.diag(self.rates[:-1], 1)
+                    Theta = (np.diag(-self.rates, 0) + 
+                             np.diag(self.rates[:-1], 1))
                     for i in np.flatnonzero(nz):
-                        res.flat[i] = 1 - linalg.expm(x.flat[i]*Theta)[0, :].sum()
+                        res.flat[i] = \
+                                1 - linalg.expm(x.flat[i]*Theta)[0, :].sum()
  
         elif x == 0:
             res = 0
@@ -309,9 +314,9 @@ class HypoExponentialDistribution(object):
 
 
 
-#===============================================================================
+# ==============================================================================
 # OLD DISTRIBUTIONS THAT MIGHT NOT BE NEEDED ANYMORE
-#===============================================================================
+# ==============================================================================
 
 
 
@@ -337,19 +342,19 @@ class PartialLogNormDistribution_gen(stats.rv_continuous):
     
     def _pdf(self, x, s, frac):
         """ probability density function """
-        s, frac = s[0], frac[0] #< reset broadcasting
+        s, frac = s[0], frac[0]  # reset broadcasting
         return frac / (s*x*np.sqrt(2*np.pi)) * np.exp(-1/2*(np.log(x)/s)**2)         
         
         
     def _cdf(self, x, s, frac): 
         """ cumulative probability function """
-        s, frac = s[0], frac[0] #< reset broadcasting
+        s, frac = s[0], frac[0]  # reset broadcasting
         return 1 + frac*(-0.5 + 0.5*special.erf(np.log(x)/(s*np.sqrt(2))))
 
 
     def _ppf(self, q, s, frac):
         """ percent point function (inverse of cdf) """
-        s, frac = s[0], frac[0] #< reset broadcasting
+        s, frac = s[0], frac[0]  # reset broadcasting
         q_scale = (q - (1 - frac)) / frac
         res = np.zeros_like(q)
         idx = (q_scale > 0)
@@ -382,7 +387,7 @@ class PartialLogUniformDistribution_gen(stats.rv_continuous):
     
     def _pdf(self, x, s, frac):
         """ probability density function """
-        s, frac = s[0], frac[0] #< reset broadcasting
+        s, frac = s[0], frac[0]  # reset broadcasting
         res = np.zeros_like(x)
         idx = (1 < x*s) & (x < s)
         res[idx] = frac/(x[idx] * np.log(s*s))
@@ -391,7 +396,7 @@ class PartialLogUniformDistribution_gen(stats.rv_continuous):
         
     def _cdf(self, x, s, frac): 
         """ cumulative probability function """
-        s, frac = s[0], frac[0] #< reset broadcasting
+        s, frac = s[0], frac[0]  # reset broadcasting
         res = np.zeros_like(x)
         idx = (1 < x*s) & (x < s)
         log_s = np.log(s)
@@ -403,7 +408,7 @@ class PartialLogUniformDistribution_gen(stats.rv_continuous):
 
     def _ppf(self, q, s, frac):
         """ percent point function (inverse of cdf) """
-        s, frac = s[0], frac[0] #< reset broadcasting
+        s, frac = s[0], frac[0]  # reset broadcasting
         q_scale = (q - (1 - frac)) / frac
         res = np.zeros_like(q)
         idx = (q_scale > 0)
@@ -418,6 +423,7 @@ PartialLogUniformDistribution = PartialLogUniformDistribution_gen(
 
 
 NORMAL_DISTRIBUTION_NORMALIZATION = 1/np.sqrt(2*np.pi)
+
 
 class NormalDistribution(object):
     """ class representing normal distributions """ 
@@ -454,7 +460,7 @@ class NormalDistribution(object):
             std = self.std[mask]
         
         return NORMAL_DISTRIBUTION_NORMALIZATION/std \
-                *np.exp(-0.5*(value - mean)**2/var)
+                * np.exp(-0.5*(value - mean)**2 / var)
                 
                 
     def add_observation(self, value):
@@ -475,9 +481,8 @@ class NormalDistribution(object):
     def distance(self, other, kind='kullback-leibler'):
         """ return the distance between two normal distributions """
         if kind == 'kullback-leibler':
-            dist = 0.5*(np.log(other.var/self.var) 
-                        + (self.var + (self.mean - self.mean)**2)/other.var 
-                        - 1)
+            dist = 0.5*(np.log(other.var/self.var) + 
+                        (self.var + (self.mean - self.mean)**2)/other.var - 1) 
             
         elif kind == 'bhattacharyya':
             var_ratio = self.var/other.var
@@ -514,15 +519,16 @@ class NormalDistribution(object):
         """ estimates the amount of overlap between two distributions """
         if common_variance:
             if self.count is None:
-                if other.count is None: # neither is sampled
+                if other.count is None:  # neither is sampled
                     S = np.sqrt(0.5*(self.var + other.var))
-                else: # other is sampled
+                else:  # other is sampled
                     S = self.std
             else: 
                 if other.count is None:  # self is sampled
                     S = other.std
-                else: # both are sampled
-                    expr = (self.count - 1)*self.var + (other.count - 1)*other.var
+                else:  # both are sampled
+                    expr = ((self.count - 1)*self.var +
+                            (other.count - 1)*other.var)
                     S = np.sqrt(expr/(self.count + other.count - 2))
 
             delta = np.abs(self.mean - other.mean)/S

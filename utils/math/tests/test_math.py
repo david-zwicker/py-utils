@@ -17,7 +17,7 @@ from .. import _math as m
 class TestMath(unittest.TestCase):
     """ test generic math functions """
 
-    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
     
     def test_xlog2x(self):
         """ test the xlog2x function """
@@ -124,7 +124,7 @@ class TestMath(unittest.TestCase):
         np.testing.assert_allclose(m.moving_average([]), [])
         
         arr = np.arange(4)
-        np.testing.assert_allclose(m.moving_average(arr, 2), [0.5,  1.5,  2.5])
+        np.testing.assert_allclose(m.moving_average(arr, 2), [0.5, 1.5, 2.5])
         np.testing.assert_allclose(m.moving_average(arr, 3), [1, 2])
 
         arr = np.random.random((10, 10))
@@ -304,3 +304,7 @@ class TestMath(unittest.TestCase):
             self.assertEqual(val, iinfo.max)
             self.assertEqual(val.dtype, dtype)
     
+    
+    
+if __name__ == "__main__":
+    unittest.main()

@@ -16,7 +16,7 @@ from .. import matlab
 class TestMatlab(unittest.TestCase):
 
 
-    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
 
 
     def test_run_code(self):
@@ -24,7 +24,7 @@ class TestMatlab(unittest.TestCase):
         m = matlab.Matlab()
         
         res, err = m.run_code('disp(1 + 2)')
-        self.assertEqual(err, '') #< no message on stderr
+        self.assertEqual(err, '')  # no message on stderr
         cells = m.extract_output_cells(res)
         self.assertEqual(len(cells), 1)
         self.assertEqual(cells[0].rstrip(), '3')
@@ -39,7 +39,7 @@ class TestMatlab(unittest.TestCase):
         m = matlab.Matlab()
          
         res, err = m.run_script(script.name)
-        self.assertEqual(err, '') #< no message on stderr
+        self.assertEqual(err, '')  # no message on stderr
         cells = m.extract_output_cells(res)
         self.assertEqual(len(cells), 1)
         self.assertEqual(cells[0].rstrip(), '3')

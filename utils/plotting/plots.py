@@ -130,10 +130,12 @@ def get_contour_plot_hatched(values, colors, **kwargs):
 
     # define the different orientations of the stripe pattern
     orientation_functions = {
-        '\\': lambda x, y: ((x - y) % stripe_width_diag)*nums[x, y]/stripe_width_diag,
-        '-':  lambda x, y: (x % stripe_width)*nums[x, y]/stripe_width,
-        '/':  lambda x, y: ((x + y) % stripe_width_diag)*nums[x, y]/stripe_width_diag,
-        '|':  lambda x, y: (y % stripe_width)*nums[x, y]/stripe_width
+        '\\': lambda x, y: ((x - y) % stripe_width_diag) * nums[x, y] /
+                            stripe_width_diag,
+        '-': lambda x, y: (x % stripe_width)*nums[x, y]/stripe_width,
+        '/': lambda x, y: ((x + y) % stripe_width_diag) * nums[x, y] / 
+                            stripe_width_diag,
+        '|': lambda x, y: (y % stripe_width) * nums[x, y] / stripe_width
     }
 
     # iterate over all pixels and process them individually
@@ -148,10 +150,8 @@ def get_contour_plot_hatched(values, colors, **kwargs):
             try:
                 i = orientation_functions[orientations[nums[x, y] - 1]](x, y)
             except KeyError:
-                raise ValueError(
-                    'Allowed stripe orientation values: %s'
-                        %(', '.join(orientation_functions.keys()))
-                )
+                raise ValueError('Allowed stripe orientation values: %s'
+                                 % (', '.join(orientation_functions.keys())))
 
             # choose the color from the current values
             color_index = np.nonzero(values[x, y, :])[0][int(i)]
@@ -306,37 +306,43 @@ class SteadyStateStreamPlot(object):
         Checks whether `point` is a steady state
         """
 
-        vel = self.func(point) #< velocity at the point
-        x_check, y_check = False, False #< checked direction
+        vel = self.func(point)  # velocity at the point
+        x_check, y_check = False, False  # checked direction
         
         # check special boundary cases
-        if 'left' in self.region_constraint and np.abs(point[0] - self.region[0]) < 1e-8:
+        if ('left' in self.region_constraint and 
+                np.abs(point[0] - self.region[0]) < 1e-8):
             if vel[0] > 0:
                 return False
-            x_check = True 
-        elif 'right' in self.region_constraint and np.abs(point[0] - self.region[2]) < 1e-8:
+            x_check = True
+            
+        elif ('right' in self.region_constraint and 
+                np.abs(point[0] - self.region[2]) < 1e-8):
             if vel[0] < 0:
                 return False
             x_check = True 
 
-        if 'bottom' in self.region_constraint and np.abs(point[1] - self.region[1]) < 1e-8:
+        if ('bottom' in self.region_constraint and 
+                np.abs(point[1] - self.region[1]) < 1e-8):
             if vel[1] > 0:
                 return False
             y_check = True
-        elif 'top' in self.region_constraint and np.abs(point[1] - self.region[3]) < 1e-8:
+            
+        elif ('top' in self.region_constraint and 
+              np.abs(point[1] - self.region[3]) < 1e-8):
             if vel[1] < 0:
                 return False
             y_check = True
         
         # check the remaining directions
         if x_check and y_check:
-            return True # both x and y direction are stable
+            return True  # both x and y direction are stable
         elif x_check:
-            return np.abs(vel[1]) < tol # y direction has to be tested
+            return np.abs(vel[1]) < tol  # y direction has to be tested
         elif y_check:
-            return np.abs(vel[0]) < tol # x direction has to be tested
+            return np.abs(vel[0]) < tol  # x direction has to be tested
         else:
-            return norm(vel) < tol # both directions have to be tested
+            return norm(vel) < tol  # both directions have to be tested
         
 
     def point_is_stable(self, point, tol=1e-5):
@@ -348,37 +354,44 @@ class SteadyStateStreamPlot(object):
             raise ValueError('Supplied point is not a steady state')
         
         jacobian = self.jacobian(point, tol)
-        x_check, y_check = False, False #< checked direction
+        x_check, y_check = False, False  # checked direction
         
         # check special boundary cases
-        if 'left' in self.region_constraint and np.abs(point[0] - self.region[0]) < 1e-8:
+        if ('left' in self.region_constraint and 
+                np.abs(point[0] - self.region[0]) < 1e-8):
             x_check = True 
-        elif 'right' in self.region_constraint and np.abs(point[0] - self.region[2]) < 1e-8:
+            
+        elif ('right' in self.region_constraint and 
+              np.abs(point[0] - self.region[2]) < 1e-8):
             x_check = True 
 
-        if 'bottom' in self.region_constraint and np.abs(point[1] - self.region[1]) < 1e-8:
+        if ('bottom' in self.region_constraint and 
+                np.abs(point[1] - self.region[1]) < 1e-8):
             y_check = True
-        elif 'top' in self.region_constraint and np.abs(point[1] - self.region[3]) < 1e-8:
+            
+        elif ('top' in self.region_constraint and 
+              np.abs(point[1] - self.region[3]) < 1e-8):
             y_check = True
         
         # check the remaining directions
         if x_check and y_check:
-            return True # both x and y direction are stable
+            return True  # both x and y direction are stable
         elif x_check:
-            return jacobian[1, 1] < 0 # y direction has to be tested
+            return jacobian[1, 1] < 0  # y direction has to be tested
         elif y_check:
-            return jacobian[0, 0] < 0 # x direction has to be tested
+            return jacobian[0, 0] < 0  # x direction has to be tested
         else:
-            return all(eigvals(jacobian) < 0) # both directions have to be tested
+            return all(eigvals(jacobian) < 0)  # both dir. have to be tested
 
 
-    def get_steady_states_at_x_boundary(self, grid_points=32, loc='lower', points=None):
+    def get_steady_states_at_x_boundary(self, grid_points=32, loc='lower',
+                                        points=None):
         """
         finds steady state points along the x-boundary at position `loc`
         """
         
         if points is None:
-            points = np.array([[]]) #< array that will contain all the points
+            points = np.array([[]])  # array that will contain all the points
             
         if loc == 'lower':
             y0 = self.region[1]
@@ -387,7 +400,8 @@ class SteadyStateStreamPlot(object):
             y0 = self.region[3]
             direction = -1
         
-        xs, dist = np.linspace(self.region[0], self.region[2], grid_points, retstep=True)
+        xs, dist = np.linspace(self.region[0], self.region[2], grid_points,
+                               retstep=True)
         
         # consider a horizontal boundary
         def func1D(x):
@@ -425,7 +439,7 @@ class SteadyStateStreamPlot(object):
         """
         
         if points is None:
-            points = np.array([[]]) #< array that will contain all the points
+            points = np.array([[]])  # array that will contain all the points
             
         if loc == 'left':
             x0 = self.region[0]
@@ -469,14 +483,16 @@ class SteadyStateStreamPlot(object):
     def get_steady_states(self, grid_points=32):
         """
         determines all steady states in the region.
-        `grid_points` is the number of points to take as guesses along each axis.
-        `region_constraint` can be a list of identifiers ('left', 'right', 'top', 'bottom')
-        indicating that the respective boundary poses a constraint on the dynamics and 
-        there may be stationary points along the boundary
+        `grid_points` is the number of points to take as guesses along each
+            axis.
+        `region_constraint` can be a list of identifiers ('left', 'right',
+            'top', 'bottom') indicating that the respective boundary poses a
+            constraint on the dynamics and there may be stationary points along
+            the boundary
         """
         if self.steady_states is None:
 
-            points = np.array([[]]) #< array that will contain all the points
+            points = np.array([[]])  # array that will contain all the points
             
             xs, dx = np.linspace(self.region[0], self.region[2], grid_points,
                                  retstep=True)
@@ -487,19 +503,19 @@ class SteadyStateStreamPlot(object):
             if 'left' in self.region_constraint:
                 points = self.get_steady_states_at_y_boundary(grid_points,
                                                               'left', points)
-                xs = xs[1:] # skip this point in future calculations
+                xs = xs[1:]  # skip this point in future calculations
             if 'bottom' in self.region_constraint:
                 points = self.get_steady_states_at_x_boundary(grid_points,
                                                               'lower', points)
-                ys = ys[1:] # skip this point in future calculations
+                ys = ys[1:]  # skip this point in future calculations
             if 'right' in self.region_constraint:
                 points = self.get_steady_states_at_y_boundary(grid_points,
                                                               'right', points)
-                xs = xs[:-1] # skip this point in future calculations
+                xs = xs[:-1]  # skip this point in future calculations
             if 'top' in self.region_constraint:
                 points = self.get_steady_states_at_x_boundary(grid_points,
                                                               'upper', points)
-                ys = ys[:-1] # skip this point in future calculations
+                ys = ys[:-1]  # skip this point in future calculations
                         
             xs, ys = np.meshgrid(xs, ys)
             dist = max(dx, dy)
@@ -524,8 +540,8 @@ class SteadyStateStreamPlot(object):
             
                     if points.size == 0:
                         points = guess[None, :]
-                    elif np.all(np.abs(points - guess[None, :]).sum(axis=1)
-                                > dist):
+                    elif np.all(np.abs(points - guess[None, :]).sum(axis=1) >
+                                dist):
                         points = np.vstack((points, guess))
             
             # determine stability of the steady states
@@ -575,7 +591,7 @@ class SteadyStateStreamPlot(object):
         if step is None:
             step = self.step
         
-        i_vary = 1 - axis #< index to vary
+        i_vary = 1 - axis  # index to vary
         
         # collect all start points
         points = np.concatenate(self.get_steady_states()).tolist() 
@@ -608,9 +624,9 @@ class SteadyStateStreamPlot(object):
                 # check distances to all endpoints
                 for p in points:
                     if norm(p - x0 - dx) < step:
-                        xs.append(p) # add the point to the line
+                        xs.append(p)  # add the point to the line
                         # skip over this point in the integration
-                        dx *= 2 # step over the steady state
+                        dx *= 2  # step over the steady state
                         points.remove(p)
                         break
               
@@ -647,13 +663,13 @@ class SteadyStateStreamPlot(object):
                     plt.plot(traj[:, 0], traj[:, 1], **kwargs)
                
         
-    def plot_streamline(self,
-            x0, ds=0.01, endpoints=None, point_margin=None,
-            ax=None, skip_initial_points=False, color='k', **kwargs
-        ):
+    def plot_streamline(self, x0, ds=0.01, endpoints=None, point_margin=None,
+                        ax=None, skip_initial_points=False, color='k',
+                        **kwargs):
         """
         Plots a single stream line starting at x0 evolving under the flow.
-        `ds` determines the step size (if it is negative we evolve back in time).
+        `ds` determines the step size (if it is negative we evolve back in
+        time).
         """
         if ax is None:
             ax = plt.gca()
@@ -667,7 +683,7 @@ class SteadyStateStreamPlot(object):
         traj = [np.array(x0)]
         
         while True:
-            x = traj[-1] # last point
+            x = traj[-1]  # last point
 
             # check whether trajectory left the system
             if not self.point_in_region(x):
@@ -697,7 +713,7 @@ class SteadyStateStreamPlot(object):
 
             # indicate direction with an arrow in the middle
             # TODO: calculate the midpoint based on actual pathlength
-            i = int(0.5*len(traj)) #< midpoint
+            i = int(0.5 * len(traj))  # midpoint
             try:
                 dx = np.sign(ds)*(traj[i+5] - traj[i-5])
             except IndexError:
@@ -722,10 +738,10 @@ class SteadyStateStreamPlot(object):
 
         stable, unstable = self.get_steady_states()
         if stable_direction:
-            ds = -0.01 #< integration step and direction
+            ds = -0.01  # integration step and direction
             endpoints = unstable
         else:
-            ds = 0.01 #< integration step and direction
+            ds = 0.01  # integration step and direction
             endpoints = stable
         
         if angles is None:
@@ -763,9 +779,6 @@ class SteadyStateStreamPlot(object):
         # iterate through all steady states that are not border points
         for point in points:
             
-#             if self.point_at_border(point):
-#                 continue
-        
             # determine stable and unstable directions
             eigenvalues, eigenvectors = eig(self.jacobian(point))
             
@@ -929,7 +942,7 @@ def errorplot(x, y, yerr=None, fmt='', **kwargs):
     # plot the deviation
     if has_error:
         alpha = kwargs.pop('alpha', 0.3)
-        kwargs.pop('ls', None)  #< ls only applies to centerline
+        kwargs.pop('ls', None)  # ls only applies to centerline
         
         y = np.asarray(y)
         yerr = np.asarray(yerr)
@@ -944,13 +957,8 @@ def errorplot(x, y, yerr=None, fmt='', **kwargs):
 
 
 
-
-
-
-
-def contour_to_hatched_patches(
-        cntrset, hatch_colors, hatch_patterns, remove_contour=True
-    ):
+def contour_to_hatched_patches(cntrset, hatch_colors, hatch_patterns,
+                               remove_contour=True):
     """ Function turning a filled contour plot into an equivalent one
     using hatches to show areas.
     Code has been taken from StackOverflow!
@@ -961,7 +969,7 @@ def contour_to_hatched_patches(
     ax = plt.gca()
     patches_list = []
     for pathcollection in cntrset.collections:
-        patches_list.append([PathPatch(p) for p in  pathcollection.get_paths()])
+        patches_list.append([PathPatch(p) for p in pathcollection.get_paths()])
         if remove_contour:
             pathcollection.remove()
 
@@ -1080,3 +1088,4 @@ if __name__ == "__main__":
         img = get_hatched_image(z, stripe_width=12, orientation='\\')
         plt.imshow(img)
         plt.show()
+        

@@ -37,7 +37,8 @@ def invert_colors(fig):
 
     def get_filter(name):
         """ construct a specific filter for `findobj` """
-        return lambda x: hasattr(x, 'set_%s'%name) and hasattr(x, 'get_%s'%name)
+        return lambda x: (hasattr(x, 'set_%s' % name) and
+                          hasattr(x, 'get_%s' % name))
 
     for o in fig.findobj(get_filter('facecolor')):
         if o not in visited:
@@ -56,15 +57,13 @@ def invert_colors(fig):
 class Movie(object):
     """ Class for creating movies from matplotlib figures using ffmpeg """
 
-    def __init__(self,
-            width=None, filename=None, inverted=False, verbose=True,
-            framerate=None
-        ):
-        self.width = width          #< pixel width of the movie
-        self.filename = filename    #< filename used to save the movie
-        self.inverted = inverted    #< colors inverted?
-        self.verbose = verbose      #< verbose encoding information?
-        self.framerate = framerate  #< framerate of the movie
+    def __init__(self, width=None, filename=None, inverted=False, verbose=True,
+                 framerate=None):
+        self.width = width          # pixel width of the movie
+        self.filename = filename    # filename used to save the movie
+        self.inverted = inverted    # colors inverted?
+        self.verbose = verbose      # verbose encoding information?
+        self.framerate = framerate  # framerate of the movie
 
         # internal variables
         self.recording = False
@@ -220,12 +219,12 @@ class Movie(object):
         if extra_args:
             args += extra_args
         args += [
-            "-y", # don't ask questions
-            "-f", "image2", # input format
-            "-i", "%s/frame_%%09d.png" % self.tempdir, # input data
-            "-pix_fmt", "yuv420p", # pixel format for compatibility
-            "-b:v", "1024k", # high bit rate for good quality
-            filename # output file
+            "-y",  # don't ask questions
+            "-f", "image2",  # input format
+            "-i", "%s/frame_%%09d.png" % self.tempdir,  # input data
+            "-pix_fmt", "yuv420p",  # pixel format for compatibility
+            "-b:v", "1024k",  # high bit rate for good quality
+            filename  # output file
         ]
 
         # spawn the subprocess and capture its output

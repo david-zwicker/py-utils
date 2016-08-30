@@ -16,7 +16,7 @@ from .. import mathematica
 class TestMathematica(unittest.TestCase):
 
 
-    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
 
 
     def test_run_code(self):
@@ -24,14 +24,14 @@ class TestMathematica(unittest.TestCase):
         m = mathematica.Mathematica()
         
         res, err = m.run_code('1 + 2')
-        self.assertEqual(err, '') #< no message on stderr
+        self.assertEqual(err, '')  # no message on stderr
         cells = m.extract_output_cells(res)
         self.assertEqual(len(cells), 1)
         self.assertEqual(cells[1], '3')
         self.assertEqual(m.extract_output_cell(res, 1), '3')
         
         res, err = m.run_code('Integrate[1, {x, y, z} \[Element] Sphere[]]')
-        self.assertEqual(err, '') #< no message on stderr
+        self.assertEqual(err, '')  # no message on stderr
         cells = m.extract_output_cells(res)
         self.assertEqual(len(cells), 1)
         self.assertEqual(cells[1], '4 Pi')
@@ -43,7 +43,7 @@ class TestMathematica(unittest.TestCase):
         m = mathematica.Mathematica()
         
         res, err = m.run_code('1\n2\n3\n')
-        self.assertEqual(err, '') #< no message on stderr
+        self.assertEqual(err, '')  # no message on stderr
         cells = m.extract_output_cells(res)
         self.assertEqual(len(cells), 3)
         for value in (1, 2, 3):
@@ -60,7 +60,7 @@ class TestMathematica(unittest.TestCase):
         
         res, err = m.run_script(script.name)
         self.assertEqual(res, '3\n')
-        self.assertEqual(err, '') #< no message on stderr
+        self.assertEqual(err, '')  # no message on stderr
 
 
 

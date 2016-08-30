@@ -18,7 +18,7 @@ from .. import cache
 class TestCache(unittest.TestCase):
     """ test collection for caching methods """
 
-    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
 
 
     def get_serialization_methods(self, with_none=True):
@@ -161,12 +161,14 @@ class TestCache(unittest.TestCase):
                 
             elif storage_type == 'dict':
                 storage = {}
-                reinitialize = lambda: storage
+                def reinitialize():
+                    return storage
                 
             elif storage_type == 'persistent_dict':
                 db = tempfile.NamedTemporaryFile()
                 storage = cache.PersistentDict(db.name)
-                reinitialize = lambda: cache.PersistentDict(db.name)
+                def reinitialize():
+                    return cache.PersistentDict(db.name)
                 
             else:
                 raise ValueError('Unknown storage type `%s`' % storage_type)
@@ -191,15 +193,20 @@ class TestCache(unittest.TestCase):
         class CacheTest(object):
             """ class for testing caching """
             
-            def __init__(self): self.counter = 0
+            def __init__(self):
+                self.counter = 0
             
             def get_finite_dict(self, n):
                 return cache.DictFiniteCapacity(capacity=1)
             
             @property
-            def uncached(self): self.counter += 1; return 1
+            def uncached(self):
+                self.counter += 1
+                return 1
             
-            def cached(self): self.counter += 1; return 2    
+            def cached(self):
+                self.counter += 1
+                return 2    
         
         # apply the cache with the given storage
         if cache_storage is False:
@@ -239,18 +246,25 @@ class TestCache(unittest.TestCase):
         class CacheTest(object):
             """ class for testing caching """
             
-            def __init__(self): self.counter = 0
+            def __init__(self):
+                self.counter = 0
             
             def get_finite_dict(self, n):
                 return cache.DictFiniteCapacity(capacity=1)
             
-            def uncached(self, arg): self.counter += 1; return arg
+            def uncached(self, arg):
+                self.counter += 1
+                return arg
             
             @cache.cached_method(serializer=serializer, factory=cache_factory)
-            def cached(self, arg): self.counter += 1; return arg    
+            def cached(self, arg):
+                self.counter += 1
+                return arg    
             
             @cache.cached_method(serializer=serializer, factory=cache_factory)
-            def cached_kwarg(self, a=0, b=0): self.counter += 1; return a + b
+            def cached_kwarg(self, a=0, b=0):
+                self.counter += 1
+                return a + b
             
         # test what happens when the decorator is applied wrongly
         def apply_decorator_wrongly():
@@ -347,4 +361,3 @@ class TestCache(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-    

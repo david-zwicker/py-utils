@@ -17,7 +17,7 @@ from .. import stats
 class TestStats(unittest.TestCase):
     """ test suite for statistics functions """
 
-    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
 
     def test_mean_std_online(self):
         """ test the mean_std_online function """

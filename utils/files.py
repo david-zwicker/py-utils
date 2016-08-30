@@ -17,8 +17,8 @@ import os
 def change_directory(path):
     """
     A context manager which changes the directory to the given
-    path, and then changes it back to its previous value on exit.
-    Copied from http://code.activestate.com/recipes/576620-changedirectory-context-manager/
+    path, and then changes it back to its previous value on exit. Copied from
+    http://code.activestate.com/recipes/576620-changedirectory-context-manager/
     """
     prev_cwd = os.getcwd()
     os.chdir(path)

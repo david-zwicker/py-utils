@@ -25,7 +25,7 @@ from ..link.shell import shellquote
 
 
 GOLDEN_MEAN = 2/(np.sqrt(5) - 1)
-INCHES_PER_PT = 1.0/72.27 # Convert pt to inch
+INCHES_PER_PT = 1.0/72.27  # Convert pt to inch
 
 
 
@@ -88,12 +88,12 @@ class FigureBase(Figure):
 
             if dx is None:
                 dx = 4.*plt.rcParams['axes.labelsize']/fig_width_pt
-            if not hasattr(dx, '__iter__' ):
+            if not hasattr(dx, '__iter__'):
                 dx = (dx, 0.05)
 
             if dy is None:
                 dy = 4.5*plt.rcParams['axes.labelsize']/fig_width_pt
-            if not hasattr(dy, '__iter__' ):
+            if not hasattr(dy, '__iter__'):
                 dy = (dy, 0.05)
 
             if self.verbose:
@@ -138,15 +138,15 @@ class FigureBase(Figure):
         # prepare the data
         if color in [True, None]:
             icolor = itertools.cycle(self.colors)
-        elif color == False:
+        elif color is False:
             icolor = itertools.repeat('k')
         else:
             icolor = itertools.cycle(color)
 
         if dashes in [False, None]:
             idashes = itertools.repeat('-')
-        elif dashes == True:
-            idashes = itertools.cycle(['-', '--', ':', '-.' ])
+        elif dashes is True:
+            idashes = itertools.cycle(['-', '--', ':', '-.'])
         else:
             idashes = itertools.cycle(dashes)
 
@@ -172,8 +172,8 @@ class FigureBase(Figure):
 
         def get_filter(name):
             """ construct a specific filter for `findobj` """
-            return lambda x: hasattr(x, 'set_%s'%name) and \
-                             hasattr(x, 'get_%s'%name)
+            return lambda x: (hasattr(x, 'set_%s' % name) and 
+                              hasattr(x, 'get_%s' % name))
 
         for o in self.findobj(get_filter('facecolor')):
             if o not in visited:
@@ -210,7 +210,8 @@ class FigureBase(Figure):
             if self.num_ticks[0] is not None:
                 num_ticks_x = self.num_ticks[0]
             else:
-                num_ticks_x = self.xtick_factor*plt.rcParams['figure.figsize'][0]
+                num_ticks_x = self.xtick_factor * \
+                              plt.rcParams['figure.figsize'][0]
             style.set_presentation_style_of_axis(ax.get_xaxis(),
                                                  int(num_ticks_x))
 
@@ -218,7 +219,8 @@ class FigureBase(Figure):
             if self.num_ticks[1] is not None:
                 num_ticks_y = self.num_ticks[1]
             else:
-                num_ticks_y = self.ytick_factor*plt.rcParams['figure.figsize'][1]
+                num_ticks_y = self.ytick_factor * \
+                              plt.rcParams['figure.figsize'][1]
             style.set_presentation_style_of_axis(ax.get_yaxis(),
                                                  int(num_ticks_y))
 
@@ -264,10 +266,8 @@ class FigureBase(Figure):
         return file_pdf
 
 
-    def savefig_inverted(
-            self, filename, background_facecolor=None,
-            background_edgecolor=None, **kwargs
-        ):
+    def savefig_inverted(self, filename, background_facecolor=None,
+                         background_edgecolor=None, **kwargs):
         """ Saves the figure to `filename` with inverted colors """
 
         rgb = style.get_color_converter().to_rgb
@@ -311,19 +311,18 @@ class FigureLatex(FigureBase):
         font_size = kwargs.pop('font_size', 11)
 
         # setup all parameters
-                # setup remaining parameters
         plt.rcParams.update({
-          'axes.labelsize': font_size,
-          'font.family': 'serif',
-          'font.size': font_size,
-          'legend.fontsize': font_size,
-          'xtick.labelsize': 0.9*font_size,
-          'ytick.labelsize': 0.9*font_size,
-          'text.usetex': True,
-          'legend.loc': 'best',
-          'font.serif': 'Computer Modern Roman, Times, Palatino, New Century '\
-                        'Schoolbook, Bookman',
-          'pdf.compression': 4,
+            'axes.labelsize': font_size,
+            'font.family': 'serif',
+            'font.size': font_size,
+            'legend.fontsize': font_size,
+            'xtick.labelsize': 0.9*font_size,
+            'ytick.labelsize': 0.9*font_size,
+            'text.usetex': True,
+            'legend.loc': 'best',
+            'font.serif': 'Computer Modern Roman, Times, Palatino, New Century '
+                          'Schoolbook, Bookman',
+            'pdf.compression': 4,
         })
 
         # create figure using the inherited constructor
@@ -352,19 +351,19 @@ class FigurePresentation(FigureBase):
 
         # setup all parameters
         plt.rcParams.update({
-          'axes.labelsize': font_size,
-          'font.family': 'sans-serif',
-          'font.size': font_size,
-          'legend.fontsize': font_size,
-          'xtick.labelsize': 0.9*font_size,
-          'ytick.labelsize': 0.9*font_size,
-          'text.usetex': True,
-          'text.latex.preamble': preamble,
-          'legend.loc': 'best',
-          'font.sans-serif': 'Computer Modern Sans Serif, Bitstream Vera Sans,'\
-            'Lucida Grande, Verdana, Geneva, Lucid, Arial, Helvetica,'\
-            'Avant Garde, sans-serif',
-          'pdf.compression': 4,
+            'axes.labelsize': font_size,
+            'font.family': 'sans-serif',
+            'font.size': font_size,
+            'legend.fontsize': font_size,
+            'xtick.labelsize': 0.9*font_size,
+            'ytick.labelsize': 0.9*font_size,
+            'text.usetex': True,
+            'text.latex.preamble': preamble,
+            'legend.loc': 'best',
+            'font.sans-serif': 'Computer Modern Sans Serif, '
+                'Bitstream Vera Sans, Lucida Grande, Verdana, Geneva, Lucid, '
+                'Arial, Helvetica, Avant Garde, sans-serif',
+            'pdf.compression': 4,
         })
 
         # create figure using the inherited constructor
@@ -373,9 +372,8 @@ class FigurePresentation(FigureBase):
 
 
 @contextmanager
-def figure_display(
-        FigureClass=None, post_process=True, legend_frame=False, **kwargs
-    ):
+def figure_display(FigureClass=None, post_process=True, legend_frame=False,
+                   **kwargs):
     """ Provides a context manager for handling figures for display """
 
     if FigureClass is None:
@@ -395,10 +393,8 @@ def figure_display(
 
 
 @contextmanager
-def figure_file(
-        filename, FigureClass=None, crop_pdf=None, post_process=True,
-        legend_frame=False, hold_figure=False, **kwargs
-    ):
+def figure_file(filename, FigureClass=None, crop_pdf=None, post_process=True, 
+                legend_frame=False, hold_figure=False, **kwargs):
     """ Provides a context manager for handling figures for latex """
 
     if FigureClass is None:
@@ -450,10 +446,10 @@ def axes_broken_y(axes, upper_frac=0.5, break_frac=0.02, ybounds=None,
         x1, _, x2, _ = axes.get_position().get_points().flatten().tolist()
         segment_height = (y_max - y_min) / 3.
         xoffsets = [0, +xwidth, -xwidth, 0]
-        yvalues  = [y_min + (i * segment_height) for i in range(4)]
+        yvalues = [y_min + (i * segment_height) for i in range(4)]
         # Get color of y-axis
         for loc, spine in axes.spines.items():
-            if loc  == 'left':
+            if loc == 'left':
                 color = spine.get_edgecolor()
         for x_position in [x1, x2]:
             line = mpl.lines.Line2D(
@@ -497,9 +493,9 @@ def axes_broken_y(axes, upper_frac=0.5, break_frac=0.02, ybounds=None,
         lower_axes.set_autoscaley_on(False)
         upper_axes.set_autoscaley_on(False)
         
-        label_pos_upper = (0, 1 - (0.5 /(upper_frac/(1+break_frac))))
+        label_pos_upper = (0, 1 - (0.5 / (upper_frac / (1 + break_frac))))
         upper_axes.yaxis.get_label().set_position(label_pos_upper)
-        label_pos_lower = (0, 0.5 / ((1 - upper_frac)/(1+break_frac)))
+        label_pos_lower = (0, 0.5 / ((1 - upper_frac) / (1 + break_frac)))
         lower_axes.yaxis.get_label().set_position(label_pos_lower)
         
     # Make original axes invisible
@@ -523,7 +519,7 @@ if __name__ == "__main__":
         plt.xlabel("Coordinate $x$")
         plt.ylabel("f(x)")
         plt.title("Simple Plot")
-        plt.legend(("sin(x)","cos(x)"))
+        plt.legend(("sin(x)", "cos(x)"))
         
         
     # test these

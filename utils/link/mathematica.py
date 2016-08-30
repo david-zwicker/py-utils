@@ -33,7 +33,8 @@ class Mathematica(ExecutableBase):
         """
         if sys.platform == 'darwin':
             # look for Mathematica in Applications folder on mac     
-            candidate = "/Applications/Mathematica.app/Contents/MacOS/MathKernel"
+            candidate = \
+                    "/Applications/Mathematica.app/Contents/MacOS/MathKernel"
             if os.path.isfile(candidate):
                 return candidate
             
@@ -60,7 +61,7 @@ class Mathematica(ExecutableBase):
     def run_code(self, code, **kwargs):
         """ runs Mathematica code and returns the output """
         kwargs.setdefault('skip_stdout_lines', 2)
-        code += '\nExit[];' #< make sure the program exits
+        code += '\nExit[];'  # make sure the program exits
         return self._run_command("", stdin=code, **kwargs)
         
 

@@ -132,7 +132,7 @@ class DeprecationHelper(object):
 
     def _warn(self):
         """ emit a warning that the class was renamed """
-        msg = "The class was renamed to `%s`"  % self.new_target.__name__
+        msg = "The class was renamed to `%s`" % self.new_target.__name__
         warnings.warn(msg, self.warning_class, stacklevel=3)
 
     def __call__(self, *args, **kwargs):
@@ -147,12 +147,12 @@ class DeprecationHelper(object):
     
     
 
-def display_progress(iterator, total=None, mininterval=5):
+def display_progress(iterator, total=None, **kwargs):
     """
     displays a progress bar when iterating
     """
     if tqdm is not None:
-        return tqdm(iterator, total=total, leave=True, mininterval=mininterval)
+        return tqdm(iterator, total=total, **kwargs)
     else:
         return iterator
     

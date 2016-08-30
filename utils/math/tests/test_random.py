@@ -16,7 +16,7 @@ from .. import random
 class TestRandom(unittest.TestCase):
 
 
-    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
 
 
     def test_random_log_uniform(self):
@@ -72,8 +72,6 @@ class TestRandom(unittest.TestCase):
         for value in res:
             self.assertIn(value, data)
 
-
-        
 
 
 if __name__ == "__main__":

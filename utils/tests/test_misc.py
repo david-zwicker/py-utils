@@ -17,7 +17,7 @@ from .. import misc
 class TestMisc(unittest.TestCase):
 
 
-    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
 
 
     def test_DummyFile(self):
@@ -61,7 +61,7 @@ class TestMisc(unittest.TestCase):
             
     def test_display_progress(self):
         """ test display_progress function """
-        misc.display_progress([])
+        misc.display_progress([1, 2], file=misc.DummyFile())
 
 
     def test_get_loglevel_from_name(self):
@@ -99,7 +99,7 @@ class TestMisc(unittest.TestCase):
         self.assertSequenceEqual(unique([]), [])
         self.assertSequenceEqual(unique([1, 2, 3]), [1, 2, 3])
         self.assertSequenceEqual(unique([1, 1, 3]), [1, 3])
-        self.assertSequenceEqual(unique([[], [], 3]),[[], [], 3])
+        self.assertSequenceEqual(unique([[], [], 3]), [[], [], 3])
 
 
 

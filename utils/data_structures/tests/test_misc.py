@@ -17,7 +17,7 @@ from .. import misc
 class TestMisc(unittest.TestCase):
 
 
-    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
 
 
     def test_transpose_list_of_dicts(self):

@@ -18,7 +18,7 @@ from .. import distributions
 class TestMathDistributions(unittest.TestCase):
     """ unit tests for the continuous library """
 
-    _multiprocess_can_split_ = True #< let nose know that tests can run parallel
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
     
     
     def assertAllClose(self, a, b, rtol=1e-05, atol=1e-08, msg=None):

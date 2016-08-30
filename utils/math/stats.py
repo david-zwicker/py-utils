@@ -114,10 +114,10 @@ def sampling_distribution_cv(x, cv, num):
     factorial = misc.factorial
     res = sum(
         factorial(num - 1) * special.gamma(0.5*(num - i)) * num**(0.5*i) / (
-            factorial(num - 1 - i) * factorial(i) * 2**(0.5*i) * cv**i
-            * (1 + x2)**(0.5*i)
+            factorial(num - 1 - i) * factorial(i) * 2**(0.5*i) * cv**i *
+            (1 + x2)**(0.5*i)
         )
-        for i in range(1 - num%2, num, 2)
+        for i in range(1 - num % 2, num, 2)
     )
 
     # multiply by the other terms
@@ -140,7 +140,8 @@ def confidence_interval(value, distribution=None, args=None, guess=None,
         distribution = sampling_distribution_std
 
     # create partial function
-    distr = lambda y: distribution(y, value, *args)
+    def distr(y):
+        return distribution(y, value, *args)
 
     def rhs(x):
         """ integrand """
@@ -154,7 +155,7 @@ def confidence_interval(value, distribution=None, args=None, guess=None,
 def confidence_interval_mean(std, num, confidence=0.95):
     """ calculates the confidence interval of the mean given a standard
     deviation and a number of observations, assuming a normal distribution """
-    sem = std/np.sqrt(num) # estimate of the standard error of the mean
+    sem = std / np.sqrt(num)  # estimate of the standard error of the mean
 
     # get confidence interval from student-t distribution
     factor = stats.t(num - 1).ppf(0.5 + 0.5*confidence)
@@ -325,8 +326,8 @@ class StatisticsAccumulator(object):
             delta = value - self._mean
             self._mean += delta / self.count
             if self.ret_cov:
-                self._M2 += ((self.count - 1) * np.outer(delta, delta)
-                            - self._M2 / self.count)
+                self._M2 += ((self.count - 1) * np.outer(delta, delta) -
+                             self._M2 / self.count)
             else:
                 self._M2 += delta * (value - self._mean)
             

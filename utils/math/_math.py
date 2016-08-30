@@ -207,7 +207,7 @@ class Interpolate_1D_Extrapolated(interpolate.interp1d):
             # determine indices
             i_left = (x <= self.x[0])
             i_right = (x >= self.x[-1])
-            i_mid = ~i_left & ~i_right #< x is in the right range
+            i_mid = ~i_left & ~i_right  # x is in the right range
             
             y = np.empty_like(x, dtype=dtype)
             y[i_left] = self.y[0]
@@ -337,9 +337,9 @@ def popcount(x):
     x = (x & 0x3333333333333333) + ((x >> 2) & 0x3333333333333333)
     # put count of each 8 bits into those 8 bits 
     x = (x + (x >> 4)) & 0x0f0f0f0f0f0f0f0f  
-    x += x >>  8 # put count of each 16 bits into their lowest 8 bits
-    x += x >> 16 # put count of each 32 bits into their lowest 8 bits
-    x += x >> 32 # put count of each 64 bits into their lowest 8 bits
+    x += x >> 8   # put count of each 16 bits into their lowest 8 bits
+    x += x >> 16  # put count of each 32 bits into their lowest 8 bits
+    x += x >> 32  # put count of each 64 bits into their lowest 8 bits
     return x & 0x7f
 
 

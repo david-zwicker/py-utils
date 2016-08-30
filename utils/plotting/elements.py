@@ -23,25 +23,25 @@ def doublearrow(xs, ys, w=0.1, **kwargs):
 
     # set parameters of the arrow
     arrowparams = {
-        'head_width':2*w, 'head_length':w,
-        'length_includes_head':True, 'shape':'full',
-        'head_starts_at_zero':False
+        'head_width': 2*w,
+        'head_length': w,
+        'length_includes_head': True,
+        'shape': 'full',
+        'head_starts_at_zero': False
     }
     arrowparams.update(kwargs)
 
     # plot two arrows to mimic double arrow
     dx = xs[1] - xs[0]
     dy = ys[1] - ys[0]
-    ax.arrow(xs[0], ys[0],  dx,  dy, **arrowparams)
+    ax.arrow(xs[0], ys[0], dx, dy, **arrowparams)
     ax.arrow(xs[1], ys[1], -dx, -dy, **arrowparams)
     
     
 
-def log_slope_indicator(
-        xmin=1., xmax=2., factor=None, ymax=None,
-        exponent=1., label_x='', label_y='',
-        space=15, loc='lower', ax=None, debug=False, **kwargs
-    ):
+def log_slope_indicator(xmin=1., xmax=2., factor=None, ymax=None, exponent=1.,
+                        label_x='', label_y='', space=15, loc='lower', ax=None,
+                        debug=False, **kwargs):
     """
     Function adding a triangle to axes `ax`. This is useful for indicating
     slopes in log-log-plots. `xmin` and `xmax` denote the x-extend of the
@@ -82,9 +82,9 @@ def log_slope_indicator(
 
     # add labels
     xt = np.exp(0.5*(np.log(xmin) + np.log(xmax)))
-    #dx = (xmax/xmin)**0.1
+    # dx = (xmax/xmin)**0.1
     yt = np.exp(np.log(y).mean())
-    #dy = (y[1]/y[0])**0.1
+    # dy = (y[1]/y[0])**0.1
     sgn = np.sign(exponent)
     if lower:
         ax.annotate(

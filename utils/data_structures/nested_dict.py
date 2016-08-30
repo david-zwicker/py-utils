@@ -22,8 +22,8 @@ def get_chunk_size(shape, num_elements):
     shape by chunking the longest axes first """
     chunks = list(shape)
     while np.prod(chunks) > num_elements:
-        dim_long = np.argmax(chunks) #< get longest dimension
-        chunks[dim_long] = 1 #< temporary set to one for np.prod 
+        dim_long = np.argmax(chunks)  # get longest dimension
+        chunks[dim_long] = 1  # temporary set to one for np.prod 
         chunks[dim_long] = max(1, num_elements // np.prod(chunks))
     return tuple(chunks)
     
@@ -85,7 +85,7 @@ class LazyHDFValue(LazyValue):
             raise RuntimeError('Item with lazy loading does not start with `@`')
         
         # read the link
-        data_str = value[1:] # strip the first character, which should be an @
+        data_str = value[1:]  # strip the first character, which should be an @
         hdf_name, key = data_str.split(':')
         hdf_filename = os.path.join(hdf_folder, hdf_name)
         return cls(data_cls, key, hdf_filename)
@@ -123,7 +123,7 @@ class LazyHDFValue(LazyValue):
         """ load the data and return it """
         # open the associated HDF5 file and read the data
         with h5py.File(self.hdf_filename, 'r') as hdf_file:
-            data = hdf_file[self.key][:]  #< copy data into RAM
+            data = hdf_file[self.key][:]  # copy data into RAM
             result = self.data_cls.from_array(data)
         
         # create object
@@ -173,7 +173,7 @@ class LazyHDFCollection(LazyHDFValue):
                 result = self.data_cls(item_cls.from_array(data[index][:])
                                        for index in sorted(data.keys()))
                 # here, we have to use sorted() to iterate in the correct order 
-            else: # empty dataset
+            else:  # empty dataset
                 result = self.data_cls()
                 
         return result
@@ -445,9 +445,10 @@ class LazyNestedDict(NestedDict):
                 # not found in NestedDict (raising KeyError) and items not being
                 # able to load (raising LazyLoadError)
                 err_msg = ('Cannot load item `%s`.\nThe original error was: %s'
-                           % (key, err)) 
-                raise LazyLoadError, err_msg, sys.exc_info()[2] 
-            self.data[key] = value #< replace loader with actual value
+                           % (key, err))
+                _, _, tb = sys.exc_info()
+                raise LazyLoadError(err_msg).with_traceback(tb) 
+            self.data[key] = value  # replace loader with actual value
             
         return value
     

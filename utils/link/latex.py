@@ -9,11 +9,14 @@ purpose.
 
 from __future__ import division
 
-import os
+import os.path
 import shutil
+import subprocess as sp
 import tempfile
 
 import numpy as np
+
+from .. import files
 
 
 
@@ -97,37 +100,45 @@ def number2latex(val, **kwargs):
 
 
 
-def tex2pdf(tex_source, outfile, use_pdflatex=True, verbose=False):
-    """ takes latex source code and compiles it into a PDF file """
-
-    if verbose:
-        verbosity = ""
-    else:
-        verbosity = " &> /dev/null"
-
-    outfile = os.path.abspath(outfile)
-
+def tex2pdf(tex_source, outfile, use_pdflatex=True):
+    """ takes latex source code and compiles it into a PDF file
+    The resulting file will be copied to `outfile`. The functions returns the
+    accumulated output of all function calls.
+    
+    `use_pdflatex` determines whether pdflatex is used to compile the source
+    """
     # create temporary working directory
-    cwd = os.getcwd()
     tmp = tempfile.mkdtemp()
+    output = 'Compiling TeX document in folder `%s`\n' % tmp
 
-    # write TeX code to file
-    f = open(tmp + "/document.tex", "w")
-    f.write(tex_source)
-    f.close()
+    def call(cmd):
+        return sp.check_output(cmd, stderr=sp.STDOUT)
 
     # create PDF
-    os.chdir(tmp)
-    if use_pdflatex:
-        os.system("pdflatex document.tex" + verbosity)
-    else:  # use ordinary latex
-        os.system("latex document.tex" + verbosity)
-        os.system("dvips document.dvi" + verbosity)
-        os.system("ps2pdf document.ps" + verbosity)
+    with files.change_directory(tmp):
+        f = open('document.tex', "w")
+        f.write(tex_source)
+        f.close()
+
+        if use_pdflatex:
+            # use pdflatex
+            output += call(['pdflatex', 'document.tex'])
+            output += call(['pdflatex', 'document.tex'])
+
+        else:
+            # use ordinary latex
+            output += call(['latex', 'document.tex'])
+            output += call(['latex', 'document.tex'])
+            output += call(['dvips', 'document.dvi'])
+            output += call(['ps2pdf', 'document.ps'])
 
     # output resulting PDF
-    shutil.copyfile(tmp + "/document.pdf", outfile)
+    pdf_file = os.path.join(tmp, 'document.pdf')
+    output += 'Copy result to `%s`\n' % outfile
+    shutil.copyfile(pdf_file, outfile)
 
     # house keeping
-    os.system("rm -rf %s" % tmp)
-    os.chdir(cwd)
+    output += 'Clear folder `%s`\n' % tmp
+    output += call(['rm', '-rf', tmp])
+    
+    return output

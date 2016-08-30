@@ -60,7 +60,11 @@ class LazyHDFValue(LazyValue):
         return '%s(data_cls=%s, key="%s", hdf_filename="%s")' % (
                     self.__class__.__name__, self.data_cls.__name__,
                     self.key, self.hdf_filename)
-        
+
+
+    def __eq__(self, other): 
+        return self.__dict__ == other.__dict__        
+
         
     def set_hdf_folder(self, hdf_folder):
         """ replaces the folder of the hdf file """
@@ -81,8 +85,8 @@ class LazyHDFValue(LazyValue):
         information """
 
         # consistency check
-        if value[0] != '@':
-            raise RuntimeError('Item with lazy loading does not start with `@`')
+        if not value.startswith('@'):
+            raise ValueError('Item with lazy loading does not start with `@`')
         
         # read the link
         data_str = value[1:]  # strip the first character, which should be an @

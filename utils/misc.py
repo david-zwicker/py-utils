@@ -63,15 +63,18 @@ class DummyFile(object):
 
 
 @contextlib.contextmanager
-def silent_stdout():
+def redirected_stdout(stream):
     """
     context manager that silence the standard output
     Code copied from http://stackoverflow.com/a/2829036/932593
     """
     save_stdout = sys.stdout
-    sys.stdout = DummyFile()
+    sys.stdout = stream
     yield
     sys.stdout = save_stdout
+
+
+silent_stdout = redirected_stdout(DummyFile())
     
     
     

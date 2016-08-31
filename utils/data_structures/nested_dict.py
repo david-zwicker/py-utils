@@ -329,7 +329,7 @@ class NestedDict(collections.MutableMapping):
                 else:
                     yield key
         else:
-            for key in self.iterkeys():
+            for key in self.data.iterkeys():
                 yield key
 
 

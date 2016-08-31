@@ -14,6 +14,7 @@ import tempfile
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from six.moves import range
 
 
 

@@ -8,6 +8,7 @@ from __future__ import division
 
 import numpy as np
 from scipy import integrate, optimize, misc, special, stats
+from six.moves import range
 
 
 

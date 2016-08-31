@@ -10,7 +10,7 @@ from contextlib import contextmanager
 import functools
 
 import numpy as np
-from six.moves import reduce
+from six.moves import reduce, range
 
 from ..misc import estimate_computation_speed, copy_func 
 

@@ -18,6 +18,7 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+from six.moves import range
 
 from . import style
 from ..link.shell import shellquote

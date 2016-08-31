@@ -11,6 +11,7 @@ import random
 
 import numpy as np
 from scipy import misc
+from six.moves import range
 
 
 
@@ -62,7 +63,7 @@ def take_combinations(iterable, r, num='all'):
             return itertools.combinations(data, r)
         elif num_combs <= 10*num:
             # yield a chosen sample of the combinations
-            choosen = set(random.sample(xrange(num_combs), num))
+            choosen = set(random.sample(range(num_combs), num))
             gen = itertools.combinations(data, r)
             return (v for k, v in enumerate(gen) if k in choosen)
         else:
@@ -85,7 +86,7 @@ def take_product(data, r, num='all'):
             return itertools.product(data, repeat=r)
         else:
             # yield a chosen sample of the combinations
-            choosen = set(random.sample(xrange(num_items), num))
+            choosen = set(random.sample(range(num_items), num))
             gen = itertools.product(data, repeat=r)
             return (v for k, v in enumerate(gen) if k in choosen)
 

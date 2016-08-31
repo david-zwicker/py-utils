@@ -9,6 +9,7 @@ import warnings
 import numpy as np
 from numpy.linalg import norm, eig, eigvals, solve
 from scipy import interpolate, ndimage, optimize
+from six.moves import range
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as mclr

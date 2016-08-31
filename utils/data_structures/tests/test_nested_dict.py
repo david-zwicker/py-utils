@@ -69,14 +69,15 @@ class TestLazyHDFValue(unittest.TestCase):
 
     def _test_element(self, chunk_elements=None, compression=None):
         """ test basic functionality """
+        if chunk_elements is not None:
+            nested_dict.LazyHDFValue.chunk_elements = chunk_elements
+        if compression is not None:
+            nested_dict.LazyHDFValue.compression = compression
+        
         key = 'key'
         data = TestValue([1, 2, 3])
         
         value = nested_dict.LazyHDFValue(TestValue, key, self.hdf_file.name)
-        if chunk_elements is not None:
-            value.chunk_elements = chunk_elements
-        if compression is not None:
-            value.compression = compression
             
         # test simple method
         self.assertIsInstance(repr(value), six.string_types)
@@ -111,7 +112,10 @@ class TestLazyHDFValue(unittest.TestCase):
             
             
     def test_element(self):
-        self._test_element()
+        for chunk_elements in (None, 10):
+            for compression in (None, 'gzip'):
+                self._test_element(chunk_elements=chunk_elements,
+                                   compression=compression)
         
 
 

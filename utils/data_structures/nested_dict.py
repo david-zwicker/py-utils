@@ -62,7 +62,7 @@ class LazyHDFValue(LazyValue):
                     self.key, self.hdf_filename)
 
 
-    def __eq__(self, other): 
+    def __eq__(self, other):
         return self.__dict__ == other.__dict__        
 
         
@@ -106,7 +106,7 @@ class LazyHDFValue(LazyValue):
                 
             # save actual data as an array
             data_array = np.asarray(data.to_array())
-            if cls.compression is None or data_array.size < cls.chunk_elements:
+            if cls.compression is None and data_array.size < cls.chunk_elements:
                 hdf_file.create_dataset(key, data=data_array, track_times=True)
             else:
                 chunks = get_chunk_size(data_array.shape, cls.chunk_elements)

@@ -245,7 +245,12 @@ class TestMath(unittest.TestCase):
             
     def test_homogenize_unit_array(self):
         """ test the homogenize_unit_array function """
-        from pint import UnitRegistry
+        try:
+            from pint import UnitRegistry
+        except ImportError:
+            # the unit library was not found and we thus don't run the test
+            return
+        
         ureg = UnitRegistry()
         cm = ureg.centimeter
         mm = ureg.millimeter

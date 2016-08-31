@@ -109,7 +109,7 @@ def tex2pdf(tex_source, outfile, use_pdflatex=True):
     """
     # create temporary working directory
     tmp = tempfile.mkdtemp()
-    output = 'Compiling TeX document in folder `%s`\n' % tmp
+    output = ('Compiling TeX document in folder `%s`\n' % tmp).encode('utf-8')
 
     def call(cmd):
         return sp.check_output(cmd, stderr=sp.STDOUT)
@@ -134,11 +134,11 @@ def tex2pdf(tex_source, outfile, use_pdflatex=True):
 
     # output resulting PDF
     pdf_file = os.path.join(tmp, 'document.pdf')
-    output += 'Copy result to `%s`\n' % outfile
+    output += ('Copy result to `%s`\n' % outfile).encode('utf-8')
     shutil.copyfile(pdf_file, outfile)
 
     # house keeping
-    output += 'Clear folder `%s`\n' % tmp
+    output += ('Clear folder `%s`\n' % tmp).encode('utf-8')
     output += call(['rm', '-rf', tmp])
     
     return output

@@ -14,6 +14,7 @@ import warnings
 
 import h5py
 import numpy as np
+from six import iteritems, iterkeys, itervalues, string_types
 
 
 
@@ -117,7 +118,7 @@ class LazyHDFValue(LazyValue):
             # add attributes to describe data 
             hdf_file[key].attrs['written_on'] = str(datetime.datetime.now())
             if hasattr(data_cls, 'hdf_attributes'):        
-                for attr_key, attr_value in data_cls.hdf_attributes.iteritems():
+                for attr_key, attr_value in iteritems(data_cls.hdf_attributes):
                     hdf_file[key].attrs[attr_key] = attr_value
             
         return cls(data_cls, key, hdf_filename)
@@ -160,7 +161,7 @@ class LazyHDFCollection(LazyHDFValue):
     
             hdf_file[key].attrs['written_on'] = str(datetime.datetime.now())
             if hasattr(data_cls, 'hdf_attributes'):        
-                for attr_key, attr_value in data_cls.hdf_attributes.iteritems():
+                for attr_key, attr_value in iteritems(data_cls.hdf_attributes):
                     hdf_file[key].attrs[attr_key] = attr_value
 
         return cls(data_cls, key, hdf_filename)
@@ -222,7 +223,7 @@ class NestedDict(collections.MutableMapping):
         """ returns the item identified by `key`.
         If load_data is True, a potential LazyValue gets loaded """
         try:
-            if isinstance(key, basestring) and self.sep in key:
+            if isinstance(key, string_types) and self.sep in key:
                 # sub-data is accessed
                 child, grandchildren = key.split(self.sep, 1)
                 try:
@@ -243,7 +244,7 @@ class NestedDict(collections.MutableMapping):
         
     def __setitem__(self, key, value):
         """ writes the item into the dictionary """
-        if isinstance(key, basestring) and self.sep in key:
+        if isinstance(key, string_types) and self.sep in key:
             # sub-data is written
             child, grandchildren = key.split(self.sep, 1)
             try:
@@ -264,7 +265,7 @@ class NestedDict(collections.MutableMapping):
     def __delitem__(self, key):
         """ deletes the item identified by key """
         try:
-            if isinstance(key, basestring) and self.sep in key:
+            if isinstance(key, string_types) and self.sep in key:
                 # sub-data is deleted
                 child, grandchildren = key.split(self.sep, 1)
                 try:
@@ -280,7 +281,7 @@ class NestedDict(collections.MutableMapping):
 
     def __contains__(self, key):
         """ returns True if the key is contained in the data """
-        if isinstance(key, basestring) and self.sep in key:
+        if isinstance(key, string_types) and self.sep in key:
             child, grandchildren = key.split(self.sep, 1)
             try:
                 return child in self.data and grandchildren in self.data[child]
@@ -303,7 +304,7 @@ class NestedDict(collections.MutableMapping):
     def itervalues(self, flatten=False):
         """ an iterator over the values of the dictionary
         If flatten is true, iteration is recursive """
-        for value in self.data.itervalues():
+        for value in itervalues(self.data):
             if flatten and isinstance(value, NestedDict):
                 # recurse into sub dictionary
                 for v in value.itervalues(flatten=True):
@@ -316,7 +317,7 @@ class NestedDict(collections.MutableMapping):
         """ an iterator over the keys of the dictionary
         If flatten is true, iteration is recursive """
         if flatten:
-            for key, value in self.data.iteritems():
+            for key, value in iteritems(self.data):
                 if isinstance(value, NestedDict):
                     # recurse into sub dictionary
                     try:
@@ -329,14 +330,14 @@ class NestedDict(collections.MutableMapping):
                 else:
                     yield key
         else:
-            for key in self.data.iterkeys():
+            for key in iterkeys(self.data):
                 yield key
 
 
     def iteritems(self, flatten=False):
         """ an iterator over the (key, value) items
         If flatten is true, iteration is recursive """
-        for key, value in self.data.iteritems():
+        for key, value in iteritems(self.data):
             if flatten and isinstance(value, NestedDict):
                 # recurse into sub dictionary
                 try:
@@ -363,7 +364,7 @@ class NestedDict(collections.MutableMapping):
     def copy(self):
         """ makes a shallow copy of the data """
         res = self.__class__()
-        for key, value in self.iteritems():
+        for key, value in iteritems(self):
             if isinstance(value, (dict, NestedDict)):
                 value = value.copy()
             res[key] = value
@@ -372,7 +373,7 @@ class NestedDict(collections.MutableMapping):
 
     def from_dict(self, data):
         """ fill the object with data from a dictionary """
-        for key, value in data.iteritems():
+        for key, value in iteritems(data):
             if isinstance(value, dict):
                 if key in self and isinstance(self[key], NestedDict):
                     # extend existing NestedDict instance
@@ -395,7 +396,7 @@ class NestedDict(collections.MutableMapping):
             if isinstance(value, NestedDict):
                 value = value.to_dict(flatten=flatten)
                 if flatten:
-                    for k, v in value.iteritems():
+                    for k, v in iteritems(value):
                         try:
                             res[key + self.sep + k] = v
                         except TypeError:
@@ -426,7 +427,7 @@ class LazyNestedDict(NestedDict):
         """ returns the item identified by `key`.
         If load_data is True, a potential LazyValue gets loaded """
         try:
-            if isinstance(key, basestring) and self.sep in key:
+            if isinstance(key, string_types) and self.sep in key:
                 # sub-data is accessed
                 child, grandchildren = key.split(self.sep, 1)
                 try:
@@ -467,13 +468,13 @@ def prepare_data_for_yaml(data):
     elif isinstance(data, np.integer):
         return int(data)
     elif isinstance(data, collections.MutableMapping):
-        return {k: prepare_data_for_yaml(v) for k, v in data.iteritems()}
+        return {k: prepare_data_for_yaml(v) for k, v in iteritems(data)}
     elif isinstance(data, (list, tuple)):
         return [prepare_data_for_yaml(v) for v in data]
     elif isinstance(data, LazyHDFValue):
         return data.get_yaml_string()
     elif (data is not None and 
-          not isinstance(data, (bool, int, float, list, basestring))):
+          not isinstance(data, (bool, int, float, list, string_types))):
         warnings.warn('Encountered unknown instance of `%s` in YAML '
                       'preparation' % data.__class__)
     return data    

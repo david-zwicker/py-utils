@@ -48,10 +48,10 @@ class TestCache(unittest.TestCase):
             decode = cache.make_unserializer(method)
             self.assertEqual(data, decode(encode(data)))
             
-        self.assertRaises(ValueError,
-                          lambda: cache.make_serializer('non-sense'))
-        self.assertRaises(ValueError,
-                          lambda: cache.make_unserializer('non-sense'))
+        with self.assertRaises(ValueError):
+            cache.make_serializer('non-sense')
+        with self.assertRaises(ValueError):
+            cache.make_unserializer('non-sense')
     
     
     def test_DictFiniteCapacity(self):
@@ -64,11 +64,13 @@ class TestCache(unittest.TestCase):
         self.assertTrue(len(data), 2)
         data['c'] = 3
         self.assertTrue(len(data), 2)
-        self.assertRaises(KeyError, lambda: data['a'])
+        with self.assertRaises(KeyError):
+            data['a']
         
         data.update({'d': 4})
         self.assertTrue(len(data), 2)
-        self.assertRaises(KeyError, lambda: data['b'])
+        with self.assertRaises(KeyError):
+            data['b']
  
  
     def test_PersistentDict(self):
@@ -76,31 +78,34 @@ class TestCache(unittest.TestCase):
         db = tempfile.NamedTemporaryFile()
         data = cache.PersistentDict(db.name)
         
-        self.assertRaises(TypeError, lambda: data[1])
-        self.assertRaises(TypeError, lambda: 1 in data)
-        def set_int(): data['a'] = 1
-        self.assertRaises(TypeError, set_int)
-        def del_int(): del data[1]
-        self.assertRaises(TypeError, del_int)
+        with self.assertRaises(TypeError):
+            data[1]
+        with self.assertRaises(TypeError):
+            _ = 1 in data
+        with self.assertRaises(TypeError):
+            data['a'] = 1
+        with self.assertRaises(TypeError):
+            del data[1]
         
-        data['a'] = '1'
+        data[b'a'] = b'1'
         self.assertEqual(len(data), 1)
-        data['b'] = '2'
+        data[b'b'] = b'2'
         self.assertEqual(len(data), 2)
-        del data['a']
+        del data[b'a']
         self.assertEqual(len(data), 1)
-        self.assertRaises(KeyError, lambda: data['a'])
+        with self.assertRaises(KeyError):
+            data[b'a']
         
-        data.update({'d': '4'})
+        data.update({b'd': b'4'})
         self.assertTrue(len(data), 2)
         
         # reinitialize the dictionary
         data = cache.PersistentDict(db.name)
         self.assertEqual(len(data), 2)
-        self.assertEqual(data['b'], '2')
-        self.assertTrue('d' in data)
-        self.assertEqual({'b', 'd'}, set(data.keys()))
-        self.assertEqual({'2', '4'}, set(data.values()))
+        self.assertEqual(data[b'b'], b'2')
+        self.assertTrue(b'd' in data)
+        self.assertEqual({b'b', b'd'}, set(data.keys()))
+        self.assertEqual({b'2', b'4'}, set(data.values()))
         data.clear()
         self.assertEqual(len(data), 0)
         
@@ -120,26 +125,37 @@ class TestCache(unittest.TestCase):
         data = cache.SerializedDict(key_serialization, value_serialization,
                                     storage_dict=storage)
         
-        data['a'] = 1
-        self.assertEqual(len(data), 1, msg=msg)
-        data['b'] = 2
-        self.assertEqual(data['b'], 2, msg=msg)
-        self.assertEqual(len(data), 2, msg=msg)
+        if value_serialization == 'none':
+            with self.assertRaises(TypeError):
+                data['a'] = 1
+                
+            v1, v2, v3 = '1', '2', '3'
+                
+        else:
+            v1, v2, v3 = 1, 2, '3'
+            
+        data['a'] = v1
+        self.assertEqual(len(data), v1, msg=msg)
+        data['b'] = v2
+        self.assertEqual(data['b'], v2, msg=msg)
+
+        self.assertEqual(len(data), v2, msg=msg)
         del data['a']
-        self.assertEqual(len(data), 1, msg=msg)
-        self.assertRaises(KeyError, lambda: data['a'])
+        self.assertEqual(len(data), v1, msg=msg)
+        with self.assertRaises(KeyError):
+            data['a']
         
-        data.update({'d': '4'})
-        self.assertEqual(len(data), 2, msg=msg)
+        data.update({'d': v3})
+        self.assertEqual(len(data), v2, msg=msg)
         
         # reinitialize the storage dictionary
         if reinitialize is not None:
             data._data = reinitialize()
-        self.assertEqual(len(data), 2, msg=msg)
-        self.assertEqual(data['b'], 2, msg=msg)
+        self.assertEqual(len(data), v2, msg=msg)
+        self.assertEqual(data['b'], v2, msg=msg)
         self.assertTrue('d' in data, msg=msg)
         self.assertEqual({'b', 'd'}, set(data.keys()), msg=msg)
-        self.assertEqual({2, '4'}, set(data.values()), msg=msg)
+        self.assertEqual({v2, v3}, set(data.values()), msg=msg)
         data.clear()
         self.assertEqual(len(data), 0, msg=msg)
         
@@ -267,9 +283,8 @@ class TestCache(unittest.TestCase):
                 return a + b
             
         # test what happens when the decorator is applied wrongly
-        def apply_decorator_wrongly():
+        with self.assertRaises(ValueError):
             cache.cached_method(CacheTest.cached)
-        self.assertRaises(ValueError, apply_decorator_wrongly)
             
         # try to objects to make sure caching is done on the instance level and
         # that clearing the cache works

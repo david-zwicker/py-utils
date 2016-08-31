@@ -6,7 +6,6 @@ Created on Aug 25, 2016
 
 from __future__ import division
 
-import StringIO
 import os.path
 import unittest
 import tempfile
@@ -197,14 +196,13 @@ class TestNestedDict(unittest.TestCase):
 
     _multiprocess_can_split_ = True  # let nose know that tests can run parallel
 
-
     def test_basics(self):
         """ tests miscellaneous functions """
         d = nested_dict.NestedDict({'a': {'b': {}}, 'c': 1})
         
         self.assertIsInstance(repr(d), str)
         
-        stream = StringIO.StringIO()
+        stream = six.StringIO()
         with misc.redirected_stdout(stream):
             d.pprint()
         self.assertGreater(len(stream.getvalue()), 0)
@@ -293,18 +291,18 @@ class TestNestedDict(unittest.TestCase):
         """ test iterating over the data """
         d = nested_dict.NestedDict({'a': {'b': 1}, 'c': 2})
         
-        self.assertItemsEqual(d.iterkeys(), ['a', 'c'])    
-        self.assertItemsEqual(d.iterkeys(flatten=True), ['a/b', 'c'])    
+        six.assertCountEqual(self, d.iterkeys(), ['a', 'c'])    
+        six.assertCountEqual(self, d.iterkeys(flatten=True), ['a/b', 'c'])    
         
-        self.assertItemsEqual(d.itervalues(),
-                              [nested_dict.NestedDict({'b': 1}), 2])    
-        self.assertItemsEqual(d.itervalues(flatten=True), [1, 2])    
+        six.assertCountEqual(self, d.itervalues(),
+                             [nested_dict.NestedDict({'b': 1}), 2])    
+        six.assertCountEqual(self, d.itervalues(flatten=True), [1, 2])    
         
-        self.assertItemsEqual(d.iteritems(),
-                              [('a', nested_dict.NestedDict({'b': 1})),
+        six.assertCountEqual(self, d.iteritems(),
+                             [('a', nested_dict.NestedDict({'b': 1})),
                                ('c', 2)])    
-        self.assertItemsEqual(d.iteritems(flatten=True),
-                              [('a/b', 1), ('c', 2)]) 
+        six.assertCountEqual(self, d.iteritems(flatten=True),
+                             [('a/b', 1), ('c', 2)]) 
         
         # test some exceptions
         with self.assertRaises(TypeError):

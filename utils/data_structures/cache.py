@@ -26,7 +26,7 @@ def make_serializer(method):
 
     elif method == 'json':
         import json
-        return lambda s: json.dumps(s, sort_keys=True)
+        return lambda s: json.dumps(s, sort_keys=True).encode('utf-8')
 
     elif method == 'pickle':
         try:
@@ -37,7 +37,7 @@ def make_serializer(method):
 
     elif method == 'yaml':
         import yaml
-        return yaml.dump
+        return lambda s: yaml.dump(s).encode('utf-8')
     
     else:
         raise ValueError('Unknown serialization method `%s`' % method)
@@ -51,7 +51,7 @@ def make_unserializer(method):
 
     elif method == 'json':
         import json
-        return json.loads
+        return lambda s: json.loads(s.decode('utf-8'))
 
     elif method == 'pickle':
         try:
@@ -117,11 +117,13 @@ class PersistentDict(collections.MutableMapping):
         # lazy import
         import sqlite3
         self._con = sqlite3.connect(self.filename)
+        self._con.text_factory = bytes  # make sure that we mainly handle bytes 
+        
         # make sure that the cache table exists
         with self._con:
             self._con.execute("CREATE table IF NOT EXISTS cache ("
-                                  "key TEXT PRIMARY KEY, "
-                                  "value TEXT"
+                                  "key BLOB PRIMARY KEY, "
+                                  "value BLOB"
                               ");")
             
             
@@ -141,8 +143,8 @@ class PersistentDict(collections.MutableMapping):
     
     
     def __getitem__(self, key):
-        if not isinstance(key, six.string_types):
-            raise TypeError('Keys must be strings')
+        if not isinstance(key, six.binary_type):
+            raise TypeError('Key must be bytes, but was %r' % key)
         res = self._con.execute("SELECT value FROM cache WHERE key=? "
                                 "LIMIT 1", (key,)).fetchone()
         if res:
@@ -152,24 +154,24 @@ class PersistentDict(collections.MutableMapping):
         
         
     def __setitem__(self, key, value):
-        if not (isinstance(key, six.string_types) and
-                isinstance(value, six.string_types)):
-            raise TypeError('Keys and values must be strings')
+        if not (isinstance(key, six.binary_type) and
+                isinstance(value, six.binary_type)):
+            raise TypeError('Keys and values must be bytes')
         with self._con:
             self._con.execute("INSERT OR REPLACE INTO cache VALUES (?, ?)",
                               (key, value))
 
 
     def __delitem__(self, key):
-        if not isinstance(key, six.string_types):
-            raise TypeError('Keys must be strings')
+        if not isinstance(key, six.binary_type):
+            raise TypeError('Key must be bytes, but was %r' % key)
         with self._con:
             self._con.execute("DELETE FROM cache where key=?", (key,))
     
     
     def __contains__(self, key):
-        if not isinstance(key, six.string_types):
-            raise TypeError('Keys must be strings')
+        if not isinstance(key, six.binary_type):
+            raise TypeError('Key must be bytes, but was %r' % key)
         return self._con.execute("SELECT EXISTS(SELECT 1 FROM cache "
                                  "WHERE key=? LIMIT 1);", (key,)).fetchone()[0]
     

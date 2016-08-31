@@ -23,26 +23,26 @@ class TestMatlab(unittest.TestCase):
         """ test running code with Matlab """
         m = matlab.Matlab()
         
-        res, err = m.run_code('disp(1 + 2)')
-        self.assertEqual(err, '')  # no message on stderr
+        res, err = m.run_code(b'disp(1 + 2)')
+        self.assertEqual(err, b'')  # no message on stderr
         cells = m.extract_output_cells(res)
         self.assertEqual(len(cells), 1)
-        self.assertEqual(cells[0].rstrip(), '3')
+        self.assertEqual(cells[0].rstrip(), b'3')
         
 
     def test_run_file(self):
         """ test running code with Matlab """
         script = tempfile.NamedTemporaryFile(suffix='.m')
-        script.write('disp(1 + 2)')
+        script.write(b'disp(1 + 2)')
         script.flush()
          
         m = matlab.Matlab()
          
         res, err = m.run_script(script.name)
-        self.assertEqual(err, '')  # no message on stderr
+        self.assertEqual(err, b'')  # no message on stderr
         cells = m.extract_output_cells(res)
         self.assertEqual(len(cells), 1)
-        self.assertEqual(cells[0].rstrip(), '3')
+        self.assertEqual(cells[0].rstrip(), b'3')
 
 
 

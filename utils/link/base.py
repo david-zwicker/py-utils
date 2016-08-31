@@ -68,7 +68,7 @@ class ExecutableBase(object):
         if skip_stdout_lines is None:
             skip_stdout_lines = self.skip_stdout_lines
         if skip_stdout_lines > 0:
-            stdout = stdout.split("\n", skip_stdout_lines + 1)[-1]
+            stdout = stdout.split(b"\n", skip_stdout_lines + 1)[-1]
         
         logging.debug('stdout:\n%s', stdout)
         logging.debug('stderr:\n%s', stderr)

@@ -6,6 +6,7 @@ Created on Aug 25, 2016
 
 from __future__ import division
 
+import sys
 import unittest
 
 import numpy as np
@@ -170,6 +171,10 @@ class TestMath(unittest.TestCase):
     def test_calc_entropy(self):
         """ test the calc_entropy function """
         entropy_functions = (m._ENTROPY_FUNCTIONS + [m.calc_entropy])
+        
+        if sys.version_info.major > 2:
+            entropy_functions.remove(m._entropy_counter1)
+        
         for entropy in entropy_functions:
             msg = 'Entropy function `%s` failed' % entropy.__name__
             self.assertEqual(entropy([]), 0, msg=msg)

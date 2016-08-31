@@ -61,7 +61,7 @@ class Mathematica(ExecutableBase):
     def run_code(self, code, **kwargs):
         """ runs Mathematica code and returns the output """
         kwargs.setdefault('skip_stdout_lines', 2)
-        code += '\nExit[];'  # make sure the program exits
+        code += b'\nExit[];'  # make sure the program exits
         return self._run_command("", stdin=code, **kwargs)
         
 
@@ -74,21 +74,21 @@ class Mathematica(ExecutableBase):
     def extract_output_cell(self, output, cell_nr):
         """ parse the `output` to extract the output cell given by `cell_nr` """
         # define the token the signifies the begin of the output cell
-        token = 'Out[%d]= ' % cell_nr
+        token = ('Out[%d]= ' % cell_nr).encode('utf-8')
     
         res = None
-        for line in output.split('\n'):
+        for line in output.split(b'\n'):
             if line.startswith(token):
                 # found the beginning of the output cell
                 res = line[len(token):]
             elif res is not None:
                 # the output cell has been found
-                if line.startswith('In') or line.startswith('Out'):
+                if line.startswith(b'In') or line.startswith(b'Out'):
                     # a new cell begins and we're thus finished
                     break
                 else:
                     # append the output, since it belongs to the target cell
-                    res += '\n' + line
+                    res += b'\n' + line
         
         return res.rstrip()
     
@@ -99,19 +99,19 @@ class Mathematica(ExecutableBase):
         cells = collections.OrderedDict()
         
         cell_id, cell_content = None, None
-        for line in output.split('\n'):
-            if line.startswith('Out['):
+        for line in output.split(b'\n'):
+            if line.startswith(b'Out['):
                 # store the old cell
                 if cell_id is not None:
                     cells[cell_id] = cell_content.rstrip()
                 # extract cell index
-                cell_header = line.split(']')[0]
+                cell_header = line.split(b']')[0]
                 cell_id = int(cell_header[4:])
                 cell_content = line[len(cell_header) + 3:]
     
             elif cell_id is not None:
                 # the output cell has been found
-                if line.startswith('In['):
+                if line.startswith(b'In['):
                     # store the old cell
                     if cell_id is not None:
                         cells[cell_id] = cell_content.rstrip()
@@ -119,7 +119,7 @@ class Mathematica(ExecutableBase):
                     cell_id, cell_content = None, None
                 else:
                     # append the output, since it belongs to the cell
-                    cell_content += '\n' + line
+                    cell_content += b'\n' + line
     
         # store the last cell
         if cell_id is not None:

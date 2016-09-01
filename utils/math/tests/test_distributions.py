@@ -9,10 +9,10 @@ from __future__ import division
 import unittest
 
 import numpy as np
-from scipy import stats 
+import scipy.stats
 
 from .. import distributions
-      
+
 
       
 class TestMathDistributions(unittest.TestCase):
@@ -47,8 +47,40 @@ class TestMathDistributions(unittest.TestCase):
             self.assertAllClose(dist.var(), rvs.var(), rtol=0.4, atol=0.2,
                                 msg='Variance of the distribution is not '
                                     'consistent.')
-
-
+            
+            
+    def test_lognorm_mean_var_to_mu_sigma(self):
+        """ test the lognorm_mean_var_to_mu_sigma function """
+        m, v = 1, 1
+        
+        # test numpy definition
+        mu, sigma = distributions.lognorm_mean_var_to_mu_sigma(m, v, 'numpy')
+        xs = np.random.lognormal(mu, sigma, size=int(1e7))
+        
+        self.assertAlmostEqual(xs.mean(), m, places=1)
+        self.assertAlmostEqual(xs.var(), v, places=1)
+        
+        # test scipy definition
+        mu, sigma = distributions.lognorm_mean_var_to_mu_sigma(m, v, 'scipy')
+        dist = scipy.stats.lognorm(scale=mu, s=sigma)
+        
+        self.assertAlmostEqual(dist.mean(), m, places=7)
+        self.assertAlmostEqual(dist.var(), v, places=7)
+        
+        # additional parameter
+        with self.assertRaises(ValueError):
+            distributions.lognorm_mean_var_to_mu_sigma(m, v, 'non-sense')
+            
+            
+    def test_lognorm_mean_var(self):
+        """ test the lognorm_mean_var function """
+        for mean, var in [(0.1, 1), (1, 0.1)]:
+            dist = distributions.lognorm_mean_var(mean, var)
+            self.assertAlmostEqual(dist.mean(), mean)
+            self.assertAlmostEqual(dist.var(), var)
+            
+            
+            
     def test_log_normal(self):
         """ test the log normal distribution """
         S0, sigma = np.random.random(2) + 0.1
@@ -57,7 +89,7 @@ class TestMathDistributions(unittest.TestCase):
         
         # test our distribution and the scipy distribution
         dists = (distributions.lognorm_mean(S0, sigma),
-                 stats.lognorm(scale=mu, s=sigma))
+                 scipy.stats.lognorm(scale=mu, s=sigma))
         for dist in dists:
             self.assertAlmostEqual(dist.mean(), S0)
             self.assertAlmostEqual(dist.var(), var)

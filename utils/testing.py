@@ -7,7 +7,10 @@ Created on Aug 21, 2015
 from __future__ import division
 
 import logging
+import sys
 import unittest
+import warnings
+from contextlib import contextmanager
 
 import numpy as np
 from six.moves import zip_longest
@@ -103,6 +106,43 @@ class TestBase(unittest.TestCase):
                 self.assertEqual(v, b[k], submsg)
       
             
+            
+class WarnAssertionsMixin(object):
+    """
+    Mixing that allows to test for warnings
+    Code inspired by https://blog.ionelmc.ro/2013/06/26/testing-python-warnings/
+    """
+    
+    @contextmanager
+    def assertNoWarnings(self):
+        try:
+            warnings.simplefilter("error")
+            yield
+        finally:
+            warnings.resetwarnings()
+
+
+    @contextmanager
+    def assertWarnings(self, messages):
+        """
+        Asserts that the given messages are issued in the given order.
+        """
+        if not messages:
+            raise RuntimeError("Use assertNoWarnings instead!")
+
+        with warnings.catch_warnings(record=True) as warning_list:
+            warnings.simplefilter("always")
+            for mod in sys.modules.values():
+                if hasattr(mod, '__warningregistry__'):
+                    mod.__warningregistry__.clear()
+            yield
+            warning_list = [w.message.args[0] for w in warning_list]
+            for message in messages:
+                if not any(message in warning for warning in warning_list):
+                    self.fail('Message `%s` was not contained in warnings'
+                              % message)
+            
+
 
 if __name__ == '__main__':
     unittest.main()

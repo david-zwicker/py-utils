@@ -9,12 +9,11 @@ from __future__ import division
 import collections
 import datetime
 import os.path
-import sys
 import warnings
 
 import h5py
 import numpy as np
-from six import iteritems, iterkeys, itervalues, string_types
+import six
 
 
 
@@ -118,7 +117,8 @@ class LazyHDFValue(LazyValue):
             # add attributes to describe data 
             hdf_file[key].attrs['written_on'] = str(datetime.datetime.now())
             if hasattr(data_cls, 'hdf_attributes'):        
-                for attr_key, attr_value in iteritems(data_cls.hdf_attributes):
+                for attr_key, attr_value in \
+                        six.iteritems(data_cls.hdf_attributes):
                     hdf_file[key].attrs[attr_key] = attr_value
             
         return cls(data_cls, key, hdf_filename)
@@ -161,7 +161,8 @@ class LazyHDFCollection(LazyHDFValue):
     
             hdf_file[key].attrs['written_on'] = str(datetime.datetime.now())
             if hasattr(data_cls, 'hdf_attributes'):        
-                for attr_key, attr_value in iteritems(data_cls.hdf_attributes):
+                for attr_key, attr_value in \
+                        six.iteritems(data_cls.hdf_attributes):
                     hdf_file[key].attrs[attr_key] = attr_value
 
         return cls(data_cls, key, hdf_filename)
@@ -223,7 +224,7 @@ class NestedDict(collections.MutableMapping):
         """ returns the item identified by `key`.
         If load_data is True, a potential LazyValue gets loaded """
         try:
-            if isinstance(key, string_types) and self.sep in key:
+            if isinstance(key, six.string_types) and self.sep in key:
                 # sub-data is accessed
                 child, grandchildren = key.split(self.sep, 1)
                 try:
@@ -244,7 +245,7 @@ class NestedDict(collections.MutableMapping):
         
     def __setitem__(self, key, value):
         """ writes the item into the dictionary """
-        if isinstance(key, string_types) and self.sep in key:
+        if isinstance(key, six.string_types) and self.sep in key:
             # sub-data is written
             child, grandchildren = key.split(self.sep, 1)
             try:
@@ -265,7 +266,7 @@ class NestedDict(collections.MutableMapping):
     def __delitem__(self, key):
         """ deletes the item identified by key """
         try:
-            if isinstance(key, string_types) and self.sep in key:
+            if isinstance(key, six.string_types) and self.sep in key:
                 # sub-data is deleted
                 child, grandchildren = key.split(self.sep, 1)
                 try:
@@ -281,7 +282,7 @@ class NestedDict(collections.MutableMapping):
 
     def __contains__(self, key):
         """ returns True if the key is contained in the data """
-        if isinstance(key, string_types) and self.sep in key:
+        if isinstance(key, six.string_types) and self.sep in key:
             child, grandchildren = key.split(self.sep, 1)
             try:
                 return child in self.data and grandchildren in self.data[child]
@@ -304,7 +305,7 @@ class NestedDict(collections.MutableMapping):
     def itervalues(self, flatten=False):
         """ an iterator over the values of the dictionary
         If flatten is true, iteration is recursive """
-        for value in itervalues(self.data):
+        for value in six.itervalues(self.data):
             if flatten and isinstance(value, NestedDict):
                 # recurse into sub dictionary
                 for v in value.itervalues(flatten=True):
@@ -317,7 +318,7 @@ class NestedDict(collections.MutableMapping):
         """ an iterator over the keys of the dictionary
         If flatten is true, iteration is recursive """
         if flatten:
-            for key, value in iteritems(self.data):
+            for key, value in six.iteritems(self.data):
                 if isinstance(value, NestedDict):
                     # recurse into sub dictionary
                     try:
@@ -330,14 +331,14 @@ class NestedDict(collections.MutableMapping):
                 else:
                     yield key
         else:
-            for key in iterkeys(self.data):
+            for key in six.iterkeys(self.data):
                 yield key
 
 
     def iteritems(self, flatten=False):
         """ an iterator over the (key, value) items
         If flatten is true, iteration is recursive """
-        for key, value in iteritems(self.data):
+        for key, value in six.iteritems(self.data):
             if flatten and isinstance(value, NestedDict):
                 # recurse into sub dictionary
                 try:
@@ -364,7 +365,7 @@ class NestedDict(collections.MutableMapping):
     def copy(self):
         """ makes a shallow copy of the data """
         res = self.__class__()
-        for key, value in iteritems(self):
+        for key, value in six.iteritems(self):
             if isinstance(value, (dict, NestedDict)):
                 value = value.copy()
             res[key] = value
@@ -373,7 +374,7 @@ class NestedDict(collections.MutableMapping):
 
     def from_dict(self, data):
         """ fill the object with data from a dictionary """
-        for key, value in iteritems(data):
+        for key, value in six.iteritems(data):
             if isinstance(value, dict):
                 if key in self and isinstance(self[key], NestedDict):
                     # extend existing NestedDict instance
@@ -396,7 +397,7 @@ class NestedDict(collections.MutableMapping):
             if isinstance(value, NestedDict):
                 value = value.to_dict(flatten=flatten)
                 if flatten:
-                    for k, v in iteritems(value):
+                    for k, v in six.iteritems(value):
                         try:
                             res[key + self.sep + k] = v
                         except TypeError:
@@ -427,7 +428,7 @@ class LazyNestedDict(NestedDict):
         """ returns the item identified by `key`.
         If load_data is True, a potential LazyValue gets loaded """
         try:
-            if isinstance(key, string_types) and self.sep in key:
+            if isinstance(key, six.string_types) and self.sep in key:
                 # sub-data is accessed
                 child, grandchildren = key.split(self.sep, 1)
                 try:
@@ -449,10 +450,9 @@ class LazyNestedDict(NestedDict):
                 # NestedDict. This then allows us to distinguish between items
                 # not found in NestedDict (raising KeyError) and items not being
                 # able to load (raising LazyLoadError)
-                err_msg = ('Cannot load item `%s`.\nThe original error was: %s'
-                           % (key, err))
-                _, _, tb = sys.exc_info()
-                raise LazyLoadError(err_msg).with_traceback(tb) 
+                msg = ('Cannot load item `%s`.\nThe original error was: %s'
+                        % (key, str(err)))
+                six.raise_from(LazyLoadError(msg), err)
             self.data[key] = value  # replace loader with actual value
             
         return value
@@ -468,13 +468,15 @@ def prepare_data_for_yaml(data):
     elif isinstance(data, np.integer):
         return int(data)
     elif isinstance(data, collections.MutableMapping):
-        return {k: prepare_data_for_yaml(v) for k, v in iteritems(data)}
-    elif isinstance(data, (list, tuple)):
+        return {k: prepare_data_for_yaml(v) for k, v in six.iteritems(data)}
+    elif isinstance(data, (list, tuple, set)):
         return [prepare_data_for_yaml(v) for v in data]
     elif isinstance(data, LazyHDFValue):
         return data.get_yaml_string()
-    elif (data is not None and 
-          not isinstance(data, (bool, int, float, list, string_types))):
+    elif (data is None or 
+          isinstance(data, (bool, int, float, six.string_types))):
+        return data
+    else:
         warnings.warn('Encountered unknown instance of `%s` in YAML '
                       'preparation' % data.__class__)
     return data    

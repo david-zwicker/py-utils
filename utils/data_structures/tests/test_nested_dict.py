@@ -10,32 +10,13 @@ import os.path
 import unittest
 import tempfile
 
+import h5py
 import numpy as np
 import six
 
 from .. import nested_dict
 from ... import misc
-
-
-
-class TestGeneral(unittest.TestCase):
-    """ test general functions of the module """
-
-
-    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
-        
-        
-    def test_get_chunk_size(self):
-        """ test the get_chunk_size function """
-        for _ in range(10):
-            shape = np.random.randint(1, 10, size=10)
-            size = np.prod(shape)
-            for _ in range(10):
-                num_elements = np.random.randint(1, size)
-                chunks = nested_dict.get_chunk_size(shape, num_elements)
-                self.assertLessEqual(np.prod(chunks), num_elements)
-                for c, s in zip(chunks, shape):
-                    self.assertLessEqual(c, s)
+from ... import testing
 
 
 
@@ -195,10 +176,12 @@ class TestNestedDict(unittest.TestCase):
     """ test the NestedDict class """
 
     _multiprocess_can_split_ = True  # let nose know that tests can run parallel
+    dict_cls = nested_dict.NestedDict
+
 
     def test_basics(self):
         """ tests miscellaneous functions """
-        d = nested_dict.NestedDict({'a': {'b': {}}, 'c': 1})
+        d = self.dict_cls({'a': {'b': {}}, 'c': 1})
         
         self.assertIsInstance(repr(d), str)
         
@@ -210,8 +193,8 @@ class TestNestedDict(unittest.TestCase):
 
     def test_getting_data(self):
         """ tests that are about retrieving data """
-        d = nested_dict.NestedDict({'a': {'b': {}}, 'c': 1})    
-        self.assertEqual(d['a'], nested_dict.NestedDict({'b': {}}))
+        d = self.dict_cls({'a': {'b': {}}, 'c': 1})    
+        self.assertEqual(d['a'], self.dict_cls({'b': {}}))
         self.assertEqual(d['a/b'], {})
         self.assertEqual(d['c'], 1)
         
@@ -225,7 +208,7 @@ class TestNestedDict(unittest.TestCase):
 
     def test_membership(self):
         """ tests that test membership """
-        d = nested_dict.NestedDict({'a': {'b': {}}, 'c': 1})    
+        d = self.dict_cls({'a': {'b': {}}, 'c': 1})    
 
         self.assertIn('a', d)
         self.assertIn('a/b', d)
@@ -238,7 +221,7 @@ class TestNestedDict(unittest.TestCase):
         
     def test_setting_data(self):
         """ tests that are about setting data """
-        d = nested_dict.NestedDict({'a': {'b': {}}})
+        d = self.dict_cls({'a': {'b': {}}})
         
         d['a/c'] = 2
         self.assertEqual(d['a/c'], 2)
@@ -249,27 +232,27 @@ class TestNestedDict(unittest.TestCase):
         self.assertEqual(d.to_dict(), {'a': {'b': {}, 'c': 2}, 'e': {'f': 3}})
         self.assertEqual(d.to_dict(flatten=True), {'a/c': 2, 'e/f': 3})
         
-        d = nested_dict.NestedDict({'a': {'b': {}}})    
+        d = self.dict_cls({'a': {'b': {}}})    
         d['a'] = 2
-        self.assertEqual(d, nested_dict.NestedDict({'a': 2}))
+        self.assertEqual(d, self.dict_cls({'a': 2}))
 
         with self.assertRaises(TypeError):
             d['a/b'] = 2
             
         r = d.create_child('f', {'1': 2})
-        self.assertEqual(r, nested_dict.NestedDict({'1': 2}))
-        self.assertEqual(d, nested_dict.NestedDict({'a': 2, 'f': {'1': 2}}))
+        self.assertEqual(r, self.dict_cls({'1': 2}))
+        self.assertEqual(d, self.dict_cls({'a': 2, 'f': {'1': 2}}))
         
-        d = nested_dict.NestedDict({'a': {'b': 1}})
+        d = self.dict_cls({'a': {'b': 1}})
         d.from_dict({'a/c': 2})
-        self.assertEqual(d, nested_dict.NestedDict({'a': {'b': 1, 'c': 2}}))
+        self.assertEqual(d, self.dict_cls({'a': {'b': 1, 'c': 2}}))
         d.from_dict({'a': {'c': 3}})
-        self.assertEqual(d, nested_dict.NestedDict({'a': {'b': 1, 'c': 3}}))
+        self.assertEqual(d, self.dict_cls({'a': {'b': 1, 'c': 3}}))
             
             
     def test_deleting_data(self):
         """ tests that are about deleting data """
-        d = nested_dict.NestedDict({'a': {'b': 1, 'c': 2}, 'd': 3})
+        d = self.dict_cls({'a': {'b': 1, 'c': 2}, 'd': 3})
 
         with self.assertRaises(KeyError):
             del d['g']
@@ -278,59 +261,152 @@ class TestNestedDict(unittest.TestCase):
             del d['d/z']
         
         del d['d']
-        self.assertEqual(d, nested_dict.NestedDict({'a': {'b': 1, 'c': 2}}))
+        self.assertEqual(d, self.dict_cls({'a': {'b': 1, 'c': 2}}))
         
         del d['a/c']
-        self.assertEqual(d, nested_dict.NestedDict({'a': {'b': 1}}))
+        self.assertEqual(d, self.dict_cls({'a': {'b': 1}}))
         
         del d['a']
-        self.assertEqual(d, nested_dict.NestedDict())
+        self.assertEqual(d, self.dict_cls())
         
 
     def test_iterators(self):
         """ test iterating over the data """
-        d = nested_dict.NestedDict({'a': {'b': 1}, 'c': 2})
+        d = self.dict_cls({'a': {'b': 1}, 'c': 2})
         
         six.assertCountEqual(self, d.iterkeys(), ['a', 'c'])    
         six.assertCountEqual(self, d.iterkeys(flatten=True), ['a/b', 'c'])    
         
-        six.assertCountEqual(self, d.itervalues(),
-                             [nested_dict.NestedDict({'b': 1}), 2])    
+        six.assertCountEqual(self, d.itervalues(), [self.dict_cls({'b': 1}), 2])    
         six.assertCountEqual(self, d.itervalues(flatten=True), [1, 2])    
         
         six.assertCountEqual(self, d.iteritems(),
-                             [('a', nested_dict.NestedDict({'b': 1})),
-                               ('c', 2)])    
+                             [('a', self.dict_cls({'b': 1})), ('c', 2)])    
         six.assertCountEqual(self, d.iteritems(flatten=True),
                              [('a/b', 1), ('c', 2)]) 
         
         # test some exceptions
         with self.assertRaises(TypeError):
-            list(nested_dict.NestedDict({1: {2: 3}}).iterkeys(flatten=True))   
+            list(self.dict_cls({1: {2: 3}}).iterkeys(flatten=True))   
         with self.assertRaises(TypeError):
-            list(nested_dict.NestedDict({1: {2: 3}}).iteritems(flatten=True))   
+            list(self.dict_cls({1: {2: 3}}).iteritems(flatten=True))   
         
         
     def test_conversion(self):
         """ test the conversion of dictionaries """
-        d = nested_dict.NestedDict({'a': {'b': 1}, 'c': 2})
+        d = self.dict_cls({'a': {'b': 1}, 'c': 2})
 
         d2 = d.copy()
         self.assertEqual(d2, d)
         d2['c'] = 3
         self.assertNotEqual(d2, d)
 
-        d3 = nested_dict.NestedDict(d.to_dict())
+        d3 = self.dict_cls(d.to_dict())
         self.assertEqual(d3, d)
-        d3 = nested_dict.NestedDict(d.to_dict(flatten=True))
+        d3 = self.dict_cls(d.to_dict(flatten=True))
         self.assertEqual(d3, d)
         
-        d = nested_dict.NestedDict({1: {2: 3}})
+        d = self.dict_cls({1: {2: 3}})
         with self.assertRaises(TypeError):
             d.to_dict(flatten=True)
         
 
 
+
+class TestLazyNestedDict(TestNestedDict):
+    """ test the LazyNestedDict class """
+
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
+    dict_cls = nested_dict.LazyNestedDict
+    
+
+    def setUp(self):
+        self.hdf_file = tempfile.NamedTemporaryFile(suffix='.hdf5')
+        self.hdf_folder = os.path.dirname(self.hdf_file.name)
+
+
+    def test_simple(self):
+        """ test the functionality """
+        key = 'key'
+        data = TestValue([1, 2, 3])
+        
+        # try simple storage
+        value = nested_dict.LazyHDFValue.create_from_data(key, data,
+                                                          self.hdf_file.name)
+        
+        # modify original data
+        data.arr = np.arange(5)
+        data2 = TestValue([1, 2, 3])
+        
+        d = nested_dict.LazyNestedDict({'a': value})
+        
+        self.assertEqual(d.get_item('a', load_data=False), value)
+        self.assertEqual(d.get_item('a', load_data=True), data2)
+        self.assertEqual(d.get_item('a', load_data=False), data2)
+
+        # try again, but with different data 
+        value = nested_dict.LazyHDFValue.create_from_data(key, data,
+                                                          self.hdf_file.name)
+        
+        d = nested_dict.LazyNestedDict({'a': value})
+        
+        self.assertEqual(d.get_item('a', load_data=False), value)
+        self.assertEqual(d.get_item('a', load_data=True), data)
+        self.assertEqual(d.get_item('a', load_data=False), data)
+
+        # try again, but corrupt the database in between  
+        value = nested_dict.LazyHDFValue.create_from_data(key, data,
+                                                          self.hdf_file.name)
+        
+        with h5py.File(self.hdf_file.name, 'r+') as hdf_db:
+            del hdf_db[key]
+        
+        d = nested_dict.LazyNestedDict({'a': value})
+        
+        self.assertEqual(d.get_item('a', load_data=False), value)
+        with self.assertRaises(nested_dict.LazyLoadError):
+            d.get_item('a', load_data=True)
+
+
+
+class TestGeneral(unittest.TestCase, testing.WarnAssertionsMixin):
+    """ test general functions of the module """
+
+
+    _multiprocess_can_split_ = True  # let nose know that tests can run parallel
+        
+        
+    def test_get_chunk_size(self):
+        """ test the get_chunk_size function """
+        for _ in range(10):
+            shape = np.random.randint(1, 10, size=10)
+            size = np.prod(shape)
+            for _ in range(10):
+                num_elements = np.random.randint(1, size)
+                chunks = nested_dict.get_chunk_size(shape, num_elements)
+                self.assertLessEqual(np.prod(chunks), num_elements)
+                for c, s in zip(chunks, shape):
+                    self.assertLessEqual(c, s)
+                    
+    
+    def test_prepare_data_for_yaml(self):
+        """ test several types """
+        valid_data = [np.arange(5),
+                      np.float64(1), np.float128(1),
+                      np.uint8(3), np.int64(3),
+                      {'1': 2},
+                      [1, 2, 3], (1, 2, 3), {1, 2, 3},
+                      None, 1, 'str', 1.2, True, False]
+        
+        for data in valid_data:
+            nested_dict.prepare_data_for_yaml(data)
+                                
+        invalid_data = [TestValue([1, 2])]
+        for data in invalid_data:
+            with self.assertWarnings(['unknown instance']):
+                nested_dict.prepare_data_for_yaml(data)
+
+
+
 if __name__ == "__main__":
     unittest.main()
-    

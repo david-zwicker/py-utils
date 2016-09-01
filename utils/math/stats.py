@@ -30,7 +30,7 @@ def mean_std_online(arr_or_iter, ddof=0, shape=None):
     
     try:
         std = acc.std
-    except ValueError:
+    except RuntimeError:
         std = np.nan
         
     return mean, std

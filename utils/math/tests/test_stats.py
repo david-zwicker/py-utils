@@ -9,6 +9,7 @@ from __future__ import division
 import unittest
 
 import numpy as np
+import scipy.stats
 
 from .. import stats
 
@@ -35,6 +36,19 @@ class TestStats(unittest.TestCase):
         self.assertAlmostEqual(mean, x.mean())
         self.assertAlmostEqual(std, x.std(ddof=2))
         
+        # corner cases
+        mean, std = stats.mean_std_online([1])
+        self.assertEqual(mean, 1)
+        self.assertEqual(std, 0)
+        
+        mean, std = stats.mean_std_online([1], ddof=2)
+        self.assertEqual(mean, 1)
+        self.assertTrue(np.isnan(std))
+        
+        mean, std = stats.mean_std_online([])
+        self.assertTrue(np.isnan(mean))
+        self.assertTrue(np.isnan(std))
+        
         
     def test_mean_std_frequency_table(self):
         """ test the mean_std_frequency_table function """
@@ -44,6 +58,29 @@ class TestStats(unittest.TestCase):
             mean, std = stats.mean_std_frequency_table(f, ddof=ddof)
             self.assertAlmostEqual(mean, x.mean())
             self.assertAlmostEqual(std, x.std(ddof=ddof))
+            
+            
+    def test_lognorm_mean_var_to_mu_sigma(self):
+        """ test the lognorm_mean_var_to_mu_sigma function """
+        mean, var = 1, 1
+        
+        # test numpy definition
+        mu, sigma = stats.lognorm_mean_var_to_mu_sigma(mean, var, 'numpy')
+        xs = np.random.lognormal(mu, sigma, size=int(1e7))
+        
+        self.assertAlmostEqual(xs.mean(), mean, places=1)
+        self.assertAlmostEqual(xs.var(), var, places=1)
+        
+        # test scipy definition
+        mu, sigma = stats.lognorm_mean_var_to_mu_sigma(mean, var, 'scipy')
+        dist = scipy.stats.lognorm(scale=mu, s=sigma)
+        
+        self.assertAlmostEqual(dist.mean(), mean, places=7)
+        self.assertAlmostEqual(dist.var(), var, places=7)
+        
+        # additional parameter
+        with self.assertRaises(ValueError):
+            stats.lognorm_mean_var_to_mu_sigma(mean, var, 'non-sense')
             
             
     def test_lognorm_mean_var(self):

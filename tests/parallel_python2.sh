@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CORES=`python -c 'import multiprocessing as mp; print(mp.cpu_count())'`
+CORES=`python -c 'from multiprocessing import cpu_count; print(cpu_count())'`
 
 echo 'Run unittests on '$CORES' cores...'
 cd ..

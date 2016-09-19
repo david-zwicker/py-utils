@@ -40,7 +40,7 @@ class TestMathDistributions(unittest.TestCase):
         
         # calculate random variates and compare them to the given mean and var.
         for dist in distribution_list:
-            rvs = dist.rvs(1000000)
+            rvs = dist.rvs(int(1e6))
             self.assertAllClose(dist.mean(), rvs.mean(), rtol=0.02,
                                 msg='Mean of the distribution is not '
                                     'consistent.')
@@ -55,9 +55,9 @@ class TestMathDistributions(unittest.TestCase):
         
         # test numpy definition
         mu, sigma = distributions.lognorm_mean_var_to_mu_sigma(m, v, 'numpy')
-        xs = np.random.lognormal(mu, sigma, size=int(1e7))
+        xs = np.random.lognormal(mu, sigma, size=int(1e6))
         
-        self.assertAlmostEqual(xs.mean(), m, places=1)
+        self.assertAlmostEqual(xs.mean(), m, places=2)
         self.assertAlmostEqual(xs.var(), v, places=1)
         
         # test scipy definition
@@ -95,7 +95,7 @@ class TestMathDistributions(unittest.TestCase):
             self.assertAlmostEqual(dist.var(), var)
         
         # test the numpy distribution
-        rvs = np.random.lognormal(np.log(mu), sigma, size=1000000)
+        rvs = np.random.lognormal(np.log(mu), sigma, size=int(1e6))
         self.assertAlmostEqual(rvs.mean(), S0, places=2)
         self.assertAlmostEqual(rvs.var(), var, places=1)
 
@@ -109,7 +109,7 @@ class TestMathDistributions(unittest.TestCase):
         
         mu, sigma = distributions.lognorm_mean_var_to_mu_sigma(mean, var,
                                                                     'numpy')
-        rvs = np.random.lognormal(mu, sigma, size=1000000)
+        rvs = np.random.lognormal(mu, sigma, size=int(1e6))
         self.assertAlmostEqual(rvs.mean(), mean, places=2)
         self.assertAllClose(rvs.var(), var, rtol=0.4, atol=0.2)
 

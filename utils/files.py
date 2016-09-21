@@ -36,3 +36,10 @@ def ensure_directory_exists(folder):
     except OSError:
         # assume that the directory already exists
         pass
+
+
+
+def get_module_path(module):
+    """ returns the path to the module """
+    path = os.path.dirname(os.path.dirname(module.__file__))
+    return os.path.abspath(path)

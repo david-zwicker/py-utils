@@ -22,7 +22,6 @@ from matplotlib.figure import Figure
 from six.moves import range
 
 from . import style
-from ..link.shell import shellquote
 
 
 
@@ -31,9 +30,26 @@ INCHES_PER_PT = 1.0/72.27  # Convert pt to inch
 
 
 
-def crop_pdf(filename):
-    # submit command and fetch job_id from output
-    return subprocess.check_call(['pdfcrop', filename, filename])
+def crop_pdf(file_input, file_output=None, silence_output=True):
+    """ crops the pdf in the input file using the tool `pdfcrop`. If
+    `file_output` is not given, the input file is overwritten. `silence_output`
+    determines whether the output of the program is shown on the standard
+    output
+    """
+    if file_output is None:
+        file_input = file_output
+    
+    cmd = ['pdfcrop', file_input, file_output],
+    
+    if silence_output:
+        try:
+            from subprocess import DEVNULL # py3k
+        except ImportError:
+            DEVNULL = open(os.devnull, 'wb')
+        subprocess.check_call(cmd, stdout=DEVNULL, stderr=subprocess.STDOUT)
+        
+    else:
+        subprocess.check_call(cmd)
 
 
 

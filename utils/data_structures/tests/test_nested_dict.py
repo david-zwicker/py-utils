@@ -186,7 +186,7 @@ class TestNestedDict(unittest.TestCase):
         self.assertIsInstance(repr(d), str)
         
         stream = six.StringIO()
-        with misc.redirected_stdout(stream):
+        with misc.RedirectedStdout(stream):
             d.pprint()
         self.assertGreater(len(stream.getvalue()), 0)
 

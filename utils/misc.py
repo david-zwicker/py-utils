@@ -6,7 +6,6 @@ Created on Jan 21, 2015
 
 from __future__ import division
 
-import contextlib
 import functools
 import logging
 import sys
@@ -59,22 +58,33 @@ class DummyFile(object):
     """ dummy file that ignores all write calls """
     def write(self, x):
         pass
+    
+    def flush(self):
+        pass
 
 
 
-@contextlib.contextmanager
-def redirected_stdout(stream):
+class RedirectedStdout(object):
     """
-    context manager that silence the standard output
-    Code copied from http://stackoverflow.com/a/2829036/932593
+    context manager that redirects the standard output to the given stream
     """
-    save_stdout = sys.stdout
-    sys.stdout = stream
-    yield
-    sys.stdout = save_stdout
+
+    def __init__(self, stream):
+        self._target = stream
+        self._saved_stdout = None
+    
+    def __enter__(self):
+        self._saved_stdout = sys.stdout
+        sys.stdout = self._target
+        
+    def __exit__(self, type, value, traceback):
+        sys.stdout = self._saved_stdout
+        
 
 
-silent_stdout = redirected_stdout(DummyFile())
+def silent_stdout():
+    """ context manager that silence the standard output """
+    return RedirectedStdout(DummyFile())
     
     
     

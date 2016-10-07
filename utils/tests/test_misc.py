@@ -23,6 +23,7 @@ class TestMisc(unittest.TestCase):
     def test_DummyFile(self):
         """ test the DummyFile class """
         misc.DummyFile().write("a")
+        misc.DummyFile().flush()
         
 
     def test_copy_func(self):

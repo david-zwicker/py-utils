@@ -12,6 +12,7 @@ from __future__ import division
 import itertools
 import logging
 import os
+import subprocess
 from contextlib import contextmanager
 
 import numpy as np
@@ -27,6 +28,12 @@ from ..link.shell import shellquote
 
 GOLDEN_MEAN = 2/(np.sqrt(5) - 1)
 INCHES_PER_PT = 1.0/72.27  # Convert pt to inch
+
+
+
+def crop_pdf(filename):
+    # submit command and fetch job_id from output
+    return subprocess.check_call(['pdfcrop', filename, filename])
 
 
 
@@ -247,22 +254,14 @@ class FigureBase(Figure):
         self.savefig(
             filename + extension, transparent=self.transparent, **kwargs
         )
+        
         if extension == '.ps':
-            fmt = {
-                'ps': shellquote(filename + '.ps'),
-                'pdf': shellquote(file_pdf)
-            }
-            os.system('ps2pdf {ps} {pdf}.pdf'.format(**fmt))
+            subprocess.check_call(['ps2pdf', filename + '.ps', file_pdf])
         elif extension == '.eps':
-            fmt = {
-                'eps': shellquote(filename + '.eps'),
-                'pdf': shellquote(file_pdf)
-            }
-            os.system('epspdf {eps} {pdf}'.format(**fmt))
+            subprocess.check_call(['epspdf', filename + '.eps', file_pdf])
 
         if crop_pdf:
-            fmt = shellquote(file_pdf)
-            os.system('pdfcrop {0} {0} &> /dev/null &'.format(fmt))
+            crop_pdf(file_pdf)
 
         return file_pdf
 
@@ -296,6 +295,7 @@ class FigureBase(Figure):
             file_pdf = self.savefig_pdf(
                 filename, facecolor=bg_face, edgecolor=bg_edge, **kwargs
             )
+            
         return file_pdf
 
 

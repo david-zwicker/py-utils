@@ -37,9 +37,9 @@ def crop_pdf(file_input, file_output=None, silence_output=True):
     output
     """
     if file_output is None:
-        file_input = file_output
+        file_output = file_input 
     
-    cmd = ['pdfcrop', file_input, file_output]
+    cmd = ['pdfcrop', str(file_input), str(file_output)]
     
     if silence_output:
         try:

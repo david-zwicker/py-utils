@@ -45,6 +45,18 @@ xlog2x = np.vectorize(xlog2x, otypes='d')
 
 
 
+def heaviside(x, out=None):
+    """ defines the Heaviside step function
+    
+    This uses the half-maximum convention, where heaviside(0) == 0.5
+    """
+    if out is not None:
+        out[:] = 0.5 * (np.sign(x) + 1)
+    else:
+        return 0.5 * (np.sign(x) + 1)
+
+
+
 def average_angles(data, period=PI2):
     """ averages a list of cyclic values (angles by default)
     

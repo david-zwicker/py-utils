@@ -31,6 +31,27 @@ class TestMath(unittest.TestCase):
         np.testing.assert_allclose(m.xlog2x(a), b)
 
 
+    def test_heaviside(self):
+        """ test the heaviside function """
+        self.assertEqual(m.heaviside(-1), 0)
+        self.assertEqual(m.heaviside(0), 0.5)
+        self.assertEqual(m.heaviside(1), 1)
+        self.assertEqual(m.heaviside(-np.inf), 0)
+        self.assertTrue(np.isnan(m.heaviside(np.nan)))
+        self.assertEqual(m.heaviside(np.inf), 1)
+        
+        np.testing.assert_array_equal(m.heaviside(np.array([-1, 0, 1])),
+                                      np.array([0, 0.5, 1]))
+        
+        a = np.array([-1, 0, 1])
+        m.heaviside(a, out=a)
+        np.testing.assert_array_equal(a, np.array([0, 0, 1]))
+
+        a = np.array([-1, 0, 1], np.double)
+        m.heaviside(a, out=a)
+        np.testing.assert_array_equal(a, np.array([0, 0.5, 1]))
+
+
     def test_average_angles(self):
         """ test average_angles function """
         x = 2 * np.random.random((10, 2)) - 1

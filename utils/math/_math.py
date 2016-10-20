@@ -77,7 +77,10 @@ def euler_phi(n):
 
 
 def arrays_close(arr1, arr2, rtol=1e-05, atol=1e-08, equal_nan=False):
-    """ compares two arrays using a relative and an absolute tolerance """
+    """ compares two arrays using a relative and an absolute tolerance
+    
+    `equal_nan` determines whether two nan values are considered equal or not 
+    """
     arr1 = np.atleast_1d(arr1)
     arr2 = np.atleast_1d(arr2)
     
@@ -94,6 +97,10 @@ def arrays_close(arr1, arr2, rtol=1e-05, atol=1e-08, equal_nan=False):
 
         arr1 = arr1[idx]
         arr2 = arr2[idx]
+    
+    # check whether any array has a nan-value 
+    if np.any(np.isnan(arr1)) or np.any(np.isnan(arr2)):
+        return False
     
     # handle infinities separately
     idx_inf = (np.isinf(arr1) | np.isinf(arr2))

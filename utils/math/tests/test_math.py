@@ -52,6 +52,7 @@ class TestMath(unittest.TestCase):
         """ test the arrays_close function """
         a = 10 + np.random.random(10)
         self.assertFalse(m.arrays_close(a, np.arange(5)))
+        self.assertFalse(m.arrays_close(a, np.arange(10)))
         
         for rtol, atol in [[1e-4, 1e-4], [1e-4, 1e-15], [1e-15, 1e-4]]:
             msg = 'Comparison failed for rtol=%1.0e, atol=%1.0e' % (rtol, atol)
@@ -69,6 +70,10 @@ class TestMath(unittest.TestCase):
         self.assertFalse(m.arrays_close([0], [np.nan], equal_nan=False))
         self.assertTrue(m.arrays_close([np.nan], [np.nan], equal_nan=True))
         self.assertFalse(m.arrays_close([np.nan], [np.nan], equal_nan=False))
+        self.assertTrue(m.arrays_close([0, np.nan], [0, np.nan],
+                                       equal_nan=True))
+        self.assertFalse(m.arrays_close([0, np.nan], [0, np.nan],
+                                        equal_nan=False))
         self.assertTrue(m.arrays_close([np.inf], [np.inf]))
         self.assertFalse(m.arrays_close([-np.inf], [np.inf]))
         

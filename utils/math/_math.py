@@ -19,8 +19,8 @@ from six.moves import range
 from ..misc import estimate_computation_speed
 
 
-__all__ = ['xlog2x', 'average_angles', 'euler_phi', 'arrays_close', 'logspace',
-           'is_pos_semidef', 'trim_nan', 'mean', 'moving_average',
+__all__ = ['xlog2x', 'heaviside', 'average_angles', 'euler_phi', 'arrays_close',
+           'logspace', 'is_pos_semidef', 'trim_nan', 'mean', 'moving_average',
            'Interpolate_1D_Extrapolated', 'round_to_even', 'round_to_odd',
            'get_fastest_entropy_function', 'calc_entropy', 'popcount',
            'take_popcount', 'get_number_range', 'homogenize_arraylist',

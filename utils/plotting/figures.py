@@ -43,7 +43,7 @@ def crop_pdf(file_input, file_output=None, silence_output=True):
     
     if silence_output:
         try:
-            from subprocess import DEVNULL  #< py3k
+            from subprocess import DEVNULL  # py3k
         except ImportError:
             DEVNULL = open(os.devnull, 'wb')
         subprocess.check_call(cmd, stdout=DEVNULL, stderr=subprocess.STDOUT)

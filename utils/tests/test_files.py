@@ -51,7 +51,7 @@ class TestFiles(unittest.TestCase):
         file2 = tempfile.NamedTemporaryFile()
         
         # write some content to file1
-        file1.write('{a}\n{b}')
+        file1.write(b'{a}\n{b}')
         file1.flush()
         self.assertEqual(open(file1.name, 'r').read(), '{a}\n{b}')
         

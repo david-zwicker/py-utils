@@ -43,3 +43,20 @@ def get_module_path(module):
     """ returns the path to the module """
     path = os.path.dirname(os.path.dirname(module.__file__))
     return os.path.abspath(path)
+
+
+
+def replace_in_file(infile, outfile=None, *args, **kwargs):
+    """ reads in a file, replaces the given data using python formatting and
+    writes back the result to a file.
+    
+    `infile` is the file to be read
+    `outfile` determines the output file to which the data is written. If it is
+        omitted, teh input file will be overwritten instead
+    """
+    if outfile is None:
+        outfile = infile
+    
+    content = open(infile, 'r').read()
+    content = content.format(*args, **kwargs)
+    open(outfile, 'w').write(content)    

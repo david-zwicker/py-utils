@@ -77,7 +77,7 @@ class RedirectedStdout(object):
         self._saved_stdout = sys.stdout
         sys.stdout = self._target
         
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type, value, traceback):  # @ReservedAssignment
         sys.stdout = self._saved_stdout
         
 

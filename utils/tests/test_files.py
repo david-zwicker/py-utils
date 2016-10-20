@@ -43,6 +43,32 @@ class TestFiles(unittest.TestCase):
         # remove the folder again
         os.rmdir(path)
         self.assertFalse(os.path.exists(path))
+        
+        
+    def test_replace_in_file(self):
+        """ tests the replace_in_file function """
+        file1 = tempfile.NamedTemporaryFile()
+        file2 = tempfile.NamedTemporaryFile()
+        
+        # write some content to file1
+        file1.write('{a}\n{b}')
+        file1.flush()
+        self.assertEqual(open(file1.name, 'r').read(), '{a}\n{b}')
+        
+        files.replace_in_file(file1.name, file2.name, a=1, b=2)
+        self.assertEqual(open(file2.name, 'r').read(), '1\n2')
+
+        files.replace_in_file(file1.name, file2.name, a=5, b=5)
+        self.assertEqual(open(file2.name, 'r').read(), '5\n5')
+
+        files.replace_in_file(file1.name, a=1, b=2)
+        self.assertEqual(open(file1.name, 'r').read(), '1\n2')
+
+        files.replace_in_file(file1.name, a=5, b=5)
+        self.assertEqual(open(file1.name, 'r').read(), '1\n2')
+
+        files.replace_in_file(file1.name, file1.name, a=5, b=5)
+        self.assertEqual(open(file1.name, 'r').read(), '1\n2')
 
 
 

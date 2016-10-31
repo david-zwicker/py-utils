@@ -252,7 +252,7 @@ class NestedDict(collections.MutableMapping):
                 self.data[child][grandchildren] = value
             except KeyError:
                 # create new child if it does not exists
-                child_node = self.__class__()
+                child_node = self.create_dict()
                 child_node[grandchildren] = value
                 self.data[child] = child_node
             except TypeError:
@@ -356,15 +356,20 @@ class NestedDict(collections.MutableMapping):
         return '%s(%s)' % (self.__class__.__name__, repr(self.data))
 
 
+    def create_dict(self, data=None):
+        """ creates an empty NestedDict with the same properties as this one """
+        return self.__class__(data, sep=self.sep, dict_class=self.dict_class)
+
+
     def create_child(self, key, values=None):
         """ creates a child dictionary and fills it with values """
-        self[key] = self.__class__(values)
+        self[key] = self.create_dict(values)
         return self[key]
 
 
     def copy(self):
         """ makes a shallow copy of the data """
-        res = self.__class__()
+        res = self.create_dict()
         for key, value in six.iteritems(self):
             if isinstance(value, (dict, NestedDict)):
                 value = value.copy()
@@ -381,7 +386,7 @@ class NestedDict(collections.MutableMapping):
                     self[key].from_dict(value)
                 else:
                     # create new NestedDict instance
-                    self[key] = self.__class__(value)
+                    self[key] = self.create_dict(value)
             else:
                 # store simple value
                 self[key] = value

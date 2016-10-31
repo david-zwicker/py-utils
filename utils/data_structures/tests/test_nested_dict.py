@@ -310,6 +310,17 @@ class TestNestedDict(unittest.TestCase):
         with self.assertRaises(TypeError):
             d.to_dict(flatten=True)
         
+    
+    def test_separtor(self):
+        d = self.dict_cls({'a': 1}, sep='.')
+        self.assertEqual(d, {'a': 1})
+
+        d = self.dict_cls({'a.b': 1}, sep='.')
+        self.assertEqual(d, {'a': {'b': 1}})
+
+        d = self.dict_cls({'a.b.c': 1}, sep='.')
+        self.assertEqual(d, {'a': {'b': {'c': 1}}})
+
 
 
 

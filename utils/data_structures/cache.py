@@ -327,7 +327,8 @@ class cached_property(object):
 class cached_method(object):
     """ class handling the caching of results of methods """
     
-    def __init__(self, factory=None, serializer='pickle', doc=None, name=None):
+    def __init__(self, factory=None, extra_args=None, serializer='pickle',
+                 doc=None, name=None):
         """ decorator that caches method calls in a dictionary attached to the
         instances. This can be used with most classes
     
@@ -356,6 +357,12 @@ class cached_method(object):
         that the object instance has to be passed as a parameter, since the
         method `bar` is defined on the class, not the instance, i.e., we could
         also call Foo.bar.clear_cache(foo). 
+        
+        Additionally, `extra_args` can specify a list of properties that are 
+        added to the cache key. They are then treated as if they are supplied as
+        arguments to the method. This is important to include when the result of
+        a method depends not only on method arguments but also on instance
+        properties.
             
         This class also plays together with user-supplied storage backends by 
         defining a cache factory. The cache factory should return a dict-like
@@ -378,6 +385,7 @@ class cached_method(object):
                              '@{0}() instead of @{0}'.format(class_name))
             
         self.factory = factory
+        self.extra_args = extra_args
         self.serializer = serializer
         self.name = name
         
@@ -410,7 +418,14 @@ class cached_method(object):
                 obj._cache_methods[self.name] = cache
     
             # determine the key that encodes the current arguments
-            cache_key = serialize_key((args, kwargs))
+            if self.extra_args:
+                func_args = [args, kwargs]
+                for extra_arg in self.extra_args:
+                    func_args.append(getattr(obj, extra_arg))
+                func_args = tuple(func_args)
+            else:
+                func_args = (args, kwargs)
+            cache_key = serialize_key(func_args)
     
             try:
                 # try loading the results from the cache

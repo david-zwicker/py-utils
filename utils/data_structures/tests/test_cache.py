@@ -348,11 +348,56 @@ class TestCache(unittest.TestCase):
             self.assertEqual(obj.counter, 3)
         
 
+    def _test_method_cache_extra_args(self, serializer, cache_factory=None):
+        """ test one particular parameter set of the cached_method decorator """
+        
+        # create test class
+        class CacheTest(object):
+            """ class for testing caching """
+            
+            def __init__(self, value=0):
+                self.counter = 0
+                self.value = 0
+            
+            def get_finite_dict(self, n):
+                return cache.DictFiniteCapacity(capacity=1)
+            
+            @cache.cached_method(serializer=serializer, extra_args=['value'],
+                                 factory=cache_factory)
+            def cached(self, arg):
+                self.counter += 1
+                return self.value + arg    
+            
+        obj = CacheTest(0)
+            
+        # test simple caching behavior
+        self.assertEqual(obj.cached(1), 1)
+        self.assertEqual(obj.counter, 1)
+        self.assertEqual(obj.cached(1), 1)
+        self.assertEqual(obj.counter, 1)
+        self.assertEqual(obj.cached(2), 2)
+        self.assertEqual(obj.counter, 2)
+        self.assertEqual(obj.cached(2), 2)
+        self.assertEqual(obj.counter, 2)
+
+        obj.value = 10
+        # test simple caching behavior
+        self.assertEqual(obj.cached(1), 11)
+        self.assertEqual(obj.counter, 3)
+        self.assertEqual(obj.cached(1), 11)
+        self.assertEqual(obj.counter, 3)
+        self.assertEqual(obj.cached(2), 12)
+        self.assertEqual(obj.counter, 4)
+        self.assertEqual(obj.cached(2), 12)
+        self.assertEqual(obj.counter, 4)
+
+
     def test_method_cache(self):
         """ test the cached_method decorator with several parameters """
         for serializer in self.get_serialization_methods(with_none=False):
             for cache_factory in [None, 'get_finite_dict']:
                 self._test_method_cache(serializer, cache_factory)
+                self._test_method_cache_extra_args(serializer, cache_factory)
 
 
 

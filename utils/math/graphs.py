@@ -35,10 +35,12 @@ def connect_components(graph, pos_attr, length_attr=None):
 
     # get all subgraphs and build a list of indices into the distance matrix
     subgraphs = list(nx.connected_component_subgraphs(graph))
-    sg_nids_list = []
-    for sg in subgraphs:
-        sg_nids = [np.flatnonzero(nodes == n)[0] for n in sg.nodes()]
-        sg_nids_list.append(sg_nids)
+    num_subgraphs = len(subgraphs)
+    # find the index of each node of each subgraph in the nodes array
+    sg_nids_list = [[np.flatnonzero(nodes == n)[0] for n in sg.nodes()]
+                    for sg in subgraphs]
+    
+    assert sum(len(s) for s in sg_nids_list) == nx.number_of_nodes(graph)
     
     # initialize result with first subgraph
     result = subgraphs.pop(0)
@@ -51,7 +53,7 @@ def connect_components(graph, pos_attr, length_attr=None):
         for k, sg_nids in enumerate(sg_nids_list):
             dist_mat = dists[sg_nids, :][:, result_nids]
             x, y = np.unravel_index(dist_mat.argmin(), dist_mat.shape)
-            dist = dists[x, y]
+            dist = dist_mat[x, y]
             if dist < dist_min:
                 sg_min = k  # index into the subgraph
                 dist_min = dist  # its distance to `result`
@@ -72,7 +74,12 @@ def connect_components(graph, pos_attr, length_attr=None):
             
         # remove the subgraph from the to-do list
         result_nids.extend(sg_nids_list.pop(sg_min))
-        subgraphs.pop(sg_min)
+        del subgraphs[sg_min]
+        
+    assert nx.is_connected(result)
+    assert nx.number_of_nodes(result) == len(vertices)
+    assert nx.number_of_edges(result) == \
+            nx.number_of_edges(graph) + num_subgraphs - 1
         
     return result
 

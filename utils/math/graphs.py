@@ -12,20 +12,26 @@ import networkx as nx
 
 
 
-def connect_components(graph, pos_key, dist_key=None):
+def connect_components(graph, pos_attr, length_attr=None):
     """ connects all components by iteratively inserting edges between
     components that have minimal distance.
     
     `graph` is a networkx graph object with positions assigned to nodes
-    `pos_key` gives the key for the node attribute that stores the position
-    `dist_key` if given, stores the length of the new edges as edge attribute
+    `pos_attr` gives the key for the node attribute that stores the position
+    `length_attr` stores the length of the new edges in this edge attribute
     """
+    if nx.is_empty(graph):
+        return graph
     
     # build a distance matrix for all nodes
-    vertices = nx.get_node_attributes(graph, pos_key)
+    vertices = nx.get_node_attributes(graph, pos_attr)
     nodes = np.array(vertices.keys())
     positions = vertices.values()
     dists = distance.squareform(distance.pdist(positions))
+        
+    if len(vertices) != nx.number_of_nodes(graph):
+        raise ValueError("Not all nodes have a position specified by the node "
+                         "attribute `%s`" % pos_attr)
 
     # get all subgraphs and build a list of indices into the distance matrix
     subgraphs = list(nx.connected_component_subgraphs(graph))
@@ -58,8 +64,8 @@ def connect_components(graph, pos_key, dist_key=None):
         result.add_edges_from(subgraphs[sg_min].edges(data=True))
         
         # add a new edge between the subgraph and `result`
-        if dist_key is not None:
-            attr_dict = {dist_key: dists[nid_res, nid_sg]}
+        if length_attr is not None:
+            attr_dict = {length_attr: dists[nid_res, nid_sg]}
         else:
             attr_dict = None
         result.add_edge(nodes[nid_res], nodes[nid_sg], attr_dict)

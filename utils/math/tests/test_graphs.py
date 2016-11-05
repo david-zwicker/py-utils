@@ -43,6 +43,18 @@ class TestGraphs(unittest.TestCase):
         self.assertEqual(nx.get_edge_attributes(gc, 'dist')[(1, 11)], 8)
 
 
+    def test_conncet_components_error(self):
+        g = nx.Graph()
+        gc = graphs.connect_components(g, 'pos')
+        self.assertTrue(nx.is_empty(gc))
+        
+        g.add_node(0)
+        g.add_node(1, pos=(1, 1))
+        g.add_edge(0, 1)
+        self.assertRaises(ValueError,
+                          lambda: graphs.connect_components(g, 'pos'))
+        
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -49,4 +49,32 @@ class Curve3D(object):
         
     def __iter__(self):
         return self.iter()
+    
+    
+    def write_to_file(self, filename):
+        """ write the polyline to a file. The format is chosen automatically
+        based on the file extension """
+        if filename.endswith('.vtk'):
+            self.write_to_vtk(filename)
+        else:
+            raise ValueError('Do not know how to write to file `%s`' % filename)
         
+        
+    def write_to_vtk(self, filename, header=None):
+        """ write polyline to a vtk file """
+        num_p = len(self.points)
+        if header is None:
+            header = "3d curve with %d points\n" % num_p
+        with open(filename, 'w') as fp:
+            fp.write("# vtk DataFile Version 2.0\n")
+            fp.write("%s\n" % header)
+            fp.write("ASCII\n\n")
+
+            fp.write("DATASET POLYDATA\n")            
+            fp.write("POINTS %d float\n" % num_p)
+            np.savetxt(fp, self.points, delimiter=' ')
+            fp.write("\n")
+            
+            fp.write("LINES 1 %d %d\n" % (num_p + 1, num_p))
+            fp.write("\n".join(str(k) for k in xrange(num_p)))
+            

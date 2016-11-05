@@ -42,7 +42,6 @@ class Curve3D(object):
                 yield p, n
                     
         else:
-#             return iter(self.points)
             # only return the points, not the normals
             for p in self.points:
                 yield p 

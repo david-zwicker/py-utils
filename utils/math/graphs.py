@@ -18,7 +18,7 @@ def connect_components(graph, pos_key, dist_key=None):
     
     `graph` is a networkx graph object with positions assigned to nodes
     `pos_key` gives the key for the node attribute that stores the position
-    `dist_key` if given, the length of the new edges are stored as edge attributes
+    `dist_key` if given, stores the length of the new edges as edge attribute
     """
     
     # build a distance matrix for all nodes
@@ -27,7 +27,7 @@ def connect_components(graph, pos_key, dist_key=None):
     positions = vertices.values()
     dists = distance.squareform(distance.pdist(positions))
 
-    # determine all subgraphs and build a list of indices into the distance matrix
+    # get all subgraphs and build a list of indices into the distance matrix
     subgraphs = list(nx.connected_component_subgraphs(graph))
     sg_nids_list = []
     for sg in subgraphs:
@@ -47,8 +47,8 @@ def connect_components(graph, pos_key, dist_key=None):
             x, y = np.unravel_index(dist_mat.argmin(), dist_mat.shape)
             dist = dists[x, y]
             if dist < dist_min:
-                sg_min = k #< index into the subgraph
-                dist_min = dist #< its distance to `result`
+                sg_min = k  # index into the subgraph
+                dist_min = dist  # its distance to `result`
                 # store the node indices for the connecting edge
                 nid_sg = sg_nids[x]
                 nid_res = result_nids[y]

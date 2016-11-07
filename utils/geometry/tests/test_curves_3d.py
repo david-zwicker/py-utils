@@ -24,6 +24,7 @@ class TestCurves3D(unittest.TestCase):
         """ tests trivial cases """
         # wrong input
         self.assertRaises(ValueError, lambda: Curve3D([1, 2]))
+        self.assertRaises(ValueError, lambda: Curve3D([[1], [2]]))
         self.assertRaises(ValueError, lambda: Curve3D([[1, 2], [3, 4, 5]]))
         
         # zero length
@@ -115,9 +116,10 @@ class TestCurves3D(unittest.TestCase):
         denom = np.sqrt(a**2 + b**2 * np.exp(2*b*t))[:, None]
         tangent = np.c_[-a*np.sin(t), a*np.cos(t), b*np.exp(b*t)] / denom
         
-        denom = np.sqrt((a**2 + b**2 * np.exp(2*b*t))
-                        * (a**2 + b**2 * (1 + b**2) * np.exp(2*b*t)))
-        normal = np.c_[
+        denom = np.sqrt((a**2 + b**2 * np.exp(2*b*t)) *
+                        (a**2 + b**2 * (1 + b**2) * np.exp(2*b*t)))
+        normal = \
+            np.c_[
                 -a**2*np.cos(t) + b**2*np.exp(2*b*t)*(b*np.sin(t) - np.cos(t)),
                 -a**2*np.sin(t) - b**2*np.exp(2*b*t)*(b*np.cos(t) + np.sin(t)),
                 a * b**2 * np.exp(b*t)
@@ -128,8 +130,8 @@ class TestCurves3D(unittest.TestCase):
                          b*np.exp(b*t) * (b*np.sin(t) - np.cos(t)),
                          np.full_like(t, a)] / denom[:, None]
                        
-        curvature = a * np.sqrt(a**2 + b**2 * (1 + b**2) * np.exp(2 * b * t)) \
-                        / (a**2 + b**2 * np.exp(2. * b * t)) ** (3/2)
+        curvature = (a * np.sqrt(a**2 + b**2 * (1 + b**2) * np.exp(2 * b * t)) /
+                        (a**2 + b**2 * np.exp(2. * b * t)) ** (3/2))
         curvature[0] = 0
         curvature[-1] = 0
                        

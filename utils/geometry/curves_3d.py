@@ -4,12 +4,11 @@ Created on Nov 4, 2016
 @author: David Zwicker <dzwicker@seas.harvard.edu>
 '''
 
-import itertools
-
 import numpy as np
 from scipy import interpolate
-from scipy.spatial import distance
 from scipy.ndimage import filters
+
+from six.moves import zip
 
 from utils.data_structures.cache import cached_property
 
@@ -44,14 +43,16 @@ class Curve3D(object):
     @points.setter
     def points(self, points):
         self._points = np.atleast_2d(points)
+        if self._points.size > 0 and self._points.shape[-1] != 3:
+            raise ValueError('Coordinates must be 3-dimensional.')
+        # clear cache
         self._cache_properties = {}
         
     
     @cached_property
     def length(self):
         """ returns the length of the curve """
-        return sum(distance.euclidean(p1, p2)
-                   for p1, p2 in itertools.izip(self.points, self.points[1:]))
+        return np.linalg.norm(self.points[:-1] - self.points[1:], axis=1).sum()
     
         
     def iter(self, data=None, smoothing=0):
@@ -118,7 +119,7 @@ class Curve3D(object):
             if 'curvature' in data:
                 # determine angle between successive vectors
                 v1 = self.points[1:-1] - self.points[ :-2]
-                v2 = self.points[2:  ] - self.points[1:-1]
+                v2 = self.points[2:  ] - self.points[1:-1] 
                 n1 = np.linalg.norm(v1, axis=-1)
                 n2 = np.linalg.norm(v2, axis=-1)
                 cos_a = np.einsum('ij,ij->i', v1, v2) / (n1 * n2)
@@ -161,7 +162,7 @@ class Curve3D(object):
             dx = self.length / np.round(self.length / spacing)
             dist = 0
             result = [self.points[0]]
-            for p1, p2 in itertools.izip(self.points[:-1], self.points[1:]):
+            for p1, p2 in zip(self.points[:-1], self.points[1:]):
                 # determine the distance between the last two points 
                 dp = np.linalg.norm(p2 - p1)
                 # add points to the result list
@@ -182,17 +183,16 @@ class Curve3D(object):
             if count is None:
                 count = len(self.points)
                 
-            # get arc length of support points
-            segments = itertools.izip(self.points, self.points[1:])
-            s = np.cumsum([np.linalg.norm(p2 - p1)
-                           for p1, p2 in segments])
-            s = np.insert(s, 0, 0) # prepend element for first point
+            # get arc length to all support points
+            ps = self.points
+            s = np.cumsum(np.linalg.norm(ps[:-1] - ps[1:], axis=1))
+            s = np.insert(s, 0, 0)  # prepend element for first point
             # divide arc length equidistantly
             sp = np.linspace(s[0], s[-1], count)
             # interpolate points
-            result = np.c_[np.interp(sp, s, self.points[:, 0]),
-                           np.interp(sp, s, self.points[:, 1]),
-                           np.interp(sp, s, self.points[:, 2])]
+            result = np.c_[np.interp(sp, s, ps[:, 0]),
+                           np.interp(sp, s, ps[:, 1]),
+                           np.interp(sp, s, ps[:, 2])]
             
         self.points = result
         
@@ -225,7 +225,7 @@ class Curve3D(object):
         else:
             # interpolate the line
             points = interpolate.splev(u, tck, der=derivative)
-            self.points = zip(*points)  # transpose list
+            self.points = np.transpose(points)
             
     
     def write_to_file(self, filename):

@@ -23,9 +23,10 @@ __all__ = ['xlog2x', 'heaviside', 'average_angles', 'euler_phi', 'arrays_close',
            'logspace', 'is_pos_semidef', 'trim_nan', 'mean', 'moving_average',
            'Interpolate_1D_Extrapolated', 'round_to_even', 'round_to_odd',
            'get_fastest_entropy_function', 'calc_entropy', 'popcount',
-           'take_popcount', 'get_number_range', 'homogenize_arraylist',
-           'homogenize_unit_array', 'is_equidistant', 'contiguous_true_regions',
-           'contiguous_int_regions_iter', 'safe_typecast']
+           'to_array', 'take_popcount', 'get_number_range',
+           'homogenize_arraylist', 'homogenize_unit_array', 'is_equidistant',
+           'contiguous_true_regions', 'contiguous_int_regions_iter',
+           'safe_typecast']
 
 
 # constants
@@ -314,7 +315,7 @@ def get_fastest_entropy_function():
     integers. Here, several alternative definitions are tested and the fastest
     one is returned """
     # test all functions against a random array to find the fastest one
-    test_array = np.random.random_integers(0, 10, 100)
+    test_array = np.random.randint(0, 10, 100)
     func_fastest, speed_max = None, 0
     for test_func in _ENTROPY_FUNCTIONS:
         try:
@@ -363,6 +364,21 @@ def popcount(x):
 
 
 
+def to_array(iter_or_list):
+    """ turns the given item into a numpy array """
+    if isinstance(iter_or_list, np.ndarray):
+        # input is already a numpy array
+        return iter_or_list 
+
+    try:
+        # input is an iterator that also supports the __len__ method
+        return np.fromiter(iter_or_list, len(iter_or_list))
+    except TypeError:
+        # otherwise we just turn it into a list first
+        return np.array(list(iter_or_list))
+    
+    
+        
 def take_popcount(arr, n):
     """ returns only those parts of an array whose indices have a given
     popcount """

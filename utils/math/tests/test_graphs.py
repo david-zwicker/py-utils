@@ -9,6 +9,7 @@ from __future__ import division
 import unittest
 
 import networkx as nx
+import six
 
 from .. import graphs
 
@@ -28,8 +29,8 @@ class TestGraphs(unittest.TestCase):
         # trivial test with connected graph
         gc = graphs.connect_components(g, 'pos', 'dist')
         self.assertTrue(nx.is_connected(gc))
-        self.assertItemsEqual(gc.nodes(), [0, 1])
-        self.assertItemsEqual(gc.edges(), [(0, 1)])
+        six.assertCountEqual(self, gc.nodes(), [0, 1])
+        six.assertCountEqual(self, gc.edges(), [(0, 1)])
         
         # add another component
         g.add_node(10, pos=(10, 0))
@@ -38,8 +39,8 @@ class TestGraphs(unittest.TestCase):
         
         gc = graphs.connect_components(g, 'pos', 'dist')
         self.assertTrue(nx.is_connected(gc))
-        self.assertItemsEqual(gc.nodes(), [0, 1, 10, 11])
-        self.assertItemsEqual(gc.edges(), [(0, 1), (10, 11), (1, 11)])
+        six.assertCountEqual(self, gc.nodes(), [0, 1, 10, 11])
+        six.assertCountEqual(self, gc.edges(), [(0, 1), (10, 11), (1, 11)])
         self.assertEqual(nx.get_edge_attributes(gc, 'dist')[(1, 11)], 8)
 
 

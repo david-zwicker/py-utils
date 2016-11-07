@@ -10,6 +10,8 @@ import numpy as np
 from scipy.spatial import distance
 import networkx as nx
 
+from . import to_array
+
 
 
 def connect_components(graph, pos_attr, length_attr=None):
@@ -25,8 +27,8 @@ def connect_components(graph, pos_attr, length_attr=None):
     
     # build a distance matrix for all nodes
     vertices = nx.get_node_attributes(graph, pos_attr)
-    nodes = np.array(vertices.keys())
-    positions = vertices.values()
+    nodes = to_array(vertices.keys())
+    positions = to_array(vertices.values())
     dists = distance.squareform(distance.pdist(positions))
         
     if len(vertices) != nx.number_of_nodes(graph):

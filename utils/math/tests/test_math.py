@@ -225,6 +225,19 @@ class TestMath(unittest.TestCase):
         self.assertEqual(m.take_popcount([3, 4, 5, 6], 1), [4, 5]) 
         self.assertEqual(m.take_popcount([3, 4, 5, 6], 2), [6]) 
             
+    
+    def test_to_array(self):
+        """ test the to_array function """
+        a = np.arange(2)
+        np.testing.assert_array_equal(a, m.to_array(a)) 
+        np.testing.assert_array_equal(a, m.to_array([0, 1]))
+        np.testing.assert_array_equal(a, m.to_array((0, 1)))
+        np.testing.assert_array_equal(a, m.to_array(iter((0, 1))))
+        np.testing.assert_array_equal(a, m.to_array(sorted((0, 1))))
+        d = {0:0, 1:1}
+        np.testing.assert_array_equal(a, m.to_array(d.keys()))
+        np.testing.assert_array_equal(a, m.to_array(d.values()))
+            
             
     def test_get_number_range(self):
         """ test the get_number_range function """

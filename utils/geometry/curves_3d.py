@@ -9,8 +9,20 @@ import itertools
 import numpy as np
 from scipy import interpolate
 from scipy.spatial import distance
+from scipy.ndimage import filters
 
 from utils.data_structures.cache import cached_property
+
+
+
+def smooth_normalized(vectors, smoothing=0):
+    """ takes a list of vectors and normalizes them individually. If one of the
+    vectors is zero (and thus cannot be normalized) it is calculated from the
+    average of the neighboring vectors """
+    if smoothing > 0:
+        vectors = filters.gaussian_filter1d(vectors, sigma=smoothing, axis=0)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        return vectors / np.linalg.norm(vectors, axis=-1, keepdims=True)
 
 
 
@@ -42,24 +54,94 @@ class Curve3D(object):
                    for p1, p2 in itertools.izip(self.points, self.points[1:]))
     
         
-    def iter(self, with_normals=False):
+    def iter(self, data=None, smoothing=0):
         """ iterates over the points and returns their coordinates
-        `with_normals` also returns the local normal vector         
+        
+        `data` lists extra quantities that are returned for each point. Possible
+            values include ('tangent', 'normal', 'binormal', 'unit_vectors',
+            'curvature', 'arc_length')
+        `smoothing` defines a smoothing applied to the (discrete) derivatives
+            
+        Note that the tangent and normal are calculated from discretized
+        derivatives and are thus not necessarily exactly orthogonal. However,
+        the binormal vector is guaranteed to be orthogonal to the other two.
+        
+        Definitions:
+            If s(t) is the continuous version of the curve, then
+            T(t) = norm(\partial s / \partial_t) is the tangent vector
+            N(t) = norm(\partial T / \partial_t) is the normal vector
+            B(t) = T(t) \cross N(t) is the binormal vector
+            
+        The three vectors span the (local) Frenet frame
         """
-        if with_normals:
-            # return the points and the normals
-            normals = np.gradient(self.points, axis=0)
-            for p, n in itertools.izip(self.points, normals):
-                yield p, n
-                    
-        else:
-            # only return the points, not the normals
+        if data is None:
+            # only return the points, not any extra data
             for p in self.points:
-                yield p 
+                yield p
+        
+        else:
+            # return extra data
+            data = set(data)
+            calculated = {}
+
+            # add dependent data
+            if 'unit_vectors' in data:
+                data.add('binormal')
+            if 'binormal' in data:
+                data.add('normal')
+            if 'normal' in data:
+                data.add('tangent')
+            
+            # calculate requested data
+            if 'tangent' in data:
+                tangent = np.gradient(self.points, axis=0)
+                calculated['tangent'] = smooth_normalized(tangent, smoothing)
+                
+            if 'normal' in data:
+                normal = np.gradient(calculated['tangent'], axis=0)
+                calculated['normal'] = smooth_normalized(normal, smoothing)
+                
+            if 'binormal' in data:
+                binormal = np.cross(calculated['tangent'], calculated['normal'])
+                calculated['binormal'] = smooth_normalized(binormal, smoothing)
+
+            if 'unit_vectors' in data:
+                calculated['unit_vectors'] = np.hstack((
+                                            calculated['tangent'][:, None, :],
+                                            calculated['normal'][:, None, :],
+                                            calculated['binormal'][:, None, :]))
+                
+            if 'arc_length' in data:
+                tangent = np.gradient(self.points, axis=0)
+                calculated['arc_length'] = np.linalg.norm(tangent, axis=-1)
+                
+            if 'curvature' in data:
+                # determine angle between successive vectors
+                v1 = self.points[1:-1] - self.points[ :-2]
+                v2 = self.points[2:  ] - self.points[1:-1]
+                n1 = np.linalg.norm(v1, axis=-1)
+                n2 = np.linalg.norm(v2, axis=-1)
+                cos_a = np.einsum('ij,ij->i', v1, v2) / (n1 * n2)
+                # correct for the local stretching, since we don't enforce
+                # arc-length parameterization
+                curv = np.arccos(cos_a) * 2 / (n1 + n2)
+                # the curvature of the end points are zero by definition 
+                calculated['curvature'] = np.r_[0, curv, 0]
+            
+            # TODO: Implement Torsion
+
+            # return the requested data
+            for n, p in enumerate(self.points):
+                yield p, {k: calculated[k][n] for k in data}
                 
         
     def __iter__(self):
         return self.iter()
+    
+    
+    def invert_parameterization(self):
+        """ inverts the parameterization """
+        self.points = self.points[::-1]
     
     
     def make_equidistant(self, spacing=None, count=None):
@@ -108,9 +190,9 @@ class Curve3D(object):
             # divide arc length equidistantly
             sp = np.linspace(s[0], s[-1], count)
             # interpolate points
-            result = np.transpose((np.interp(sp, s, self.points[:, 0]),
-                                   np.interp(sp, s, self.points[:, 1]),
-                                   np.interp(sp, s, self.points[:, 2])))
+            result = np.c_[np.interp(sp, s, self.points[:, 0]),
+                           np.interp(sp, s, self.points[:, 1]),
+                           np.interp(sp, s, self.points[:, 2])]
             
         self.points = result
         

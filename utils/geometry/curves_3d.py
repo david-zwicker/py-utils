@@ -158,13 +158,12 @@ class Curve3D(object):
         return self._smooth_variable(curvatures)
         
         
-    def iter(self, data=None, smoothing=0):
+    def iter(self, data=None):
         """ iterates over the points and returns their coordinates
         
         `data` lists extra quantities that are returned for each point. Possible
             values include ('tangent', 'normal', 'binormal', 'unit_vectors',
             'curvature', 'arc_length', 'local_arc_length')
-        `smoothing` defines a smoothing applied to the (discrete) derivatives
             
         Note that the tangent and normal are calculated from discretized
         derivatives and are thus not necessarily exactly orthogonal. However,
@@ -225,7 +224,7 @@ class Curve3D(object):
     
     def invert_parameterization(self):
         """ inverts the parameterization """
-        self.points = self.points[::-1]
+        self.points = self.points[::-1]  # clear the cache implicitly 
     
     
     def make_equidistant(self, spacing=None, count=None):
@@ -277,7 +276,7 @@ class Curve3D(object):
                            np.interp(sp, s, ps[:, 1]),
                            np.interp(sp, s, ps[:, 2])]
             
-        self.points = result
+        self.points = result  # clear the cache implicitly 
         
     
     def smooth(self, smoothing=10, degree=3, derivative=0, num_points=None):
@@ -308,14 +307,16 @@ class Curve3D(object):
         else:
             # interpolate the line
             points = interpolate.splev(u, tck, der=derivative)
-            self.points = np.transpose(points)
+            self.points = np.transpose(points)  # clear the cache implicitly 
             
     
-    def write_to_file(self, filename):
+    def write_to_file(self, filename, **kwargs):
         """ write the polyline to a file. The format is chosen automatically
         based on the file extension """
         if filename.endswith('.vtk'):
-            self.write_to_vtk(filename)
+            self.write_to_vtk(filename, **kwargs)
+        elif filename.endswith('.xyz'):
+            self.write_to_xyz(filename, **kwargs)
         else:
             raise ValueError('Do not know how to write to file `%s`' % filename)
         
@@ -338,3 +339,15 @@ class Curve3D(object):
             fp.write("LINES 1 %d %d\n" % (num_p + 1, num_p))
             fp.write("\n".join(str(k) for k in xrange(num_p)))
             
+            
+    def write_to_xyz(self, filename, header=None, element='P'):
+        """ write polyline to a xyz file """
+        num_p = len(self.points)
+        if header is None:
+            header = "3d curve with %d points\n" % num_p
+        with open(filename, 'w') as fp:
+            fp.write("%d\n" % num_p)
+            fp.write("%s\n" % header)
+            for p in self.points:
+                fp.write(element + ' %d %d %d\n' % p)
+                        

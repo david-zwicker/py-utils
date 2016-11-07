@@ -60,7 +60,7 @@ class Curve3D(object):
         
         `data` lists extra quantities that are returned for each point. Possible
             values include ('tangent', 'normal', 'binormal', 'unit_vectors',
-            'curvature', 'arc_length')
+            'curvature', 'arc_length', 'local_arc_length')
         `smoothing` defines a smoothing applied to the (discrete) derivatives
             
         Note that the tangent and normal are calculated from discretized
@@ -82,50 +82,64 @@ class Curve3D(object):
         
         else:
             # return extra data
-            data = set(data)
-            calculated = {}
+            if data == 'all':
+                data = {'tangent', 'normal', 'binormal', 'unit_vectors',
+                        'curvature', 'arc_length', 'local_arc_length'}
+            else:
+                data = set(data)
 
             # add dependent data
-            if 'unit_vectors' in data:
-                data.add('binormal')
-            if 'binormal' in data:
-                data.add('normal')
-            if 'normal' in data:
-                data.add('tangent')
+            calc = data.copy()
+            if 'unit_vectors' in calc:
+                calc.add('binormal')
+            if 'binormal' in calc:
+                calc.add('normal')
+            if 'normal' in calc:
+                calc.add('tangent')
             
             # calculate requested data
-            if 'tangent' in data:
+            calculated = {}
+            if 'tangent' in calc:
                 tangent = np.gradient(self.points, axis=0)
                 calculated['tangent'] = smooth_normalized(tangent, smoothing)
                 
-            if 'normal' in data:
+            if 'normal' in calc:
                 normal = np.gradient(calculated['tangent'], axis=0)
                 calculated['normal'] = smooth_normalized(normal, smoothing)
                 
-            if 'binormal' in data:
+            if 'binormal' in calc:
                 binormal = np.cross(calculated['tangent'], calculated['normal'])
                 calculated['binormal'] = smooth_normalized(binormal, smoothing)
 
-            if 'unit_vectors' in data:
+            if 'unit_vectors' in calc:
                 calculated['unit_vectors'] = np.hstack((
                                             calculated['tangent'][:, None, :],
                                             calculated['normal'][:, None, :],
                                             calculated['binormal'][:, None, :]))
                 
-            if 'arc_length' in data:
+            if 'local_arc_length' in calc:
                 tangent = np.gradient(self.points, axis=0)
-                calculated['arc_length'] = np.linalg.norm(tangent, axis=-1)
+                calculated['local_arc_length'] = \
+                                            np.linalg.norm(tangent, axis=-1)
                 
-            if 'curvature' in data:
-                # determine angle between successive vectors
+            if 'arc_length' in calc:
+                ds = np.linalg.norm(self.points[:-1] - self.points[1:], axis=1)
+                calculated['arc_length'] = np.r_[0, np.cumsum(ds)]
+                
+            if 'curvature' in calc:
+                # get the two adjacent vectors to each point and their length
                 v1 = self.points[1:-1] - self.points[ :-2]
                 v2 = self.points[2:  ] - self.points[1:-1] 
                 n1 = np.linalg.norm(v1, axis=-1)
                 n2 = np.linalg.norm(v2, axis=-1)
-                cos_a = np.einsum('ij,ij->i', v1, v2) / (n1 * n2)
-                # correct for the local stretching, since we don't enforce
-                # arc-length parameterization
-                curv = np.arccos(cos_a) * 2 / (n1 + n2)
+                
+                with np.errstate(divide='ignore', invalid='ignore'):
+                    # determine angle between successive vectors
+                    cos_a = np.einsum('ij,ij->i', v1, v2) / (n1 * n2)
+                    # correct for the local stretching, since we don't enforce
+                    # arc-length parameterization
+                    curv = np.arccos(cos_a) * 2 / (n1 + n2)
+                    
                 # the curvature of the end points are zero by definition 
                 calculated['curvature'] = np.r_[0, curv, 0]
             

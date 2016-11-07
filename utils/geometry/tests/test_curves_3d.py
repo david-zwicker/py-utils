@@ -45,10 +45,11 @@ class TestCurves3D(unittest.TestCase):
         np.testing.assert_array_equal(list(c), ps)
         np.testing.assert_array_equal(list(c.iter()), ps)
         
-        for k, (p, d) in enumerate(c.iter(data=['tangent', 'arc_length'])):
+        for k, (p, d) in enumerate(c.iter(data='all')):
             np.testing.assert_array_equal(p, ps[k])
             np.testing.assert_array_equal(d['tangent'], [0, 0, 1])
-            self.assertAlmostEqual(d['arc_length'], 1)
+            self.assertAlmostEqual(d['local_arc_length'], 1)
+            self.assertAlmostEqual(d['arc_length'], k)
             
             
     def test_circle(self):
@@ -62,8 +63,7 @@ class TestCurves3D(unittest.TestCase):
         np.testing.assert_array_equal(list(c), ps)
         
         # check the individual vectors
-        data = ['tangent', 'normal', 'binormal', 'arc_length']
-        for k, (p, d) in enumerate(c.iter(data=data)):
+        for k, (p, d) in enumerate(c.iter(data='all')):
             np.testing.assert_array_equal(p, ps[k])
             np.testing.assert_allclose(d['tangent'],
                                        [np.cos(a[k]), -np.sin(a[k]), 0],
@@ -72,7 +72,9 @@ class TestCurves3D(unittest.TestCase):
                                        [-np.sin(a[k]), -np.cos(a[k]), 0],
                                        atol=2e-2)
             np.testing.assert_allclose(d['binormal'], [0, 0, -1])
-            self.assertAlmostEqual(d['arc_length'], 2*np.pi*r / (len(a) - 1), 5)
+            self.assertAlmostEqual(d['local_arc_length'],
+                                   2*np.pi*r / (len(a) - 1), 5)
+            self.assertAlmostEqual(d['arc_length'], r*a[k], 3)
         
         # check the unit_vector system
         for k, (p, d) in enumerate(c.iter(data=['unit_vectors'])):
@@ -96,10 +98,11 @@ class TestCurves3D(unittest.TestCase):
                   [            0,             0, 1]]
             np.testing.assert_allclose(d['unit_vectors'], uv, atol=2e-2)
         
-        for k, (_, d) in enumerate(c.iter(data=['curvature', 'arc_length'])):
+        for k, (_, d) in enumerate(c.iter(data='all')):
             if 0 < k < len(a) - 1:
                 self.assertAlmostEqual(d['curvature'], 1/r, 4)
-            self.assertAlmostEqual(d['arc_length'], 2*np.pi*r / (len(a) - 1), 5)
+            self.assertAlmostEqual(d['local_arc_length'],
+                                   2*np.pi*r / (len(a) - 1), 5)
         
         
     def test_expanded_helix(self):
@@ -137,12 +140,12 @@ class TestCurves3D(unittest.TestCase):
                        
         self.assertAlmostEqual(c.length, arc_len.sum(), 1)
         
-        data = ['tangent', 'normal', 'binormal', 'arc_length', 'curvature']
-        for k, (_, d) in enumerate(c.iter(data=data)):
+        for k, (_, d) in enumerate(c.iter(data='all')):
             np.testing.assert_allclose(d['tangent'], tangent[k], atol=0.05)
             np.testing.assert_allclose(d['normal'], normal[k], atol=0.05)
             np.testing.assert_allclose(d['binormal'], binormal[k], atol=0.05)
-            np.testing.assert_allclose(d['arc_length'], arc_len[k], atol=0.01)
+            np.testing.assert_allclose(d['local_arc_length'],
+                                       arc_len[k], atol=0.01)
             np.testing.assert_allclose(d['curvature'], curvature[k], atol=0.1)
         
         
@@ -171,20 +174,21 @@ class TestCurves3D(unittest.TestCase):
         """ test some more complicated cases """
         ps = np.zeros((4, 3))
         c = Curve3D(ps)
-        for _, d in c.iter(data=['unit_vectors', 'arc_length']):
+        for _, d in c.iter(data='all'):
             self.assertTrue(np.all(np.isnan(d['unit_vectors'])))
+            self.assertAlmostEqual(d['local_arc_length'], 0)
             self.assertAlmostEqual(d['arc_length'], 0)
 
         ps = np.zeros((4, 3))
         ps[:] = np.arange(4)[:, None]
         c = Curve3D(ps)
         tangent = np.ones(3) / np.sqrt(3)
-        data = ['tangent', 'normal', 'binormal', 'arc_length']
-        for _, d in c.iter(data=data):
+        for k, (_, d) in enumerate(c.iter(data='all')):
             np.testing.assert_array_equal(d['tangent'], tangent)
             self.assertTrue(np.all(np.isnan(d['normal'])))
             self.assertTrue(np.all(np.isnan(d['binormal'])))
-            self.assertAlmostEqual(d['arc_length'], np.sqrt(3))
+            self.assertAlmostEqual(d['local_arc_length'], np.sqrt(3))
+            self.assertAlmostEqual(d['arc_length'], k * np.sqrt(3))
 
 
 

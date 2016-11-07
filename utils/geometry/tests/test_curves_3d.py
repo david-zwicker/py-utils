@@ -54,7 +54,7 @@ class TestCurves3D(unittest.TestCase):
             
     def test_circle(self):
         """ test circle """
-        for smoothing in (0, .1):
+        for smoothing in (0, 0.01):
             r = 2
             a = np.linspace(0, 2 * np.pi, 256)
             ps = np.c_[r * np.sin(a), r * np.cos(a), np.zeros_like(a)]
@@ -106,7 +106,7 @@ class TestCurves3D(unittest.TestCase):
         
     def test_expanded_helix(self):
         """ test expanded helix curve """
-        for smoothing in (0, 1):
+        for smoothing in (0, 0.01):
             # define the discretized curve
             a, b = 1, 0.1
             t, dt = np.linspace(0, 20, 512, retstep=True)
@@ -170,7 +170,7 @@ class TestCurves3D(unittest.TestCase):
             
     def test_corner_case(self):
         """ test some more complicated cases """
-        for smoothing in (0, 1):
+        for smoothing in (0, 0.1):
             ps = np.zeros((4, 3))
             c = Curve3D(ps, smoothing)
             for _, d in c.iter(data='all'):

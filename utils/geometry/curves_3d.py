@@ -6,7 +6,6 @@ Created on Nov 4, 2016
 
 import numpy as np
 from scipy import interpolate
-from scipy.ndimage import filters
 
 from six.moves import zip
 
@@ -22,12 +21,12 @@ class Curve3D(object):
         ''' the curve is given by a collection of linear segments
         
         `points` are the support points defining the curve
-        `deriv_smoothing` gives the length scale over which calculated
+        `smoothing_distance` gives the length scale over which calculated
             quantities, like tangent vectors, are smoothed. The default value
             of zero means no smoothing.
         '''
         self.points = points
-        self.deriv_smoothing = deriv_smoothing
+        self.smoothing_distance = deriv_smoothing
         if self.points.size > 0 and self.points.shape[1] != 3:
             raise ValueError('points must be a nx3 array.')
 
@@ -46,12 +45,12 @@ class Curve3D(object):
     
     
     @property
-    def deriv_smoothing(self):
+    def smoothing_distance(self):
         return self._deriv_smoothing
     
-    @deriv_smoothing.setter
-    def deriv_smoothing(self, deriv_smoothing):
-        self._deriv_smoothing = deriv_smoothing
+    @smoothing_distance.setter
+    def smoothing_distance(self, smoothing_distance):
+        self._deriv_smoothing = smoothing_distance
         # clear cache
         self._cache_properties = {}
         
@@ -62,14 +61,36 @@ class Curve3D(object):
         return np.linalg.norm(self.points[:-1] - self.points[1:], axis=1).sum()
     
     
-    def smooth_normalized(self, vectors):
+    @cached_property
+    def _smoothing_kernel(self):
+        """ creates the Gaussian smoothing kernel associated the current line.
+        The weights for the different points are based on their distance along
+        the curve.
+        """
+        sigma = self.smoothing_distance
+        # get a Gaussian kernel based on the arc length `s`
+        s = self.arc_lengths
+        kernel = np.exp(-(s[:, None] - s[None, :])**2 / (2*sigma**2))
+        # normalize the kernel
+        kernel /= np.sum(kernel, axis=0, keepdims=True)
+        return kernel
+        
+    
+    def _smooth_variable(self, arr):
+        """ uses Gaussian smoothing on the supplied arr. The sigma of the
+        Gauss filter is 
+        """ 
+        if self.smoothing_distance > 0:
+            return np.dot(self._smoothing_kernel, arr)
+        else:
+            return arr
+        
+        
+    def _normalize_smoothed_vectors(self, vectors):
         """ takes a list of vectors and normalizes them individually. If one of
         the vectors is zero (and thus cannot be normalized) it is calculated
         from the average of the neighboring vectors """
-        smoothing = self.deriv_smoothing
-        if smoothing > 0:
-            vectors = filters.gaussian_filter1d(vectors, sigma=smoothing,
-                                                axis=0)
+        vectors = self._smooth_variable(vectors)
             
         with np.errstate(divide='ignore', invalid='ignore'):
             return vectors / np.linalg.norm(vectors, axis=-1, keepdims=True)
@@ -79,21 +100,21 @@ class Curve3D(object):
     def tangents(self):
         """ return the tangent vector at each support point """
         tangents = np.gradient(self.points, axis=0)
-        return self.smooth_normalized(tangents)
+        return self._normalize_smoothed_vectors(tangents)
     
     
     @cached_property
     def normals(self):
         """ return the normal vector at each support point """
         normals = np.gradient(self.tangents, axis=0)
-        return self.smooth_normalized(normals)
+        return self._normalize_smoothed_vectors(normals)
 
 
     @cached_property
     def binormals(self):
         """ return the binormal vector at each support point """
         binormals = np.cross(self.tangents, self.normals)
-        return self.smooth_normalized(binormals)
+        return self._normalize_smoothed_vectors(binormals)
     
     
     @cached_property
@@ -133,7 +154,8 @@ class Curve3D(object):
             
         # the curvature at the end points is not well-defined. We here just
         # repeat the values of the adjacent sites  
-        return np.r_[curvatures[0], curvatures, curvatures[-1]]
+        curvatures = np.r_[curvatures[0], curvatures, curvatures[-1]]
+        return self._smooth_variable(curvatures)
         
         
     def iter(self, data=None, smoothing=0):

@@ -86,8 +86,7 @@ class TestCurves3D(unittest.TestCase):
                 np.testing.assert_allclose(d['unit_vectors'], uv, atol=2e-2)
             
             for k, (_, d) in enumerate(c.iter(data=['curvature'])):
-                if 0 < k < len(a) - 1:
-                    self.assertAlmostEqual(d['curvature'], 1/r, 4)
+                self.assertAlmostEqual(d['curvature'], 1/r, 4)
                     
             # run the other way round
             c.invert_parameterization()
@@ -100,8 +99,7 @@ class TestCurves3D(unittest.TestCase):
                 np.testing.assert_allclose(d['unit_vectors'], uv, atol=2e-2)
             
             for k, (_, d) in enumerate(c.iter(data='all')):
-                if 0 < k < len(a) - 1:
-                    self.assertAlmostEqual(d['curvature'], 1/r, 4)
+                self.assertAlmostEqual(d['curvature'], 1/r, 4)
                 self.assertAlmostEqual(d['stretching_factor'],
                                        2*np.pi*r / (len(a) - 1), 5)
         
@@ -135,8 +133,6 @@ class TestCurves3D(unittest.TestCase):
                            
             curvature = (a * np.sqrt(a**2 + f * (1 + b**2)) /
                             (a**2 + f) ** (3/2))
-            curvature[0] = 0
-            curvature[-1] = 0
                            
             self.assertAlmostEqual(c.length, arc_len.sum(), 1)
             

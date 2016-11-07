@@ -18,16 +18,16 @@ class Curve3D(object):
     ''' represents a curve in 3d space '''
 
 
-    def __init__(self, points, curvature_smoothing=0):
+    def __init__(self, points, deriv_smoothing=0):
         ''' the curve is given by a collection of linear segments
         
         `points` are the support points defining the curve
-        `curvature_smoothing` gives the length scale over which calculated
+        `deriv_smoothing` gives the length scale over which calculated
             quantities, like tangent vectors, are smoothed. The default value
             of zero means no smoothing.
         '''
         self.points = points
-        self.curvature_smoothing = curvature_smoothing
+        self.deriv_smoothing = deriv_smoothing
         if self.points.size > 0 and self.points.shape[1] != 3:
             raise ValueError('points must be a nx3 array.')
 
@@ -46,12 +46,12 @@ class Curve3D(object):
     
     
     @property
-    def curvature_smoothing(self):
-        return self._curvature_smoothing
+    def deriv_smoothing(self):
+        return self._deriv_smoothing
     
-    @curvature_smoothing.setter
-    def curvature_smoothing(self, curvature_smoothing):
-        self._curvature_smoothing = curvature_smoothing
+    @deriv_smoothing.setter
+    def deriv_smoothing(self, deriv_smoothing):
+        self._deriv_smoothing = deriv_smoothing
         # clear cache
         self._cache_properties = {}
         
@@ -66,7 +66,7 @@ class Curve3D(object):
         """ takes a list of vectors and normalizes them individually. If one of
         the vectors is zero (and thus cannot be normalized) it is calculated
         from the average of the neighboring vectors """
-        smoothing = self.curvature_smoothing
+        smoothing = self.deriv_smoothing
         if smoothing > 0:
             vectors = filters.gaussian_filter1d(vectors, sigma=smoothing,
                                                 axis=0)
@@ -114,6 +114,10 @@ class Curve3D(object):
     @cached_property
     def curvatures(self):
         """ return the curvature at each support point """
+        if len(self.points) < 3:
+            # handle the trivial case
+            return np.zeros(len(self.points))
+        
         # get the two adjacent vectors to each point and their length
         v1 = self.points[1:-1] - self.points[ :-2]
         v2 = self.points[2:  ] - self.points[1:-1] 
@@ -125,10 +129,11 @@ class Curve3D(object):
             cos_a = np.einsum('ij,ij->i', v1, v2) / (n1 * n2)
             # correct for the local stretching, since we don't enforce
             # arc-length parameterization
-            curv = np.arccos(cos_a) * 2 / (n1 + n2)
+            curvatures = np.arccos(cos_a) * 2 / (n1 + n2)
             
-        # the curvature of the end points are zero by definition 
-        return np.r_[0, curv, 0]
+        # the curvature at the end points is not well-defined. We here just
+        # repeat the values of the adjacent sites  
+        return np.r_[curvatures[0], curvatures, curvatures[-1]]
         
         
     def iter(self, data=None, smoothing=0):

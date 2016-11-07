@@ -234,7 +234,7 @@ class TestMath(unittest.TestCase):
         np.testing.assert_array_equal(a, m.to_array((0, 1)))
         np.testing.assert_array_equal(a, m.to_array(iter((0, 1))))
         np.testing.assert_array_equal(a, m.to_array(sorted((0, 1))))
-        d = {0:0, 1:1}
+        d = {0: 0, 1: 1}
         np.testing.assert_array_equal(a, m.to_array(d.keys()))
         np.testing.assert_array_equal(a, m.to_array(d.values()))
             

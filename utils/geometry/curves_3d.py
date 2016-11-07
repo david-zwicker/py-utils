@@ -14,24 +14,20 @@ from utils.data_structures.cache import cached_property
 
 
 
-def smooth_normalized(vectors, smoothing=0):
-    """ takes a list of vectors and normalizes them individually. If one of the
-    vectors is zero (and thus cannot be normalized) it is calculated from the
-    average of the neighboring vectors """
-    if smoothing > 0:
-        vectors = filters.gaussian_filter1d(vectors, sigma=smoothing, axis=0)
-    with np.errstate(divide='ignore', invalid='ignore'):
-        return vectors / np.linalg.norm(vectors, axis=-1, keepdims=True)
-
-
-
 class Curve3D(object):
     ''' represents a curve in 3d space '''
 
 
-    def __init__(self, points):
-        ''' the curve is given by a collection of linear segments '''
+    def __init__(self, points, curvature_smoothing=0):
+        ''' the curve is given by a collection of linear segments
+        
+        `points` are the support points defining the curve
+        `curvature_smoothing` gives the length scale over which calculated
+            quantities, like tangent vectors, are smoothed. The default value
+            of zero means no smoothing.
+        '''
         self.points = points
+        self.curvature_smoothing = curvature_smoothing
         if self.points.size > 0 and self.points.shape[1] != 3:
             raise ValueError('points must be a nx3 array.')
 
@@ -47,6 +43,17 @@ class Curve3D(object):
             raise ValueError('Coordinates must be 3-dimensional.')
         # clear cache
         self._cache_properties = {}
+    
+    
+    @property
+    def curvature_smoothing(self):
+        return self._curvature_smoothing
+    
+    @curvature_smoothing.setter
+    def curvature_smoothing(self, curvature_smoothing):
+        self._curvature_smoothing = curvature_smoothing
+        # clear cache
+        self._cache_properties = {}
         
     
     @cached_property
@@ -54,6 +61,75 @@ class Curve3D(object):
         """ returns the length of the curve """
         return np.linalg.norm(self.points[:-1] - self.points[1:], axis=1).sum()
     
+    
+    def smooth_normalized(self, vectors):
+        """ takes a list of vectors and normalizes them individually. If one of
+        the vectors is zero (and thus cannot be normalized) it is calculated
+        from the average of the neighboring vectors """
+        smoothing = self.curvature_smoothing
+        if smoothing > 0:
+            vectors = filters.gaussian_filter1d(vectors, sigma=smoothing,
+                                                axis=0)
+            
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return vectors / np.linalg.norm(vectors, axis=-1, keepdims=True)
+
+    
+    @cached_property
+    def tangents(self):
+        """ return the tangent vector at each support point """
+        tangents = np.gradient(self.points, axis=0)
+        return self.smooth_normalized(tangents)
+    
+    
+    @cached_property
+    def normals(self):
+        """ return the normal vector at each support point """
+        normals = np.gradient(self.tangents, axis=0)
+        return self.smooth_normalized(normals)
+
+
+    @cached_property
+    def binormals(self):
+        """ return the binormal vector at each support point """
+        binormals = np.cross(self.tangents, self.normals)
+        return self.smooth_normalized(binormals)
+    
+    
+    @cached_property
+    def stretching_factors(self):
+        """ return the stretching factor at each support point. A stretching
+        factor of 1 indicates an arc-length parametrization of the curve """
+        tangent = np.gradient(self.points, axis=0)
+        return np.linalg.norm(tangent, axis=-1)
+    
+    
+    @cached_property
+    def arc_lengths(self):
+        """ return the arc length up to each support point """
+        ds = np.linalg.norm(self.points[:-1] - self.points[1:], axis=1)
+        return np.r_[0, np.cumsum(ds)]
+    
+    
+    @cached_property
+    def curvatures(self):
+        """ return the curvature at each support point """
+        # get the two adjacent vectors to each point and their length
+        v1 = self.points[1:-1] - self.points[ :-2]
+        v2 = self.points[2:  ] - self.points[1:-1] 
+        n1 = np.linalg.norm(v1, axis=-1)
+        n2 = np.linalg.norm(v2, axis=-1)
+        
+        with np.errstate(divide='ignore', invalid='ignore'):
+            # determine angle between successive vectors
+            cos_a = np.einsum('ij,ij->i', v1, v2) / (n1 * n2)
+            # correct for the local stretching, since we don't enforce
+            # arc-length parameterization
+            curv = np.arccos(cos_a) * 2 / (n1 + n2)
+            
+        # the curvature of the end points are zero by definition 
+        return np.r_[0, curv, 0]
+        
         
     def iter(self, data=None, smoothing=0):
         """ iterates over the points and returns their coordinates
@@ -84,65 +160,31 @@ class Curve3D(object):
             # return extra data
             if data == 'all':
                 data = {'tangent', 'normal', 'binormal', 'unit_vectors',
-                        'curvature', 'arc_length', 'local_arc_length'}
+                        'curvature', 'arc_length', 'stretching_factor'}
             else:
                 data = set(data)
 
-            # add dependent data
-            calc = data.copy()
-            if 'unit_vectors' in calc:
-                calc.add('binormal')
-            if 'binormal' in calc:
-                calc.add('normal')
-            if 'normal' in calc:
-                calc.add('tangent')
-            
             # calculate requested data
             calculated = {}
-            if 'tangent' in calc:
-                tangent = np.gradient(self.points, axis=0)
-                calculated['tangent'] = smooth_normalized(tangent, smoothing)
-                
-            if 'normal' in calc:
-                normal = np.gradient(calculated['tangent'], axis=0)
-                calculated['normal'] = smooth_normalized(normal, smoothing)
-                
-            if 'binormal' in calc:
-                binormal = np.cross(calculated['tangent'], calculated['normal'])
-                calculated['binormal'] = smooth_normalized(binormal, smoothing)
-
-            if 'unit_vectors' in calc:
+            if 'tangent' in data:
+                calculated['tangent'] = self.tangents
+            if 'normal' in data:
+                calculated['normal'] = self.normals
+            if 'binormal' in data:
+                calculated['binormal'] = self.binormals
+            if 'unit_vectors' in data:
                 calculated['unit_vectors'] = np.hstack((
-                                            calculated['tangent'][:, None, :],
-                                            calculated['normal'][:, None, :],
-                                            calculated['binormal'][:, None, :]))
+                                                self.tangents[:, None, :],
+                                                self.normals[:, None, :],
+                                                self.binormals[:, None, :]))
                 
-            if 'local_arc_length' in calc:
-                tangent = np.gradient(self.points, axis=0)
-                calculated['local_arc_length'] = \
-                                            np.linalg.norm(tangent, axis=-1)
-                
-            if 'arc_length' in calc:
-                ds = np.linalg.norm(self.points[:-1] - self.points[1:], axis=1)
-                calculated['arc_length'] = np.r_[0, np.cumsum(ds)]
-                
-            if 'curvature' in calc:
-                # get the two adjacent vectors to each point and their length
-                v1 = self.points[1:-1] - self.points[ :-2]
-                v2 = self.points[2:  ] - self.points[1:-1] 
-                n1 = np.linalg.norm(v1, axis=-1)
-                n2 = np.linalg.norm(v2, axis=-1)
-                
-                with np.errstate(divide='ignore', invalid='ignore'):
-                    # determine angle between successive vectors
-                    cos_a = np.einsum('ij,ij->i', v1, v2) / (n1 * n2)
-                    # correct for the local stretching, since we don't enforce
-                    # arc-length parameterization
-                    curv = np.arccos(cos_a) * 2 / (n1 + n2)
-                    
-                # the curvature of the end points are zero by definition 
-                calculated['curvature'] = np.r_[0, curv, 0]
-            
+            if 'stretching_factor' in data:
+                calculated['stretching_factor'] = self.stretching_factors
+            if 'arc_length' in data:
+                calculated['arc_length'] = self.arc_lengths
+            if 'curvature' in data:
+                calculated['curvature'] = self.curvatures
+
             # TODO: Implement Torsion
 
             # return the requested data

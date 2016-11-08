@@ -41,7 +41,7 @@ class Curve3D(object):
         if self._points.size > 0 and self._points.shape[-1] != 3:
             raise ValueError('Coordinates must be 3-dimensional.')
         # clear cache
-        self._cache_properties = {}
+        self._cache_methods = {}
     
     
     @property
@@ -52,7 +52,7 @@ class Curve3D(object):
     def smoothing_distance(self, smoothing_distance):
         self._deriv_smoothing = smoothing_distance
         # clear cache
-        self._cache_properties = {}
+        self._cache_methods = {}
         
     
     @cached_property()

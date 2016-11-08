@@ -10,6 +10,19 @@ import numpy as np
 
 
 
+def project_point_on_line(point, p_line_1, p_line_2):
+    """ projects a `point` onto a line given by two points """
+    # make sure that the points are numpy arrays 
+    point = np.asanyarray(point)
+    p_line_1 = np.asanyarray(p_line_1)
+    p_line_2 = np.asanyarray(p_line_2)
+    
+    v_p = point - p_line_1 
+    v_line = p_line_2 - p_line_1
+    return p_line_1 + np.dot(v_p, v_line) / np.dot(v_line, v_line) * v_line
+
+
+
 class Cuboid(object):
     """ class that represents a cuboid in n dimensions """
     

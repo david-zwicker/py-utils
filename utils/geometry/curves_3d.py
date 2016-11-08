@@ -4,8 +4,6 @@ Created on Nov 4, 2016
 @author: David Zwicker <dzwicker@seas.harvard.edu>
 '''
 
-import itertools
-
 import numpy as np
 from scipy import interpolate
 
@@ -259,7 +257,7 @@ class Curve3D(object):
         """ calculates the points where the curve intersects the plane given by
         a position vector `origin` and a normal vector `normal` """
         result = []
-        for p1, p2 in itertools.izip(self.points, self.points[1:]):
+        for p1, p2 in zip(self.points, self.points[1:]):
             dp = p2 - p1
             s = np.dot(origin - p1, normal) / np.dot(dp, normal)
             if 0 <= s <= 1:

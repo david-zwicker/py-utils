@@ -92,8 +92,8 @@ class Curve3D(object):
         
     
     def _smooth_variable(self, arr):
-        """ uses Gaussian smoothing on the supplied arr. The sigma of the
-        Gauss filter is 
+        """ uses Gaussian smoothing on the supplied array `arr`. The sigma of
+        the Gauss filter is given by self.smoothing_distance 
         """ 
         if self.smoothing_distance > 0:
             return np.dot(self._smoothing_kernel, arr)
@@ -135,7 +135,7 @@ class Curve3D(object):
     @cached_property()
     def stretching_factors(self):
         """ return the stretching factor at each support point. A stretching
-        factor of 1 indicates an arc-length parametrization of the curve """
+        factor of 1 indicates an arc-length parameterization of the curve """
         tangent = np.gradient(self.points, axis=0)
         return np.linalg.norm(tangent, axis=-1)
     

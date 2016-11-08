@@ -200,8 +200,13 @@ class Movie(object):
             )
 
 
-    def save(self, filename, extra_args=None):
+    def save(self, filename=None, extra_args=None):
         """ convert the recorded images to a movie using ffmpeg """
+        if filename is None:
+            if self.filename is None:
+                raise ValueError('`filename` has to be supplied')
+            filename = self.filename
+        
         if not self.recording:
             raise ValueError('Movie is not initialized.')
 

@@ -100,36 +100,28 @@ class Curve3D(object):
         else:
             return arr
         
-        
-    def _normalize_smoothed_vectors(self, vectors):
-        """ takes a list of vectors and normalizes them individually. If one of
-        the vectors is zero (and thus cannot be normalized) it is calculated
-        from the average of the neighboring vectors """
-        vectors = self._smooth_variable(vectors)
-            
-        with np.errstate(divide='ignore', invalid='ignore'):
-            return vectors / np.linalg.norm(vectors, axis=-1, keepdims=True)
 
-    
     @cached_property()
     def tangents(self):
         """ return the tangent vector at each support point """
         tangents = np.gradient(self.points, axis=0)
-        return self._normalize_smoothed_vectors(tangents)
+        tangents = self._smooth_variable(tangents)
+
+        return _normalize_vectors(tangents)
     
     
     @cached_property()
     def normals(self):
         """ return the normal vector at each support point """
         normals = np.gradient(self.tangents, axis=0)
-        return self._normalize_smoothed_vectors(normals)
+        return _normalize_vectors(normals)
 
 
     @cached_property()
     def binormals(self):
         """ return the binormal vector at each support point """
         binormals = np.cross(self.tangents, self.normals)
-        return self._normalize_smoothed_vectors(binormals)
+        return _normalize_vectors(binormals)
     
     
     @cached_property()
@@ -400,3 +392,10 @@ class Curve3D(object):
             for p in self.points:
                 fp.write(element + ' %d %d %d\n' % p)
                         
+                        
+                    
+def _normalize_vectors(vectors):
+    """ takes a list of vectors and normalizes them individually. """
+    with np.errstate(divide='ignore', invalid='ignore'):
+        return vectors / np.linalg.norm(vectors, axis=-1, keepdims=True)
+

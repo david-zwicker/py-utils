@@ -55,13 +55,13 @@ class Curve3D(object):
         self._cache_properties = {}
         
     
-    @cached_property
+    @cached_property()
     def length(self):
         """ returns the length of the curve """
         return np.linalg.norm(self.points[:-1] - self.points[1:], axis=1).sum()
     
     
-    @cached_property
+    @cached_property()
     def _smoothing_kernel(self):
         """ creates the Gaussian smoothing kernel associated the current line.
         The weights for the different points are based on their distance along
@@ -99,28 +99,28 @@ class Curve3D(object):
             return vectors / np.linalg.norm(vectors, axis=-1, keepdims=True)
 
     
-    @cached_property
+    @cached_property()
     def tangents(self):
         """ return the tangent vector at each support point """
         tangents = np.gradient(self.points, axis=0)
         return self._normalize_smoothed_vectors(tangents)
     
     
-    @cached_property
+    @cached_property()
     def normals(self):
         """ return the normal vector at each support point """
         normals = np.gradient(self.tangents, axis=0)
         return self._normalize_smoothed_vectors(normals)
 
 
-    @cached_property
+    @cached_property()
     def binormals(self):
         """ return the binormal vector at each support point """
         binormals = np.cross(self.tangents, self.normals)
         return self._normalize_smoothed_vectors(binormals)
     
     
-    @cached_property
+    @cached_property()
     def stretching_factors(self):
         """ return the stretching factor at each support point. A stretching
         factor of 1 indicates an arc-length parametrization of the curve """
@@ -128,14 +128,14 @@ class Curve3D(object):
         return np.linalg.norm(tangent, axis=-1)
     
     
-    @cached_property
+    @cached_property()
     def arc_lengths(self):
         """ return the arc length up to each support point """
         ds = np.linalg.norm(self.points[:-1] - self.points[1:], axis=1)
         return np.r_[0, np.cumsum(ds)]
     
     
-    @cached_property
+    @cached_property()
     def curvatures(self):
         """ return the curvature at each support point """
         if len(self.points) < 3:

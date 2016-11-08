@@ -45,6 +45,9 @@ class TestCurves3D(unittest.TestCase):
         np.testing.assert_array_equal(list(c), ps)
         np.testing.assert_array_equal(list(c.iter()), ps)
         
+        for z in np.linspace(0, 2, 7):
+            np.testing.assert_array_equal(c.get_point(z), [0, 0, z])
+        
         for k, (p, d) in enumerate(c.iter(data='all')):
             np.testing.assert_array_equal(p, ps[k])
             np.testing.assert_array_equal(d['tangent'], [0, 0, 1])
@@ -62,6 +65,11 @@ class TestCurves3D(unittest.TestCase):
             
             self.assertAlmostEqual(c.length, 2 * np.pi * r, places=2)
             np.testing.assert_array_equal(list(c), ps)
+                
+            for b in np.linspace(0, 2 * np.pi, 37)[:-1]:
+                np.testing.assert_allclose(c.get_point(r * b),
+                                           [r * np.sin(b), r * np.cos(b), 0],
+                                           atol=1e-3)
             
             # check the individual vectors
             for k, (p, d) in enumerate(c.iter(data='all')):

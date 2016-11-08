@@ -59,6 +59,14 @@ class TestCurves3D(unittest.TestCase):
             self.assertAlmostEqual(d['stretching_factor'], 1)
             self.assertAlmostEqual(d['arc_length'], k)
             
+        # test intersections with plane
+        p = c.plane_intersects((0, 0, 0.5), (0, 0, 1))
+        np.testing.assert_array_equal(p, [[0, 0, 0.5]])
+        p = c.plane_intersects((0, 0, 0.5), np.random.rand(3))
+        np.testing.assert_array_equal(p, [[0, 0, 0.5]])
+        p = c.plane_intersects((0, 0.5, 0), np.ones(3))
+        np.testing.assert_array_equal(p, [[0, 0, 0.5]])
+            
             
     def test_circle(self):
         """ test circle """
@@ -76,7 +84,7 @@ class TestCurves3D(unittest.TestCase):
                                            [r * np.sin(b), r * np.cos(b), 0],
                                            atol=1e-3)
             
-            # check the individual vectors
+            # check the individual values
             for k, (p, d) in enumerate(c.iter(data='all')):
                 np.testing.assert_array_equal(p, ps[k])
                 np.testing.assert_allclose(d['tangent'],
@@ -100,6 +108,10 @@ class TestCurves3D(unittest.TestCase):
             
             for k, (_, d) in enumerate(c.iter(data=['curvature'])):
                 self.assertAlmostEqual(d['curvature'], 1/r, 4)
+
+            # test plane intersections
+            p = c.plane_intersects((0, 0, 0), [1, 0, 0])
+            np.testing.assert_allclose(p, [[0, r, 0], [0, -r, 0]], rtol=1e-4)
                     
             # run the other way round
             c.invert_parameterization()
@@ -171,15 +183,25 @@ class TestCurves3D(unittest.TestCase):
         
         for _, d in c.iter(data=['unit_vectors']):
             
-            a, b, c = d['unit_vectors']
-            self.assertAlmostEqual(np.dot(a, b), 0, 1)
-            self.assertAlmostEqual(np.dot(b, c), 0, 1)
-            self.assertAlmostEqual(np.dot(a, c), 0, 1)
+            u, v, w = d['unit_vectors']
+            self.assertAlmostEqual(np.dot(u, v), 0, 1)
+            self.assertAlmostEqual(np.dot(v, w), 0, 1)
+            self.assertAlmostEqual(np.dot(u, w), 0, 1)
             
             # check scalar triple product:
-            triple = np.dot(a, np.cross(b, c))
+            triple = np.dot(u, np.cross(v, w))
             self.assertAlmostEqual(triple, 1, 3)
-            
+
+        c_len = c.length
+        c.make_equidistant(count=50)
+        self.assertNotEqual(c_len, c.length)  # check that cache was cleared
+        self.assertAlmostEqual(c_len, c.length, places=2)
+
+        c_len = c.length
+        c.smooth()
+        self.assertNotEqual(c_len, c.length)  # check that cache was cleared
+        self.assertAlmostEqual(c_len, c.length, places=1)
+
             
     def test_corner_case(self):
         """ test some more complicated cases """

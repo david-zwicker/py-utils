@@ -263,12 +263,24 @@ class Curve3D(object):
         return p1 + (p2 - p1) * (arc_length - s1) / (s2 - s1)
     
     
-    def get_points(self, arc_lengths, interpolation='linear'):
+    def get_points(self, arc_lengths, interpolation='linear',
+                   extrapolate=False):
         """ returns the coordinates of a point at the position specified by
-        `arc_length` """
-        interpolator = interpolate.interp1d(self.arc_lengths, self.points,
-                                            kind=interpolation, axis=0,
-                                            copy=False, assume_sorted=True)
+        `arc_length`
+        
+        `interpolation` determines the used interpolation
+        `extrapolate` flag determining whether extrapolation is used to get
+            points outside this curve. This only works for `nearest` and
+            `linear` interpolation.
+        """
+        if extrapolate:
+            fill_value = 'extrapolate'
+        else:
+            fill_value = None
+        
+        interpolator = interpolate.interp1d(
+                self.arc_lengths, self.points, kind=interpolation, axis=0,
+                copy=False, fill_value=fill_value, assume_sorted=True)
         return interpolator(arc_lengths)
 
 

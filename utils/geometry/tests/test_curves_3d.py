@@ -45,9 +45,14 @@ class TestCurves3D(unittest.TestCase):
         np.testing.assert_array_equal(list(c), ps)
         np.testing.assert_array_equal(list(c.iter()), ps)
         
-        for z in np.linspace(0, 2, 7):
+        # test interpolation
+        zs = np.linspace(0, 2, 7)
+        for z in zs:
             np.testing.assert_array_equal(c.get_point(z), [0, 0, z])
+        seq = np.c_[np.zeros(7), np.zeros(7), zs]
+        np.testing.assert_array_equal(c.get_points(zs), seq)
         
+        # test determining extra values
         for k, (p, d) in enumerate(c.iter(data='all')):
             np.testing.assert_array_equal(p, ps[k])
             np.testing.assert_array_equal(d['tangent'], [0, 0, 1])

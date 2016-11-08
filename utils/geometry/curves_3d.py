@@ -17,7 +17,7 @@ class Curve3D(object):
     ''' represents a curve in 3d space '''
 
 
-    def __init__(self, points, deriv_smoothing=0):
+    def __init__(self, points, smoothing_distance=0):
         ''' the curve is given by a collection of linear segments
         
         `points` are the support points defining the curve
@@ -26,7 +26,7 @@ class Curve3D(object):
             of zero means no smoothing.
         '''
         self.points = points
-        self.smoothing_distance = deriv_smoothing
+        self.smoothing_distance = smoothing_distance
         if self.points.size > 0 and self.points.shape[1] != 3:
             raise ValueError('points must be a nx3 array.')
 
@@ -261,6 +261,15 @@ class Curve3D(object):
         return p1 + (p2 - p1) * (arc_length - s1) / (s2 - s1)
     
     
+    def get_points(self, arc_lengths, interpolation='linear'):
+        """ returns the coordinates of a point at the position specified by
+        `arc_length` """
+        interpolator = interpolate.interp1d(self.arc_lengths, self.points,
+                                            kind=interpolation, axis=0,
+                                            copy=False, assume_sorted=True)
+        return interpolator(arc_lengths)
+
+        
     def make_equidistant(self, spacing=None, count=None):
         """ returns a new parameterization of the same curve where points have
         been chosen equidistantly. The original curve may be slightly modified
@@ -305,7 +314,7 @@ class Curve3D(object):
             s = np.insert(s, 0, 0)  # prepend element for first point
             # divide arc length equidistantly
             sp = np.linspace(s[0], s[-1], count)
-            # interpolate points
+            # interpolate points: TODO: use scipy.interpolation
             result = np.c_[np.interp(sp, s, ps[:, 0]),
                            np.interp(sp, s, ps[:, 1]),
                            np.interp(sp, s, ps[:, 2])]

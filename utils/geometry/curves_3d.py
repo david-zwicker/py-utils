@@ -242,27 +242,6 @@ class Curve3D(object):
         self.points = self.points[::-1]  # clear the cache implicitly 
     
     
-    def get_point(self, arc_length):
-        """ returns the coordinates of a point at the position specified by
-        `arc_length` """
-        if not 0 <= arc_length <= self.length:
-            raise ValueError('The arc length specifying the point position '
-                             'must be between 0 and %g (was %g).'
-                             % (self.length, arc_length))
-            
-        # determine the support point after the requested position
-        arc_lengths = self.arc_lengths
-        n = np.searchsorted(arc_lengths, arc_length)
-        
-        s1 = arc_lengths[n - 1]
-        p1 = self.points[n - 1]
-        s2 = arc_lengths[n]
-        p2 = self.points[n]
-        
-        # linear interpolation
-        return p1 + (p2 - p1) * (arc_length - s1) / (s2 - s1)
-    
-    
     def get_points(self, arc_lengths, interpolation='linear',
                    extrapolate=False):
         """ returns the coordinates of a point at the position specified by

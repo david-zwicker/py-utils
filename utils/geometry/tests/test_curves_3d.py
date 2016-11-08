@@ -48,7 +48,7 @@ class TestCurves3D(unittest.TestCase):
         # test interpolation
         zs = np.linspace(0, 2, 7)
         for z in zs:
-            np.testing.assert_array_equal(c.get_point(z), [0, 0, z])
+            np.testing.assert_array_equal(c.get_points(z), [0, 0, z])
         seq = np.c_[np.zeros(7), np.zeros(7), zs]
         np.testing.assert_array_equal(c.get_points(zs), seq)
         
@@ -80,7 +80,7 @@ class TestCurves3D(unittest.TestCase):
             np.testing.assert_array_equal(list(c), ps)
                 
             for b in np.linspace(0, 2 * np.pi, 37)[:-1]:
-                np.testing.assert_allclose(c.get_point(r * b),
+                np.testing.assert_allclose(c.get_points(r * b),
                                            [r * np.sin(b), r * np.cos(b), 0],
                                            atol=1e-3)
             

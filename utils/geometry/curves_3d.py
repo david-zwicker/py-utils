@@ -67,6 +67,9 @@ class Curve3D(object):
         The weights for the different points are based on their distance along
         the curve.
         """
+        # TODO: this smoothing kernel weighs each point equally. However, we
+        # might want to weigh points according to the local stretching factor
+        
         sigma = self.smoothing_distance
         # get a Gaussian kernel based on the arc length `s`
         s = self.arc_lengths

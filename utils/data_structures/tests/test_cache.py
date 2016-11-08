@@ -225,9 +225,7 @@ class TestCache(unittest.TestCase):
                 return 2    
         
         # apply the cache with the given storage
-        if cache_storage is False:
-            decorator = cache.cached_property
-        elif cache_storage is None: 
+        if cache_storage is None: 
             decorator = cache.cached_property()
         else:
             decorator = cache.cached_property(cache_storage)
@@ -251,7 +249,7 @@ class TestCache(unittest.TestCase):
 
     def test_property_cache(self):
         """ test cached_property decorator """
-        for cache_storage in [False, None, "my_cache"]:
+        for cache_storage in [None, "get_finite_dict"]:
             self._test_property_cache(cache_storage)
             
             

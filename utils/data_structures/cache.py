@@ -253,98 +253,28 @@ class SerializedDict(collections.MutableMapping):
 
 
 
-class cached_property(object):
-    """Decorator to use a function as a cached property.
-
-    The function is only called the first time and each successive call returns
-    the cached result of the first call.
-
-        class Foo(object):
-
-            @cached_property
-            def foo(self):
-                return "Cached"
-                
-    The data is stored in a dictionary named `_cache_properties` attached to the
-    instance of each object. The cache can thus be cleared by setting
-    self._cache_properties = {}
-
-    Adapted from <http://wiki.python.org/moin/PythonDecoratorLibrary>.
-    """
-
-    def __init__(self, *args, **kwargs):
-        """ setup the decorator """
-        self.cache = None
-        
-        if len(args) > 0:
-            if callable(args[0]):
-                # called as a plain decorator
-                self.__call__(*args, **kwargs)
-            else:
-                # called with arguments
-                self.cache = args[0]
-        else:
-            # called with arguments
-            self.cache = kwargs.pop('cache', self.cache)
-            
-
-    def __call__(self, func, doc=None, name=None):
-        """ save the function to decorate """
-        self.func = func
-        self.__doc__ = doc or func.__doc__
-        self.__name__ = name or func.__name__
-        self.__module__ = func.__module__
-        return self
-
-
-    def __get__(self, obj, owner):
-        if obj is None:
-            return self
-
-        # load the cache structure
-        if self.cache is None:
-            try:
-                cache = obj._cache_properties
-            except AttributeError:
-                cache = obj._cache_properties = {}
-        else:
-            try:
-                cache = getattr(obj, self.cache)
-            except:
-                cache = {}
-                setattr(obj, self.cache, cache)
-                
-        # try to retrieve from cache or call and store result in cache
-        try:
-            value = cache[self.__name__]
-        except KeyError:
-            value = self.func(obj)
-            cache[self.__name__] = value
-        return value
-    
-
-
-class cached_method(object):
-    """ class handling the caching of results of methods """
+class _class_cache(object):
+    """ class handling the caching of results of methods and properties """
     
     def __init__(self, factory=None, extra_args=None, serializer='pickle',
                  doc=None, name=None):
-        """ decorator that caches method calls in a dictionary attached to the
+        """ decorator that caches calls in a dictionary attached to the
         instances. This can be used with most classes
     
             class Foo(object):
     
-                @cached_method()
-                def foo(self):
-                    return "Cached"
+                @cached_property()
+                def property(self):
+                    return "Cached property"
         
                 @cached_method()
-                def bar(self):
-                    return "Cached"
+                def method(self):
+                    return "Cached method"
                     
         
             foo = Foo()
-            foo.bar()
+            foo.property
+            foo.method()
             
             # The first call to a cached method creates the attribute
             # `foo._cache_methods`, which is a dictionary containing the
@@ -378,28 +308,57 @@ class cached_method(object):
                 def foo(self):
                     return "Cached"
         """
+        self.extra_args = extra_args
+        self.serializer = serializer
+        self.name = name
+
         # check whether the decorator has been applied correctly
         if callable(factory):
             class_name = self.__class__.__name__
             raise ValueError('Missing function call. Call this decorator as '
                              '@{0}() instead of @{0}'.format(class_name))
             
-        self.factory = factory
-        self.extra_args = extra_args
-        self.serializer = serializer
-        self.name = name
+            
+        else:
+            self.factory = factory
         
     
-    def __call__(self, method):
-        """ apply the cache decorator """
+    def _get_clear_cache_method(self):
+        """ return a method that can be attached to classes to clear the cache
+        of the wrapped method """
+        
+        def clear_cache(obj):
+            """ clears the cache associated with this method """
+            try:
+                # try getting an initialized cache
+                cache = obj._cache_methods[self.name]
+                
+            except (AttributeError, KeyError):
+                # the cache was not initialized
+                if self.factory is None:
+                    # the cache would be a dictionary, but it is not yet
+                    # initialized => we don't need to clear anything
+                    return
+                # initialize the cache, since it might open a persistent
+                # database, which needs to be cleared
+                cache = getattr(obj, self.factory)(self.name)
+                
+            # clear the cache
+            cache.clear()   
+            
+        return clear_cache
+    
+        
+    def _get_wrapped_function(self, func):
+        """ return the wrapped method, which implements the cache """
         
         if self.name is None:
-            self.name = method.__name__
+            self.name = func.__name__
     
         # create the function to serialize the keys
         serialize_key = make_serializer(self.serializer)
     
-        @functools.wraps(method)
+        @functools.wraps(func)
         def wrapper(obj, *args, **kwargs):
             # try accessing the cache
             try:
@@ -432,34 +391,66 @@ class cached_method(object):
                 result = cache[cache_key]
             except KeyError:
                 # if this failed, compute and store the results
-                result = method(obj, *args, **kwargs)
+                result = func(obj, *args, **kwargs)
                 cache[cache_key] = result
             return result
+        
+        return wrapper
+
+
+
+class cached_property(_class_cache):
+    """Decorator to use a function as a cached property.
+
+    The function is only called the first time and each successive call returns
+    the cached result of the first call.
+
+        class Foo(object):
+
+            @cached_property
+            def foo(self):
+                return "Cached"
+                
+    The data is stored in a dictionary named `_cache_properties` attached to the
+    instance of each object. The cache can thus be cleared by setting
+    self._cache_properties = {}
+
+    Adapted from <http://wiki.python.org/moin/PythonDecoratorLibrary>.
+    """
+
+    def __call__(self, method):
+        """ apply the cache decorator to the property """
+        # save name, e.g., to be able to delete cache later
+        self._cache_name = self.name
+        self.clear_cache = self._get_clear_cache_method()
+        self.func = self._get_wrapped_function(method)
+    
+        self.__doc__ = self.func.__doc__
+        self.__name__ = self.func.__name__
+        self.__module__ = self.func.__module__
+        return self
+    
+    
+    def __get__(self, obj, owner):
+        """ call the method to obtain the result for this property """
+        if obj is None:
+            return self
+
+        return self.func(obj)
     
 
-        def clear_cache(obj):
-            """ clears the cache associated with this method """
-            try:
-                # try getting an initialized cache
-                cache = obj._cache_methods[self.name]
-                
-            except (AttributeError, KeyError):
-                # the cache was not initialized
-                if self.factory is None:
-                    # the cache would be a dictionary, but it is not yet
-                    # initialized => we don't need to clear anything
-                    return
-                # initialize the cache, since it might open a persistent
-                # database, which needs to be cleared
-                cache = getattr(obj, self.factory)(self.name)
-                
-            # clear the cache
-            cache.clear()
+
+class cached_method(_class_cache):
+    """ class handling the caching of results of methods """
     
+    def __call__(self, method):
+        """ apply the cache decorator to the method """
+        
+        wrapper = self._get_wrapped_function(method)
     
         # save name, e.g., to be able to delete cache later
         wrapper._cache_name = self.name
-        wrapper.clear_cache = clear_cache
+        wrapper.clear_cache = self._get_clear_cache_method()
     
         return wrapper
 

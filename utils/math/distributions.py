@@ -442,7 +442,7 @@ class NormalDistribution(object):
         return self.__class__(self.mean, self.var, self.count)
         
         
-    @cached_property
+    @cached_property()
     def std(self):
         """ return standard deviation """
         return np.sqrt(self.var)

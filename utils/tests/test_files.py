@@ -71,6 +71,40 @@ class TestFiles(unittest.TestCase):
         self.assertEqual(open(file1.name, 'r').read(), '1\n2')
 
 
+    def test_glob_alternatives_generator(self):
+        """ tests the glob_alternatives_generator function """
+        alts = lambda s: list(files.pattern_alternatives(s))
+        
+        # test cases without groups
+        self.assertSequenceEqual(alts(''), [''])
+        self.assertSequenceEqual(alts('Z'), ['Z'])
+        self.assertSequenceEqual(alts('abcd'), ['abcd'])
+        self.assertSequenceEqual(alts('a,x'), ['a,x'])
+
+        # test cases with a single group
+        self.assertSequenceEqual(alts('{a}'), ['a'])
+        self.assertSequenceEqual(alts('{a,b}'), ['a', 'b'])
+        self.assertSequenceEqual(alts('{a,b,c}'), ['a', 'b', 'c'])
+        self.assertSequenceEqual(alts('{a,,b}'), ['a', '', 'b'])
+        self.assertSequenceEqual(alts('a{,}b'), ['ab', 'ab'])
+        self.assertSequenceEqual(alts('A{a}'), ['Aa'])
+        self.assertSequenceEqual(alts('A{a,b}'), ['Aa', 'Ab'])
+        self.assertSequenceEqual(alts('{a}Z'), ['aZ'])
+        self.assertSequenceEqual(alts('{a,b}Z'), ['aZ', 'bZ'])
+        self.assertSequenceEqual(alts('A{a}Z'), ['AaZ'])
+        self.assertSequenceEqual(alts('A{a,b}Z'), ['AaZ', 'AbZ'])
+
+        # test cases with a two group
+        self.assertSequenceEqual(alts('{a}{x}'), ['ax'])
+        self.assertSequenceEqual(alts('{a,b}{x}'), ['ax', 'bx'])
+        self.assertSequenceEqual(alts('{a}{x,y}'), ['ax', 'ay'])
+        self.assertSequenceEqual(alts('{a,b}{x,y}'), ['ax', 'ay', 'bx', 'by'])
+        
+        # test wrongly formatted patterns
+        self.assertRaises(RuntimeError, lambda: alts('{'))
+        self.assertRaises(RuntimeError, lambda: alts('{{}}'))
+        self.assertRaises(RuntimeError, lambda: alts('}'))
+
 
 if __name__ == "__main__":
     unittest.main()

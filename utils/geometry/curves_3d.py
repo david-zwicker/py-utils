@@ -4,6 +4,8 @@ Created on Nov 4, 2016
 @author: David Zwicker <dzwicker@seas.harvard.edu>
 '''
 
+import warnings
+
 import numpy as np
 from scipy import interpolate
 
@@ -59,6 +61,11 @@ class Curve3D(object):
     def length(self):
         """ returns the length of the curve """
         return np.linalg.norm(self.points[:-1] - self.points[1:], axis=1).sum()
+    
+    
+    @property
+    def num_points(self):
+        return len(self.points)
     
     
     @property
@@ -168,7 +175,7 @@ class Curve3D(object):
         
         `data` lists extra quantities that are returned for each point. Possible
             values include ('tangent', 'normal', 'binormal', 'unit_vectors',
-            'curvature', 'arc_length', 'local_arc_length')
+            'curvature', 'arc_length', 'stretching_factor')
             
         Note that the tangent and normal are calculated from discretized
         derivatives and are thus not necessarily exactly orthogonal. However,
@@ -267,15 +274,21 @@ class Curve3D(object):
 
         
     def make_equidistant(self, spacing=None, count=None):
-        """ returns a new parameterization of the same curve where points have
-        been chosen equidistantly. The original curve may be slightly modified
+        """ returns a copy of the current curve in which points have been
+        chosen equidistantly.
         
         `spacing` gives the approximate spacing between support points
         `count` gives the approximate number of support points
         
-        Only either one of these parameters may be supplied
+        Only either one of these parameters may be supplied. If no parameter is
+        given, the number of points is not modified, but they are distributed
+        evenly.
         """
         if spacing is not None:
+            if count is not None:
+                raise ValueError('`spacing` and `count` cannot be specified '
+                                 'together') 
+            
             # walk along and pick points with given spacing
             if self.length < spacing:
                 return
@@ -314,11 +327,14 @@ class Curve3D(object):
             result = np.c_[np.interp(sp, s, ps[:, 0]),
                            np.interp(sp, s, ps[:, 1]),
                            np.interp(sp, s, ps[:, 2])]
-            
-        self.points = result  # clear the cache implicitly 
+
+        # create the new curve            
+        return self.__class__(result,
+                              smoothing_distance=self.smoothing_distance)
         
     
-    def smooth(self, smoothing=10, degree=3, derivative=0, num_points=None):
+    def make_smooth(self, smoothing=10, degree=3, derivative=0,
+                    num_points=None):
         """ smooths the curve by interpolating the points
         
         `smoothing` determines the smoothness of the curve.  This value can be
@@ -341,12 +357,19 @@ class Curve3D(object):
                                          k=degree, s=smoothing*len(self.points))
         except ValueError:
             # spline fitting did not work
-            if num_points != len(self.points):
-                self.make_equidistant(count=num_points)
+            warnings.warn('Spline fitting to smooth the curve failed.')
+            # at least make the curve equidistant
+            line = self.make_equidistant(count=num_points)
+                
         else:
             # interpolate the line
             points = interpolate.splev(u, tck, der=derivative)
-            self.points = np.transpose(points)  # clear the cache implicitly 
+
+            # create the new curve            
+            line = self.__class__(np.transpose(points),
+                                  smoothing_distance=self.smoothing_distance)
+            
+        return line
             
     
     def write_to_file(self, filename, **kwargs):

@@ -73,7 +73,8 @@ class TestFiles(unittest.TestCase):
 
     def test_glob_alternatives_generator(self):
         """ tests the glob_alternatives_generator function """
-        alts = lambda s: list(files.pattern_alternatives(s))
+        def alts(s):
+            return list(files.pattern_alternatives(s))
         
         # test cases without groups
         self.assertSequenceEqual(alts(''), [''])

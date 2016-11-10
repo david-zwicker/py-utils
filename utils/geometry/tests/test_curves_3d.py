@@ -56,8 +56,10 @@ class TestCurves3D(unittest.TestCase):
         for k, (p, d) in enumerate(c.iter(data='all')):
             np.testing.assert_array_equal(p, ps[k])
             np.testing.assert_array_equal(d['tangent'], [0, 0, 1])
-            self.assertAlmostEqual(d['stretching_factor'], 1)
             self.assertAlmostEqual(d['arc_length'], k)
+            # treat end points differently
+            f = 0.5 if k == 0 or k == c.num_points - 1 else 1
+            self.assertAlmostEqual(d['stretching_factor'], f)
             
         # test intersections with plane
         p = c.plane_intersects((0, 0, 0.5), (0, 0, 1))
@@ -77,6 +79,7 @@ class TestCurves3D(unittest.TestCase):
             c = Curve3D(ps, smoothing)
             
             self.assertAlmostEqual(c.length, 2 * np.pi * r, places=2)
+            self.assertAlmostEqual(c.length, c.stretching_factors.sum())
             np.testing.assert_array_equal(list(c), ps)
                 
             for b in np.linspace(0, 2 * np.pi, 37)[:-1]:
@@ -94,9 +97,12 @@ class TestCurves3D(unittest.TestCase):
                                            [-np.sin(a[k]), -np.cos(a[k]), 0],
                                            atol=2e-2)
                 np.testing.assert_allclose(d['binormal'], [0, 0, -1])
-                self.assertAlmostEqual(d['stretching_factor'],
-                                       2*np.pi*r / (len(a) - 1), 5)
                 self.assertAlmostEqual(d['arc_length'], r*a[k], 3)
+                
+                # treat end points differently
+                f = 0.5 if k == 0 or k == len(a) - 1 else 1
+                self.assertAlmostEqual(d['stretching_factor'],
+                                       2*np.pi*r*f / (len(a) - 1), 5)
             
             # check the unit_vector system
             for k, (p, d) in enumerate(c.iter(data=['unit_vectors'])):
@@ -125,8 +131,9 @@ class TestCurves3D(unittest.TestCase):
             
             for k, (_, d) in enumerate(c.iter(data='all')):
                 self.assertAlmostEqual(d['curvature'], 1/r, 4)
+                f = 0.5 if k == 0 or k == len(a) - 1 else 1
                 self.assertAlmostEqual(d['stretching_factor'],
-                                       2*np.pi*r / (len(a) - 1), 5)
+                                       2*np.pi*r*f / (len(a) - 1), 5)
         
         
     def test_expanded_helix(self):
@@ -160,16 +167,18 @@ class TestCurves3D(unittest.TestCase):
                             (a**2 + f) ** (3/2))
                            
             self.assertAlmostEqual(c.length, arc_len.sum(), 1)
+            self.assertAlmostEqual(c.length, c.stretching_factors.sum())
             
             for k, (_, d) in enumerate(c.iter(data='all')):
                 np.testing.assert_allclose(d['tangent'], tangent[k], atol=0.05)
                 np.testing.assert_allclose(d['normal'], normal[k], atol=0.05)
                 np.testing.assert_allclose(d['binormal'], binormal[k],
                                            atol=0.05)
-                np.testing.assert_allclose(d['stretching_factor'], arc_len[k],
-                                           atol=0.01)
                 np.testing.assert_allclose(d['curvature'], curvature[k],
                                            atol=0.1)
+                f = 0.5 if k == 0 or k == len(t) - 1 else 1
+                np.testing.assert_allclose(d['stretching_factor'], f*arc_len[k],
+                                           atol=0.01)
         
         
     def test_random_curve(self):
@@ -220,8 +229,9 @@ class TestCurves3D(unittest.TestCase):
                 np.testing.assert_array_equal(d['tangent'], tangent)
                 self.assertTrue(np.all(np.isnan(d['normal'])))
                 self.assertTrue(np.all(np.isnan(d['binormal'])))
-                self.assertAlmostEqual(d['stretching_factor'], np.sqrt(3))
                 self.assertAlmostEqual(d['arc_length'], k * np.sqrt(3))
+                f = 0.5 if k == 0 or k == 3 else 1
+                self.assertAlmostEqual(d['stretching_factor'], f * np.sqrt(3))
 
 
 

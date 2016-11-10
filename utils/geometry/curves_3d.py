@@ -128,20 +128,25 @@ class Curve3D(object):
         binormals = np.cross(self.tangents, self.normals)
         return _normalize_vectors(binormals)
     
+
+    @cached_property()
+    def arc_lengths(self):
+        """ return the arc length up to each support point """
+        ds = np.linalg.norm(self.points[:-1] - self.points[1:], axis=1)
+        return np.r_[0, np.cumsum(ds)]    
+
     
     @cached_property()
     def stretching_factors(self):
         """ return the stretching factor at each support point. A stretching
         factor of 1 indicates an arc-length parameterization of the curve """
-        tangent = np.gradient(self.points, axis=0)
-        return np.linalg.norm(tangent, axis=-1)
-    
-    
-    @cached_property()
-    def arc_lengths(self):
-        """ return the arc length up to each support point """
-        ds = np.linalg.norm(self.points[:-1] - self.points[1:], axis=1)
-        return np.r_[0, np.cumsum(ds)]
+        # calculate half the distance between points
+        dist2 = 0.5 * np.linalg.norm(self.points[:-1] - self.points[1:], axis=1)
+        factors = np.empty(self.num_points)
+        factors[0] = dist2[0]
+        factors[1:-1] = dist2[:-1] + dist2[1:]
+        factors[-1] = dist2[-1]
+        return factors
     
     
     @cached_property()

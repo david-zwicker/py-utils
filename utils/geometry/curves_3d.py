@@ -27,7 +27,7 @@ class Curve3D(object):
             quantities, like tangent vectors, are smoothed. The default value
             of zero means no smoothing.
         '''
-        self.points = points
+        self.points = points  # implicitly convert to numpy array
         self.smoothing_distance = smoothing_distance
         if self.points.size > 0 and self.points.shape[1] != 3:
             raise ValueError('points must be a nx3 array.')
@@ -48,11 +48,11 @@ class Curve3D(object):
     
     @property
     def smoothing_distance(self):
-        return self._deriv_smoothing
+        return self._smoothing_distance
     
     @smoothing_distance.setter
     def smoothing_distance(self, smoothing_distance):
-        self._deriv_smoothing = smoothing_distance
+        self._smoothing_distance = smoothing_distance
         # clear cache
         self._cache_methods = {}
         

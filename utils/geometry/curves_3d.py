@@ -255,6 +255,7 @@ class Curve3D(object):
             `linear` interpolation.
         """
         if extrapolate:
+            # this requires scipy version 0.17 
             fill_value = 'extrapolate'
         else:
             fill_value = None

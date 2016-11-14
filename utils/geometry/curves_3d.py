@@ -40,8 +40,10 @@ class Curve3D(object):
     @points.setter
     def points(self, points):
         self._points = np.atleast_2d(points)
+        if self._points.ndim != 2:
+            raise ValueError('Coordinates must be a 2d array')
         if self._points.size > 0 and self._points.shape[-1] != 3:
-            raise ValueError('Coordinates must be 3-dimensional.')
+            raise ValueError('Coordinates must be 3-dimensional')
         # clear cache
         self._cache_methods = {}
     
@@ -138,8 +140,11 @@ class Curve3D(object):
     
     @cached_property()
     def stretching_factors(self):
-        """ return the stretching factor at each support point. A stretching
-        factor of 1 indicates an arc-length parameterization of the curve """
+        """ return the stretching factor at each support point. The stretching
+        factor is the discrete version of ds/dt, where `s` is the arc length and 
+        t is the actual parameterization. Consequently, a stretching factor
+        of 1 indicates an arc-length parameterization of the curve.
+        """
         # calculate half the distance between points
         dist2 = 0.5 * np.linalg.norm(self.points[:-1] - self.points[1:], axis=1)
         factors = np.empty(self.num_points)
@@ -175,6 +180,21 @@ class Curve3D(object):
         return self._smooth_variable(curvatures)
         
         
+    @cached_property()
+    def torsions(self):
+        """ return the torsion at each support point """
+        if len(self.points) < 3:
+            # handle the trivial case
+            return np.zeros(len(self.points))
+        
+        with np.errstate(divide='ignore', invalid='ignore'):
+            dbinormal_dt = np.gradient(self.binormals, axis=0)
+            torsions = -np.einsum('ij,ij->i', self.normals, dbinormal_dt)
+            torsions /= self.stretching_factors
+            
+        return self._smooth_variable(torsions)
+
+        
     def iter(self, data=None):
         """ iterates over the points and returns their coordinates
         
@@ -203,7 +223,8 @@ class Curve3D(object):
             # return extra data
             if data == 'all':
                 data = {'tangent', 'normal', 'binormal', 'unit_vectors',
-                        'curvature', 'arc_length', 'stretching_factor'}
+                        'curvature', 'torsion', 'arc_length',
+                        'stretching_factor'}
             else:
                 data = set(data)
 
@@ -227,8 +248,8 @@ class Curve3D(object):
                 calculated['arc_length'] = self.arc_lengths
             if 'curvature' in data:
                 calculated['curvature'] = self.curvatures
-
-            # TODO: Implement Torsion
+            if 'torsion' in data:
+                calculated['torsion'] = self.torsions
 
             # return the requested data
             for n, p in enumerate(self.points):

@@ -60,6 +60,7 @@ class TestCurves3D(unittest.TestCase):
             # treat end points differently
             f = 0.5 if k == 0 or k == c.num_points - 1 else 1
             self.assertAlmostEqual(d['stretching_factor'], f)
+            self.assertTrue(np.isnan(d['torsion']))
             
         # test intersections with plane
         p = c.plane_intersects((0, 0, 0.5), (0, 0, 1))
@@ -104,6 +105,8 @@ class TestCurves3D(unittest.TestCase):
                 self.assertAlmostEqual(d['stretching_factor'],
                                        2*np.pi*r*f / (len(a) - 1), 5)
             
+                self.assertAlmostEqual(d['torsion'], 0)
+
             # check the unit_vector system
             for k, (p, d) in enumerate(c.iter(data=['unit_vectors'])):
                 np.testing.assert_array_equal(p, ps[k])
@@ -165,6 +168,8 @@ class TestCurves3D(unittest.TestCase):
                            
             curvature = (a * np.sqrt(a**2 + f * (1 + b**2)) /
                             (a**2 + f) ** (3/2))
+            
+            torsion = (b + b**3) * np.exp(b*t) / (a**2 + (1 + b**2)*f)
                            
             self.assertAlmostEqual(c.length, arc_len.sum(), 1)
             self.assertAlmostEqual(c.length, c.stretching_factors.sum())
@@ -176,15 +181,18 @@ class TestCurves3D(unittest.TestCase):
                                            atol=0.05)
                 np.testing.assert_allclose(d['curvature'], curvature[k],
                                            atol=0.1)
+                if 1 < k < len(t) - 2:
+                    np.testing.assert_allclose(d['torsion'], torsion[k],
+                           atol=0.1, err_msg='%d' % k )
                 f = 0.5 if k == 0 or k == len(t) - 1 else 1
                 np.testing.assert_allclose(d['stretching_factor'], f*arc_len[k],
-                                           atol=0.01)
+                                           atol=0.01, rtol=0.2)
         
         
     def test_random_curve(self):
         """ generate a random curve """
-        ps = np.random.rand(8, 3)
-        ps += np.arange(8)[:, None]
+        ps = np.random.rand(16, 3)
+        ps += np.arange(16)[:, None]
         
         c = Curve3D(ps)
         c = c.make_equidistant(count=32)
@@ -206,7 +214,7 @@ class TestCurves3D(unittest.TestCase):
         self.assertNotEqual(c_len, c2.length)  # check that something changed
         self.assertAlmostEqual(c_len, c2.length, places=2)  # but not too much
 
-        c2 = c.make_smooth()
+        c2 = c.make_smooth(smoothing=10)
         self.assertNotEqual(c_len, c2.length)  # check that something changed
         self.assertAlmostEqual(c_len, c2.length, places=1)  # but not too much
 

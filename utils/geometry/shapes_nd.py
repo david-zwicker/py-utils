@@ -10,18 +10,113 @@ import numpy as np
 
 
 
-def project_point_on_line(point, p_line_1, p_line_2):
-    """ projects a `point` onto a line given by two points """
-    # make sure that the points are numpy arrays 
-    point = np.asanyarray(point)
-    p_line_1 = np.asanyarray(p_line_1)
-    p_line_2 = np.asanyarray(p_line_2)
+class Line(object):
+    """ represents a line in n dimensions """
     
-    v_p = point - p_line_1 
-    v_line = p_line_2 - p_line_1
-    return p_line_1 + np.dot(v_p, v_line) / np.dot(v_line, v_line) * v_line
+    def __init__(self, origin, direction):
+        self.origin = np.asanyarray(origin, np.double)
+        self.direction = direction  # normalizes the normal
+        
+    
+    @property
+    def direction(self):
+        return self._direction
+    
+    @direction.setter
+    def direction(self, value):
+        self._direction = np.asanyarray(value, np.double)
+        if self.origin.shape != self._direction.shape:
+            raise ValueError('Direction vector must have the same dimension as '
+                             'the origin vector')
+        self._direction /= np.linalg.norm(self._direction)    
+    
+    
+    @classmethod
+    def from_points(cls, point1, point2):
+        point1 = np.asanyarray(point1, np.double)
+        point2 = np.asanyarray(point2, np.double)
+        return cls(point1, point2 - point1)
+        
+  
+    @property
+    def dim(self):
+        return len(self.origin)
+
+        
+    def __repr__(self):
+        return "{cls}(origin={origin}, direction={direction})".format(
+                        cls=self.__class__.__name__,
+                        origin=self.origin, direction=self.direction)
+
+  
+    def contains_point(self, points):
+        """ tests whether the points lie on the plane """
+        p_o = points - self.origin
+        return np.isclose(np.abs(np.dot(p_o, self.direction)),
+                          np.linalg.norm(p_o, axis=-1))
+
+    
+    def project_point(self, points):
+        """ projects points onto the line """
+        points = np.asanyarray(points)
+        is_1d = (points.ndim == 1)
+        
+        p_o = points - self.origin
+        dist = np.dot(p_o, self.direction)
+        res = self.origin + np.outer(dist, self.direction)
+        return res[0] if is_1d else res
+    
 
 
+class Plane(object):
+    """ represents a plane in n dimensions """
+    
+    def __init__(self, origin, normal):
+        self.origin = np.asanyarray(origin, np.double)
+        self.normal = normal  # normalizes the normal
+        assert len(origin) == len(normal)
+            
+    @property
+    def normal(self):
+        return self._normal
+    
+    @normal.setter
+    def normal(self, value):
+        self._normal = np.asanyarray(value, np.double)
+        if self.origin.shape != self._normal.shape:
+            raise ValueError('Normal vector must have the same dimension as '
+                             'the origin vector')
+        self._normal /= np.linalg.norm(self._normal)
+        
+            
+    @property
+    def dim(self):
+        return len(self.origin)
+        
+        
+    def __repr__(self):
+        return "{cls}(origin={origin}, normal={normal})".format(
+                        cls=self.__class__.__name__,
+                        origin=self.origin, normal=self.normal)
+
+    
+    def contains_point(self, points):
+        """ tests whether the points lie on the plane """
+        p_o = points - self.origin
+        return np.isclose(np.dot(p_o, self.normal), 0)
+
+    
+    def project_point(self, points):
+        """ projects points onto this plane and returns the new coordinates """
+        points = np.asanyarray(points)
+        is_1d = (points.ndim == 1)
+        
+        p_o = points - self.origin
+        dist = np.dot(p_o, self.normal)
+        res = points - np.outer(dist, self.normal)
+        return res[0] if is_1d else res
+
+    
 
 class Cuboid(object):
     """ class that represents a cuboid in n dimensions """

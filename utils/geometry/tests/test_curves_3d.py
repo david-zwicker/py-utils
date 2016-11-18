@@ -183,7 +183,7 @@ class TestCurves3D(unittest.TestCase):
                                            atol=0.1)
                 if 1 < k < len(t) - 2:
                     np.testing.assert_allclose(d['torsion'], torsion[k],
-                           atol=0.1, err_msg='%d' % k )
+                                               atol=0.1, err_msg='%d' % k )
                 f = 0.5 if k == 0 or k == len(t) - 1 else 1
                 np.testing.assert_allclose(d['stretching_factor'], f*arc_len[k],
                                            atol=0.01, rtol=0.2)

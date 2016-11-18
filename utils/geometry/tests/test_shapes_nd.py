@@ -17,22 +17,67 @@ class TestShapesND(unittest.TestCase):
 
     _multiprocess_can_split_ = True  # let nose know that tests can run parallel
 
-    def test_project_point_on_line(self):
-        l1 = [0, 0]
-        l2 = [0, 1]
-        
-        p = shapes_nd.project_point_on_line([1, 1], l1, l2)
-        np.testing.assert_almost_equal(p, [0, 1])
-        p = shapes_nd.project_point_on_line([-1, -2], l1, l2)
-        np.testing.assert_almost_equal(p, [0, -2])
 
-        l1 = [0, 0]
-        l2 = [1, 1]
+    def test_line_2d(self):
+        """ test the Line class in 2d """
+        line = shapes_nd.Line.from_points([0, 0], [0, 1])
+        np.testing.assert_almost_equal(line.project_point([1, 1]), [0, 1])
+        np.testing.assert_almost_equal(line.project_point([-1, -2]), [0, -2])
+
+        line = shapes_nd.Line.from_points([0, 0], [1, 1])
+        np.testing.assert_almost_equal(line.project_point([[1, 0], [-2, -2]]),
+                                       [[0.5, 0.5], [-2, -2]])
+
+
+    def test_line(self):
+        """ tests the Line class """
+        # test simple nd case
+        dim = np.random.randint(4, 6)
+        origin = np.random.randn(dim)
+        direction = np.random.randn(dim)
+        line = shapes_nd.Line(origin, direction)
+
+        self.assertIsInstance(repr(line), str)
+        self.assertEqual(line.dim, dim)
+        p = np.random.randn(dim)
+        self.assertTrue(line.contains_point(line.project_point(p)))
+        ps = np.random.randn(5, dim)
+        self.assertTrue(np.all(line.contains_point(line.project_point(ps))))
         
-        p = shapes_nd.project_point_on_line([1, 0], l1, l2)
-        np.testing.assert_almost_equal(p, [0.5, 0.5])
-        p = shapes_nd.project_point_on_line([-2, -2], l1, l2)
-        np.testing.assert_almost_equal(p, [-2, -2])
+        # test wrong arguments
+        self.assertRaises(ValueError, lambda: shapes_nd.Line([], [1]))
+        self.assertRaises(ValueError, lambda: shapes_nd.Line([1], [1, 2]))
+        
+
+    def test_plane_2d(self):
+        """ test the Plane class in 2d """
+        plane = shapes_nd.Plane([0, 0], [0, 1])
+        np.testing.assert_almost_equal(plane.project_point([1, 1]), [1, 0])
+        np.testing.assert_almost_equal(plane.project_point([-1, -2]), [-1, 0])
+
+        plane = shapes_nd.Plane([2, 2], [2, 0])
+        np.testing.assert_almost_equal(plane.project_point([[1, 0], [-2, -2]]),
+                                       [[2, 0], [2, -2]])
+
+
+    def test_plane(self):
+        """ tests the Plane class """
+        # test simple nd case
+        dim = np.random.randint(4, 6)
+        origin = np.random.randn(dim)
+        normal = np.random.randn(dim)
+        plane = shapes_nd.Plane(origin, normal)
+        
+        self.assertIsInstance(repr(plane), str)
+        self.assertEqual(plane.dim, dim)
+        p = np.random.randn(dim)
+        self.assertTrue(plane.contains_point(plane.project_point(p)))
+        ps = np.random.randn(5, dim)
+        self.assertTrue(np.all(plane.contains_point(plane.project_point(ps))))
+        
+        # test wrong arguments
+        self.assertRaises(ValueError, lambda: shapes_nd.Plane([], [1]))
+        self.assertRaises(ValueError, lambda: shapes_nd.Plane([1], [1, 2]))
 
 
 

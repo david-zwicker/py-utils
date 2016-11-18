@@ -58,14 +58,14 @@ class Line(object):
     
     def project_point(self, points):
         """ projects points onto the line """
-        points = np.asanyarray(points)
+        points = np.asanyarray(points, np.double)
         is_1d = (points.ndim == 1)
         
         p_o = points - self.origin
         dist = np.dot(p_o, self.direction)
         res = self.origin + np.outer(dist, self.direction)
         return res[0] if is_1d else res
-    
+
 
 
 class Plane(object):
@@ -84,9 +84,27 @@ class Plane(object):
     def normal(self, value):
         self._normal = np.asanyarray(value, np.double)
         if self.origin.shape != self._normal.shape:
-            raise ValueError('Normal vector must have the same dimension as '
-                             'the origin vector')
+            raise ValueError('Normal vector (dim=%d) must have the same '
+                             'dimension as the origin vector (dim=%d)' %
+                             (len(self._normal), len(self.origin)))
         self._normal /= np.linalg.norm(self._normal)
+        
+    
+    @classmethod
+    def from_points(cls, points):
+        points = np.asanyarray(points, np.double)
+        num, dim = points.shape
+        if num < dim:
+            raise ValueError('At least as many points as dimensions are '
+                             'required to define a plane.')
+
+        # center the points
+        centroid = np.mean(points, axis=0)
+        points = points - centroid[None, :]
+        
+        # get normal from left singular vector of the smallest singular value
+        _, s, v = np.linalg.svd(points, full_matrices=False)
+        return cls(centroid, v[np.argmin(s)])
         
             
     @property
@@ -99,16 +117,21 @@ class Plane(object):
                         cls=self.__class__.__name__,
                         origin=self.origin, normal=self.normal)
 
+
+    def distance_point(self, points):
+        """ calculates the distance of points to the plane """
+        p_o = points - self.origin
+        return np.dot(p_o, self.normal)
+
     
     def contains_point(self, points):
         """ tests whether the points lie on the plane """
-        p_o = points - self.origin
-        return np.isclose(np.dot(p_o, self.normal), 0)
+        return np.isclose(self.distance_point(points), 0)
 
     
     def project_point(self, points):
         """ projects points onto this plane and returns the new coordinates """
-        points = np.asanyarray(points)
+        points = np.asanyarray(points, np.double)
         is_1d = (points.ndim == 1)
         
         p_o = points - self.origin

@@ -58,6 +58,22 @@ class TestShapesND(unittest.TestCase):
         plane = shapes_nd.Plane([2, 2], [2, 0])
         np.testing.assert_almost_equal(plane.project_point([[1, 0], [-2, -2]]),
                                        [[2, 0], [2, -2]])
+        
+        # test creating random plane
+        ps = np.random.randn(2, 2)
+        plane = shapes_nd.Plane.from_points(ps)
+        self.assertTrue(np.all(plane.contains_point(ps)))
+
+        ps = [[0, 0], [1, 1], [2, 2]]
+        plane = shapes_nd.Plane.from_points(ps)
+        self.assertTrue(np.all(plane.contains_point(ps)))
+
+        ps = [[0, 0], [1, 1], [2, 2. + 1e-10]]
+        plane = shapes_nd.Plane.from_points(ps)
+        np.testing.assert_almost_equal(plane.distance_point(ps), 0)
+        
+        self.assertRaises(ValueError,
+                          lambda: shapes_nd.Plane.from_points([[1, 2]]))
 
 
     def test_plane(self):

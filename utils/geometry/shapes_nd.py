@@ -92,6 +92,7 @@ class Plane(object):
     
     @classmethod
     def from_points(cls, points):
+        """ estimates a plane from a point cloud """
         points = np.asanyarray(points, np.double)
         num, dim = points.shape
         if num < dim:

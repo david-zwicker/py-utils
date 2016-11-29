@@ -36,6 +36,22 @@ class TestXml(unittest.TestCase):
         self._assert_xml_write('<a>c</a>', 'a', body="c")
         self._assert_xml_write('<a b="b">c</a>', 'a', {'b': "b"}, "c")
         
+        
+    def test_xml_fail(self):
+        """ test error handling of the XML writer """
+        def init_writer():
+            s = StringIO()
+            writer = xml_tools.XMLStreamWriter(s)
+            writer.start_tag('a')
+            return writer
+        
+        writer = init_writer()
+        self.assertRaises(ValueError, lambda: writer.end_tag('b'))
+
+        writer = init_writer()
+        writer.end_tag('a')
+        self.assertRaises(IndexError, lambda: writer.end_tag('b'))
+        
 
 
 if __name__ == "__main__":

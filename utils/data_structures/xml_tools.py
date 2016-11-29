@@ -15,10 +15,11 @@ class XMLStreamWriter(object):
     """ class for writing an xml file iteratively """
 
 
-    def __init__(self, out=None):
-        """ initializes the writer with a stream to write to. If `out=None`, the
-        output is writen to sys.stdout """
-        self._generator = XMLGenerator(out, 'utf-8')
+    def __init__(self, filehandle=None):
+        """ initializes the writer with a stream to write to. If
+        `filehandle=None`, the output is written to sys.stdout """
+        self._generator = XMLGenerator(filehandle, 'utf-8')
+        self._tags = []
 
 
     def start_tag(self, name, attr=None, body=None, namespace=None):
@@ -36,10 +37,20 @@ class XMLStreamWriter(object):
         
         if body:
             self._generator.characters(str(body))
+            
+        self._tags.append(name)
     
     
-    def end_tag(self, name, namespace=None):
+    def end_tag(self, name=None, namespace=None):
         """ and tag `name` """
+        close_tag = self._tags.pop()
+        
+        if name is not None:
+            if name != close_tag:
+                raise ValueError('Cannot close tag `%s`, since the last opened '
+                                 'tag was `%s`' % (name, close_tag))
+                
+        
         self._generator.endElementNS((namespace, name), name)
     
     

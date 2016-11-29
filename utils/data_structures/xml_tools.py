@@ -17,12 +17,16 @@ class XMLStreamWriter(object):
     """ class for writing an xml file iteratively """
 
 
-    def __init__(self, file_handle=None):
+    def __init__(self, file_handle=None, header='<?xml version="1.0" ?>'):
         """ initializes the writer with a stream to write to. If
         `filehandle=None`, the output is written to sys.stdout """
         if file_handle is None:
             file_handle = sys.stdout
         self.file_handle = file_handle
+        
+        if header:
+            self.file_handle.write(header)
+            
         self._generator = XMLGenerator(file_handle, 'utf-8')
         self._tags = []
 

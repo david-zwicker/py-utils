@@ -6,6 +6,8 @@ Created on Nov 28, 2016
 
 from __future__ import division
 
+import sys
+
 from xml.sax.saxutils import XMLGenerator
 from xml.sax.xmlreader import AttributesNSImpl
 
@@ -15,10 +17,13 @@ class XMLStreamWriter(object):
     """ class for writing an xml file iteratively """
 
 
-    def __init__(self, filehandle=None):
+    def __init__(self, file_handle=None):
         """ initializes the writer with a stream to write to. If
         `filehandle=None`, the output is written to sys.stdout """
-        self._generator = XMLGenerator(filehandle, 'utf-8')
+        if file_handle is None:
+            file_handle = sys.stdout
+        self.file_handle = file_handle
+        self._generator = XMLGenerator(file_handle, 'utf-8')
         self._tags = []
 
 

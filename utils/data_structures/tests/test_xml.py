@@ -22,7 +22,7 @@ class TestXml(unittest.TestCase):
 
     def _assert_xml_write(self, intent, tag_name, attr=None, body=None):
         s = StringIO()
-        writer = xml_tools.XMLStreamWriter(s)
+        writer = xml_tools.XMLStreamWriter(s, header="")
         writer.tag(tag_name, attr, body)
         self.assertEqual(s.getvalue(), intent)
         s.close()

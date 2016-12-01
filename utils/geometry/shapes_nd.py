@@ -162,6 +162,11 @@ class Plane(object):
         dist = np.dot(p_o, self.normal)
         res = points - np.outer(dist, self.normal)
         return res[0] if is_1d else res
+    
+    
+    def flip_normal(self):
+        """ returns a plane with the normal flipped """
+        return self.__class__(self.origin, -self.normal)
 
     
 

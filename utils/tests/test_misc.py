@@ -114,5 +114,6 @@ class TestMisc(unittest.TestCase):
         self.assertEqual(len(pairwise(range(10))), 9)
 
 
+
 if __name__ == "__main__":
     unittest.main()

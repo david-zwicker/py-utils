@@ -54,6 +54,7 @@ class TestShapesND(unittest.TestCase):
         plane1 = shapes_nd.Plane([0, 0], [0, 1])
         np.testing.assert_almost_equal(plane1.project_point([1, 1]), [1, 0])
         np.testing.assert_almost_equal(plane1.project_point([-1, -2]), [-1, 0])
+        np.testing.assert_almost_equal(plane1.flip_normal().normal, [0, -1])
 
         plane2 = shapes_nd.Plane([2, 2], [2, 0])
         np.testing.assert_almost_equal(plane2.project_point([[1, 0], [-2, -2]]),
@@ -91,6 +92,7 @@ class TestShapesND(unittest.TestCase):
         origin = np.random.randn(dim)
         normal = np.random.randn(dim)
         plane = shapes_nd.Plane(origin, normal)
+        np.testing.assert_almost_equal(plane.flip_normal().normal, -normal)
         
         self.assertIsInstance(repr(plane), str)
         self.assertEqual(plane.dim, dim)

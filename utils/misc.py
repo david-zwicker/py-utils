@@ -8,10 +8,13 @@ from __future__ import division
 
 import functools
 import logging
+import itertools
 import sys
 import timeit
 import types
 import warnings
+
+from six.moves import zip
 
 try:
     from tqdm import tqdm
@@ -213,3 +216,11 @@ def unique_based_on_id(data):
             result.append(item)
             seen.add(id(item))
     return result
+
+
+
+def iter_pairwise(iterable):
+    """ iterates over pairs of the iterable """
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return zip(a, b)

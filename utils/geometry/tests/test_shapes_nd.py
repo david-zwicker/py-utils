@@ -51,29 +51,37 @@ class TestShapesND(unittest.TestCase):
 
     def test_plane_2d(self):
         """ test the Plane class in 2d """
-        plane = shapes_nd.Plane([0, 0], [0, 1])
-        np.testing.assert_almost_equal(plane.project_point([1, 1]), [1, 0])
-        np.testing.assert_almost_equal(plane.project_point([-1, -2]), [-1, 0])
+        plane1 = shapes_nd.Plane([0, 0], [0, 1])
+        np.testing.assert_almost_equal(plane1.project_point([1, 1]), [1, 0])
+        np.testing.assert_almost_equal(plane1.project_point([-1, -2]), [-1, 0])
 
-        plane = shapes_nd.Plane([2, 2], [2, 0])
-        np.testing.assert_almost_equal(plane.project_point([[1, 0], [-2, -2]]),
+        plane2 = shapes_nd.Plane([2, 2], [2, 0])
+        np.testing.assert_almost_equal(plane2.project_point([[1, 0], [-2, -2]]),
                                        [[2, 0], [2, -2]])
+        self.assertNotEqual(plane1, plane2)
         
         # test creating random plane
         ps = np.random.randn(2, 2)
-        plane = shapes_nd.Plane.from_points(ps)
-        self.assertTrue(np.all(plane.contains_point(ps)))
+        plane3 = shapes_nd.Plane.from_points(ps)
+        self.assertTrue(np.all(plane3.contains_point(ps)))
 
         ps = [[0, 0], [1, 1], [2, 2]]
-        plane = shapes_nd.Plane.from_points(ps)
-        self.assertTrue(np.all(plane.contains_point(ps)))
+        plane4 = shapes_nd.Plane.from_points(ps)
+        self.assertTrue(np.all(plane4.contains_point(ps)))
 
         ps = [[0, 0], [1, 1], [2, 2. + 1e-10]]
-        plane = shapes_nd.Plane.from_points(ps)
-        np.testing.assert_almost_equal(plane.distance_point(ps), 0)
+        plane5 = shapes_nd.Plane.from_points(ps)
+        np.testing.assert_almost_equal(plane5.distance_point(ps), 0)
         
         self.assertRaises(ValueError,
                           lambda: shapes_nd.Plane.from_points([[1, 2]]))
+        
+        plane6 = shapes_nd.Plane.from_average([plane1])
+        self.assertEqual(plane1, plane6)
+        plane_t = shapes_nd.Plane([0, 2], [0, 1])
+        plane7 = shapes_nd.Plane.from_average([plane1, plane_t])
+        np.testing.assert_almost_equal(plane7.origin, [0, 1])
+        np.testing.assert_almost_equal(plane7.normal, [0, 1])
 
 
     def test_plane(self):

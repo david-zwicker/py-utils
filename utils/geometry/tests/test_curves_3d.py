@@ -191,11 +191,11 @@ class TestCurves3D(unittest.TestCase):
         
     def test_random_curve(self):
         """ generate a random curve """
-        ps = np.random.rand(16, 3)
-        ps += np.arange(16)[:, None]
+        ps = np.random.rand(32, 3)
+        ps += np.arange(32)[:, None]
         
         c = Curve3D(ps)
-        c = c.make_equidistant(count=32)
+        c = c.make_equidistant(count=64)
         c = c.make_smooth()
         
         for _, d in c.iter(data=['unit_vectors']):

@@ -75,6 +75,7 @@ class Plane(object):
         self.origin = np.asanyarray(origin, np.double)
         self.normal = normal  # normalizes the normal
         assert len(origin) == len(normal)
+        
             
     @property
     def normal(self):
@@ -107,6 +108,13 @@ class Plane(object):
         _, s, v = np.linalg.svd(points, full_matrices=False)
         return cls(centroid, v[np.argmin(s)])
         
+    
+    @classmethod
+    def from_average(cls, planes):
+        """ creates a plane by averaging other planes """
+        return cls(origin=np.mean([plane.origin for plane in planes], axis=0),
+                   normal=np.mean([plane.normal for plane in planes], axis=0))
+        
             
     @property
     def dim(self):
@@ -119,6 +127,21 @@ class Plane(object):
                         origin=self.origin, normal=self.normal)
 
 
+    def __eq__(self, other):
+        """ override the default equality test """
+        if isinstance(other, self.__class__):
+            return (np.all(self.origin == other.origin) and 
+                    np.all(self.normal == other.normal))
+        return NotImplemented
+
+
+    def __ne__(self, other):
+        """ overwrite the default non-equality test """
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+    
+    
     def distance_point(self, points):
         """ calculates the distance of points to the plane """
         p_o = points - self.origin

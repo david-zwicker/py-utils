@@ -32,10 +32,10 @@ class Line(object):
     
     
     @classmethod
-    def from_points(cls, point1, point2):
+    def from_points(cls, point1, point2, **kwargs):
         point1 = np.asanyarray(point1, np.double)
         point2 = np.asanyarray(point2, np.double)
-        return cls(point1, point2 - point1)
+        return cls(point1, point2 - point1, **kwargs)
         
   
     @property
@@ -92,7 +92,7 @@ class Plane(object):
         
     
     @classmethod
-    def from_points(cls, points):
+    def from_points(cls, points, **kwargs):
         """ estimates a plane from a point cloud """
         points = np.asanyarray(points, np.double)
         num, dim = points.shape
@@ -106,14 +106,15 @@ class Plane(object):
         
         # get normal from left singular vector of the smallest singular value
         _, s, v = np.linalg.svd(points, full_matrices=False)
-        return cls(centroid, v[np.argmin(s)])
+        return cls(centroid, v[np.argmin(s)], **kwargs)
         
     
     @classmethod
-    def from_average(cls, planes):
+    def from_average(cls, planes, **kwargs):
         """ creates a plane by averaging other planes """
         return cls(origin=np.mean([plane.origin for plane in planes], axis=0),
-                   normal=np.mean([plane.normal for plane in planes], axis=0))
+                   normal=np.mean([plane.normal for plane in planes], axis=0),
+                   **kwargs)
         
             
     @property
@@ -179,16 +180,16 @@ class Cuboid(object):
         assert len(self.pos) == len(self.size)
         
     @classmethod
-    def from_points(cls, p1, p2):
+    def from_points(cls, p1, p2, **kwargs):
         p1 = np.asarray(p1)
         p2 = np.asarray(p2)
-        return cls(np.minimum(p1, p2), np.abs(p1 - p2))
+        return cls(np.minimum(p1, p2), np.abs(p1 - p2), **kwargs)
     
     @classmethod
-    def from_centerpoint(cls, centerpoint, size):
+    def from_centerpoint(cls, centerpoint, size, **kwargs):
         centerpoint = np.asarray(centerpoint)
         size = np.asarray(size)
-        return cls(centerpoint - size/2, size)
+        return cls(centerpoint - size/2, size, **kwargs)
     
     def copy(self):
         return self.__class__(self.pos, self.size)

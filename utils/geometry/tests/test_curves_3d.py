@@ -249,13 +249,12 @@ class TestCurves3D(unittest.TestCase):
         ps = np.random.rand(32, 3)
         c1 = Curve3D(ps)
         
-        # create testfile
+        # write curve to temporary file
         outfile = tempfile.NamedTemporaryFile(suffix='.xyz')
-        
-        # write and read the file again
         c1.write_to_xyz(outfile.name, header="Invalid, should be ignored")
-        c2 = Curve3D.from_file_xyz(outfile.name)
         
+        # read the data and check whether its correct
+        c2 = Curve3D.from_file(outfile.name)
         np.testing.assert_allclose(c1.points, c2.points)
 
 

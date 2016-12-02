@@ -47,6 +47,16 @@ class Curve3D(object):
         # clear cache
         self._cache_methods = {}
     
+
+    @classmethod
+    def from_file(cls, filename):
+        """ read a polyline from a file. The format is chosen automatically
+        based on the file extension """
+        if filename.endswith('.xyz'):
+            return cls.from_file_xyz(filename)
+        else:
+            raise ValueError('Do not know how to read file `%s`' % filename)
+
     
     @classmethod
     def from_file_xyz(cls, filename):

@@ -247,15 +247,21 @@ class TestCurves3D(unittest.TestCase):
         """ test the input and output routines """
         # create random curve
         ps = np.random.rand(32, 3)
-        c1 = Curve3D(ps)
+        sd = 1 + np.random.rand()
+        c1 = Curve3D(ps, smoothing_distance=sd)
+        
+        # test copying the curve
+        c2 = c1.copy()
+        np.testing.assert_allclose(c1.points, c2.points)
+        self.assertEqual(c1.smoothing_distance, c2.smoothing_distance)
         
         # write curve to temporary file
         outfile = tempfile.NamedTemporaryFile(suffix='.xyz')
         c1.write_to_xyz(outfile.name, header="Invalid, should be ignored")
         
         # read the data and check whether its correct
-        c2 = Curve3D.from_file(outfile.name)
-        np.testing.assert_allclose(c1.points, c2.points)
+        c3 = Curve3D.from_file(outfile.name)
+        np.testing.assert_allclose(c1.points, c3.points)
 
 
 

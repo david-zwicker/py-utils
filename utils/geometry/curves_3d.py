@@ -46,6 +46,11 @@ class Curve3D(object):
             raise ValueError('Coordinates must be 3-dimensional')
         # clear cache
         self._cache_methods = {}
+        
+        
+    def copy(self):
+        """ return a copy of this class """
+        return self.__class__(self.points, self.smoothing_distance)
     
 
     @classmethod

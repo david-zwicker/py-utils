@@ -50,7 +50,7 @@ class Curve3D(object):
         
     def copy(self):
         """ return a copy of this class """
-        return self.__class__(self.points, self.smoothing_distance)
+        return self.__class__(self.points.copy(), self.smoothing_distance)
     
 
     @classmethod

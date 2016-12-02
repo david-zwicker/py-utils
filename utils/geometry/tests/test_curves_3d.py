@@ -7,6 +7,7 @@ Created on Aug 29, 2016
 from __future__ import division
 
 import unittest
+import tempfile
 
 import numpy as np
 
@@ -240,6 +241,22 @@ class TestCurves3D(unittest.TestCase):
                 self.assertAlmostEqual(d['arc_length'], k * np.sqrt(3))
                 f = 0.5 if k == 0 or k == 3 else 1
                 self.assertAlmostEqual(d['stretching_factor'], f * np.sqrt(3))
+
+
+    def test_io(self):
+        """ test the input and output routines """
+        # create random curve
+        ps = np.random.rand(32, 3)
+        c1 = Curve3D(ps)
+        
+        # create testfile
+        outfile = tempfile.NamedTemporaryFile(suffix='.xyz')
+        
+        # write and read the file again
+        c1.write_to_xyz(outfile.name, header="Invalid, should be ignored")
+        c2 = Curve3D.from_file_xyz(outfile.name)
+        
+        np.testing.assert_allclose(c1.points, c2.points)
 
 
 

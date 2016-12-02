@@ -48,6 +48,25 @@ class Curve3D(object):
         self._cache_methods = {}
     
     
+    @classmethod
+    def from_file_xyz(cls, filename):
+        """ read polyline from a xyz file """
+        with open(filename, "r") as fp:
+            num_p = int(fp.readline())  # read number of points
+            fp.readline()  # skip header
+        
+            # read the data from the file    
+            data = np.loadtxt(fp, dtype=np.double, delimiter=' ',
+                              usecols=(1, 2, 3), ndmin=2)
+        
+        if data.shape != (num_p, 3):
+            raise RuntimeError('The shape %s of the data read from the file '
+                               '`%s` does not match the expectation (%d, 3).' %
+                               (data.shape, filename, num_p))
+            
+        return cls(data)
+
+    
     @property
     def smoothing_distance(self):
         return self._smoothing_distance
@@ -438,7 +457,7 @@ class Curve3D(object):
             fp.write("%d\n" % num_p)
             fp.write("%s\n" % header)
             for p in self.points:
-                fp.write(element + ' %d %d %d\n' % p)
+                fp.write(element + ' {} {} {}\n'.format(*p))
                         
                         
                     

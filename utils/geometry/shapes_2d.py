@@ -9,7 +9,7 @@ from __future__ import division
 import itertools
 
 import numpy as np
-from scipy import spatial
+from scipy import optimize, spatial
 
 from six.moves import range
 
@@ -92,10 +92,12 @@ def register_polygons(coords1, coords2):
     vertex of the first polygon an index into `coords2` to describe the edge.
     The second list is the associated list for edges from polygon 2 to 1.  
     
-    
     The algorithm tries to produce non-crossing edges with minimal length, which
     could be useful for morphing one polygon into the other. This algorithm
-    works best when the centroids are close to each other.    
+    works best when the centroids are close to each other. Note that this 
+    implementation iterates through all possible edge combinations of a
+    problematic region. If the polygons are complex and don't overlap well, this
+    algorithm might take a very long times to yield a result.  
     """
     p1 = np.array(coords1, dtype=np.double, copy=True)
     p2 = np.array(coords2, dtype=np.double, copy=True)
@@ -133,3 +135,82 @@ def register_polygons(coords1, coords2):
 
 
 
+def register_polygons_fast(coords1, coords2, **kwargs):
+    """ returns oriented edges between two polygons that are given by their
+    coordinate sequences. 
+    
+    The function returns two list describing the edges that connect the two
+    polygons. The first list is of length `len(coords1)` and gives for each
+    vertex of the first polygon an index into `coords2` to describe the edge.
+    The second list is the associated list for edges from polygon 2 to 1.  
+    
+    The algorithm tries to produce non-crossing edges with minimal length, which
+    could be useful for morphing one polygon into the other. This algorithm
+    works best when the centroids are close to each other. This implementation
+    uses stochastic global optimization to find a good solution quickly.
+    However, this doesn't guarantee that the optimal solution is found.
+    Moreover, subsequent calls with the same arguments might lead to different
+    results. The algorithm uses `scipy.optimize.basinhopping` to find the
+    solution with minimal total edge length. Keyword arguments supplied to this
+    functions are directly passed down to `basinhopping` and can thus be used to
+    influence the search.
+    """
+    dim1, dim2 = len(coords1), len(coords2)
+        
+    # determine distance between all points
+    dists = spatial.distance_matrix(coords1, coords2)
+    
+    # determine starting edge (with minimal distance)
+    i1, i2 = np.unravel_index(np.argmin(dists), dists.shape)
+    
+    # place the other edges equidistantly in index space
+    e1 = np.roll(np.linspace(i2, i2 + dim2, num=dim1, dtype=np.int) % dim2, i1)
+    e2 = np.roll(np.linspace(i1, i1 + dim1, num=dim2, dtype=np.int) % dim1, i2)
+    x0 = np.r_[e1, e2]    
+    
+    def calc_cost(x):
+        """ cost function = total edge length """
+        x = x.astype(np.int)
+        x1, x2 = x[:dim1], x[dim1:]
+        return (dists[np.arange(dim1), x1].sum() +
+                dists[x2, np.arange(dim2)].sum())    
+    
+    def take_step(x):
+        """ modifies one edge randomly """
+        for _ in range(10):  # test at most 10 edges 
+            k = np.random.randint(dim1 + dim2)
+            if k < dim1:
+                # modify edge from 1 to 2
+                x_p = x[(k - 1) % dim1]
+                x_n = x[(k + 1) % dim1]
+                if x_n == x_p:
+                    continue  # this edge is fixed => try another
+                if x_n < x_p:
+                    x_n += dim2  # wrap around
+                x[k] = np.random.randint(x_p, x_n) % dim2
+                break
+            else:
+                # modify edge from 2 to 1
+                k -= dim1
+                x_p = x[dim1 + (k - 1) % dim2]
+                x_n = x[dim1 + (k + 1) % dim2]
+                if x_n == x_p:
+                    continue  # this edge is fixed => try another
+                if x_n < x_p:
+                    x_n += dim1  # wrap around
+                x[dim1 + k] = np.random.randint(x_p, x_n) % dim1
+                break
+        return x    
+    
+    # determine parameters
+    niter = kwargs.pop('niter', None)
+    if niter is None:
+        niter = 10 * (dim1 + dim2)  # move each edge about 10 times
+    
+    # run the global optimization
+    res = optimize.basinhopping(calc_cost, x0, niter=niter, take_step=take_step,
+                                **kwargs)
+    
+    # return optimal edges
+    x = res.x.astype(np.int)
+    return x[:dim1], x[dim1:]

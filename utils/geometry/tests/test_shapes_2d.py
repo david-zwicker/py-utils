@@ -19,9 +19,9 @@ class TestShapes2D(unittest.TestCase):
     _multiprocess_can_split_ = True  # let nose know that tests can run parallel
 
 
-    def _check_edges(self, edges):
-        edges = np.r_[edges, edges[0]]  # periodic boundary
-        self.assertEqual(np.count_nonzero(np.diff(edges) < 0), 1)
+    def _check_edges(self, edges, msg=None):
+        e_ids = np.r_[edges, edges[0]]   # periodic boundary
+        self.assertEqual(np.count_nonzero(np.diff(e_ids) < 0), 1, msg=msg)
     
 
     def test_iter_problematic_edges(self):
@@ -45,15 +45,19 @@ class TestShapes2D(unittest.TestCase):
 
     def test_register_polygons(self):
         """ test the polygon registration with constructed polygons """
-        # constructed case
-        p1 = np.array([(0, 0), (0, 1), (1, 1), (1, 0)])
-        p2 = np.array([(0.3, 1), (1, 1.4), (0.3, 0.6), (1, 0), (0.1, 0)])
-        p2 += np.array([0.1, 0.1])
-        
-        e12, e21 = shapes_2d.register_polygons(p1, p2)
-        
-        self._check_edges(e12)
-        self._check_edges(e21)
+        for fast in (True, False):
+            # constructed case
+            p1 = np.array([(0, 0), (0, 1), (1, 1), (1, 0)])
+            p2 = np.array([(0.3, 1), (1, 1.4), (0.3, 0.6), (1, 0), (0.1, 0)])
+            p2 += np.array([0.1, 0.1])
+            
+            if fast:
+                e12, e21 = shapes_2d.register_polygons_fast(p1, p2)
+            else:
+                e12, e21 = shapes_2d.register_polygons(p1, p2)
+            
+            self._check_edges(e12, msg='Edge 1->2, fast=%s' % fast)
+            self._check_edges(e21, msg='Edge 2->1, fast=%s' % fast)
 
 
     def test_register_polygons_random(self):
@@ -73,10 +77,14 @@ class TestShapes2D(unittest.TestCase):
             p1 = random_poly()
             p2 = random_poly()
     
-            e12, e21 = shapes_2d.register_polygons(p1, p2)
-            
-            self._check_edges(e12)
-            self._check_edges(e21)
+            for fast in (True, False):
+                if fast:
+                    e12, e21 = shapes_2d.register_polygons_fast(p1, p2)
+                else:
+                    e12, e21 = shapes_2d.register_polygons(p1, p2)
+                
+                self._check_edges(e12, msg='Edge 1->2, fast=%s' % fast)
+                self._check_edges(e21, msg='Edge 2->1, fast=%s' % fast)
 
 
 

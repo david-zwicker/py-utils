@@ -135,7 +135,7 @@ def register_polygons(coords1, coords2):
 
 
 
-def register_polygons_fast(coords1, coords2, **kwargs):
+def register_polygons_fast(coords1, coords2, ret_dists=False, opt_args=None):
     """ returns oriented edges between two polygons that are given by their
     coordinate sequences. 
     
@@ -151,9 +151,8 @@ def register_polygons_fast(coords1, coords2, **kwargs):
     However, this doesn't guarantee that the optimal solution is found.
     Moreover, subsequent calls with the same arguments might lead to different
     results. The algorithm uses `scipy.optimize.basinhopping` to find the
-    solution with minimal total edge length. Keyword arguments supplied to this
-    functions are directly passed down to `basinhopping` and can thus be used to
-    influence the search.
+    solution with minimal total edge length. The optimization algorithm can be
+    influences by passing suitable keyword arguments using `opt_args`
     """
     dim1, dim2 = len(coords1), len(coords2)
         
@@ -203,14 +202,19 @@ def register_polygons_fast(coords1, coords2, **kwargs):
         return x    
     
     # determine parameters
-    niter = kwargs.pop('niter', None)
+    if opt_args is None:
+        opt_args = {}
+    niter = opt_args.pop('niter', None)
     if niter is None:
         niter = 10 * (dim1 + dim2)  # move each edge about 10 times
     
     # run the global optimization
     res = optimize.basinhopping(calc_cost, x0, niter=niter, take_step=take_step,
-                                **kwargs)
+                                **opt_args)
     
     # return optimal edges
     x = res.x.astype(np.int)
-    return x[:dim1], x[dim1:]
+    if ret_dists:
+        return x[:dim1], x[dim1:], dists
+    else:
+        return x[:dim1], x[dim1:]

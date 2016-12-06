@@ -215,7 +215,7 @@ class TestCurves3D(unittest.TestCase):
         self.assertNotEqual(c_len, c2.length)  # check that something changed
         self.assertAlmostEqual(c_len, c2.length, places=2)  # but not too much
 
-        c2 = c.make_smooth(smoothing=10)
+        c2 = c.make_smooth(smoothing=100)
         self.assertNotEqual(c_len, c2.length)  # check that something changed
         self.assertAlmostEqual(c_len, c2.length, places=1)  # but not too much
 

@@ -219,8 +219,10 @@ def unique_based_on_id(data):
 
 
 
-def iter_pairwise(iterable):
+def iter_pairwise(iterable, circular=False):
     """ iterates over pairs of the iterable """
     a, b = itertools.tee(iterable)
-    next(b, None)
+    first_item = next(b, None)
+    if circular:
+        b = itertools.chain(b, [first_item])
     return zip(a, b)

@@ -113,6 +113,15 @@ class TestMisc(unittest.TestCase):
         self.assertSequenceEqual(pairwise([1, 2, 3]), [(1, 2), (2, 3)])
         self.assertEqual(len(pairwise(range(10))), 9)
 
+        def pairwise_c(iterable):
+            return list(misc.iter_pairwise(iterable, circular=True))
+        self.assertSequenceEqual(pairwise_c([]), [])
+        self.assertSequenceEqual(pairwise_c([1]), [(1, 1)])
+        self.assertSequenceEqual(pairwise_c([1, 2]), [(1, 2), (2, 1)])
+        self.assertSequenceEqual(pairwise_c([1, 2, 3]),
+                                 [(1, 2), (2, 3), (3, 1)])
+        self.assertEqual(len(pairwise_c(range(10))), 10)
+
 
 
 if __name__ == "__main__":

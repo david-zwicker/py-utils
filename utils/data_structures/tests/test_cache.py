@@ -291,8 +291,8 @@ class TestCache(unittest.TestCase):
             
             # clear the cache before the first and the last pass
             if k == 0 or k == 2:
-                CacheTest.cached.clear_cache(obj)
-                CacheTest.cached_kwarg.clear_cache(obj)
+                CacheTest.cached.clear_cache_of_obj(obj)
+                CacheTest.cached_kwarg.clear_cache_of_obj(obj)
                 obj.counter = 0
             
             # test uncached method
@@ -329,7 +329,7 @@ class TestCache(unittest.TestCase):
         
                     obj.counter = 0
                     # clear cache to test the second run
-                    method.clear_cache(obj)
+                    method.clear_cache_of_obj(obj)
             
             # test complex cached method
             self.assertEqual(obj.cached_kwarg(1, b=2), 3)

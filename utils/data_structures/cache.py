@@ -426,7 +426,7 @@ class cached_property(_class_cache):
         """ apply the cache decorator to the property """
         # save name, e.g., to be able to delete cache later
         self._cache_name = self.name
-        self.clear_cache = self._get_clear_cache_method()
+        self.clear_cache_of_obj = self._get_clear_cache_method()
         self.func = self._get_wrapped_function(method)
     
         self.__doc__ = self.func.__doc__
@@ -454,7 +454,7 @@ class cached_method(_class_cache):
     
         # save name, e.g., to be able to delete cache later
         wrapper._cache_name = self.name
-        wrapper.clear_cache = self._get_clear_cache_method()
+        wrapper.clear_cache_of_obj = self._get_clear_cache_method()
     
         return wrapper
 

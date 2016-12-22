@@ -73,8 +73,7 @@ class Plane(object):
     
     def __init__(self, origin, normal):
         self.origin = np.asanyarray(origin, np.double)
-        self.normal = normal  # normalizes the normal
-        assert len(origin) == len(normal)
+        self.normal = normal  # normalizes the vector and checks consistency
         
             
     @property
@@ -143,10 +142,17 @@ class Plane(object):
         return NotImplemented
     
     
-    def distance_point(self, points):
-        """ calculates the distance of points to the plane """
+    def distance_point(self, points, oriented=False):
+        """ calculates the distance of points to the plane
+        If `oriented` is True, the oriented distance is returned, which is
+        positive if the point lies in the half space in which the normal points
+        """
         p_o = points - self.origin
-        return np.dot(p_o, self.normal)
+        distance = np.dot(p_o, self.normal)
+        if oriented:
+            return distance
+        else:
+            return np.abs(distance)
 
     
     def contains_point(self, points):
@@ -160,7 +166,7 @@ class Plane(object):
         is_1d = (points.ndim == 1)
         
         p_o = points - self.origin
-        dist = np.dot(p_o, self.normal)
+        dist = np.dot(p_o, self.normal)  # oriented distance
         res = points - np.outer(dist, self.normal)
         return res[0] if is_1d else res
     

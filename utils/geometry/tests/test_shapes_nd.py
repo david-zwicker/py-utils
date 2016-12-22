@@ -104,6 +104,23 @@ class TestShapesND(unittest.TestCase):
         # test wrong arguments
         self.assertRaises(ValueError, lambda: shapes_nd.Plane([], [1]))
         self.assertRaises(ValueError, lambda: shapes_nd.Plane([1], [1, 2]))
+        
+        
+    def test_plane_point_distance(self):
+        """ test the distance calculation """ 
+        plane = shapes_nd.Plane([0, 0, 0], [1, 0, 0])
+        for oriented in (True, False):
+            for d in np.arange(-2, 3):
+                dist = plane.distance_point([d, 0, 0], oriented=oriented)
+                self.assertAlmostEqual(dist, d if oriented else np.abs(d))
+                dist = plane.distance_point([0, d, 0], oriented=oriented)
+                self.assertAlmostEqual(dist, 0)
+
+        plane = shapes_nd.Plane([0, 0], [1, 1])
+        self.assertAlmostEqual(plane.distance_point([1, 1]), np.sqrt(2))
+        self.assertAlmostEqual(plane.distance_point([-1, -1]), np.sqrt(2))
+        dist = plane.distance_point([-2, -2], oriented=True)
+        self.assertAlmostEqual(dist, -2 * np.sqrt(2))
 
 
 

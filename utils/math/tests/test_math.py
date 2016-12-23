@@ -12,6 +12,7 @@ import unittest
 import numpy as np
 
 from .. import _math as m
+from utils.math._math import diff1d_circular
 
 
 
@@ -137,6 +138,18 @@ class TestMath(unittest.TestCase):
 
         np.testing.assert_array_equal(m.trim_nan([1, np.nan], left=False), [1])
         np.testing.assert_array_equal(m.trim_nan([np.nan, 1], right=False), [1])
+        
+        
+    def test_diff1d_circular(self):
+        """ test the diff1d_circular function """
+        for dtype in (np.int, np.uint, np.double):
+            x = np.array([0, 1, 2], dtype)
+            np.testing.assert_equal(diff1d_circular(x, 3), np.ones(3, np.int))
+            np.testing.assert_equal(diff1d_circular(x, 3.5), np.r_[1, 1, 1.5])
+            np.testing.assert_equal(diff1d_circular(x, 4), np.r_[1, 1, -2])
+            np.testing.assert_equal(diff1d_circular(x, 4.5), np.r_[1, 1, -2])
+            
+        self.assertRaises(TypeError, lambda: diff1d_circular(np.array('s'), 1))
         
     
     def test_mean(self):

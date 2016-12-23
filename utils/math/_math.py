@@ -20,10 +20,10 @@ from ..misc import estimate_computation_speed
 
 
 __all__ = ['xlog2x', 'heaviside', 'average_angles', 'euler_phi', 'arrays_close',
-           'logspace', 'is_pos_semidef', 'trim_nan', 'mean', 'moving_average',
-           'Interpolate_1D_Extrapolated', 'round_to_even', 'round_to_odd',
-           'get_fastest_entropy_function', 'calc_entropy', 'popcount',
-           'to_array', 'take_popcount', 'get_number_range',
+           'logspace', 'is_pos_semidef', 'trim_nan', 'diff1d_circular', 'mean',
+           'moving_average', 'Interpolate_1D_Extrapolated', 'round_to_even',
+           'round_to_odd', 'get_fastest_entropy_function', 'calc_entropy',
+           'popcount', 'to_array', 'take_popcount', 'get_number_range',
            'homogenize_arraylist', 'homogenize_unit_array', 'is_equidistant',
            'contiguous_true_regions', 'contiguous_int_regions_iter',
            'safe_typecast']
@@ -190,6 +190,29 @@ def trim_nan(data, left=True, right=True):
     
 
 
+def diff1d_circular(data, period):
+    """ calculates the discrete difference for a circular integer variable with
+    given period """
+    data = np.asanyarray(data)
+    dtype = data.dtype
+    
+    if np.issubdtype(dtype, np.unsignedinteger):
+        diff = np.diff(np.r_[data.astype(np.int), data[0]])
+        return (diff + period//2) % period - period//2
+    
+    elif np.issubdtype(dtype, np.integer):
+        diff = np.diff(np.r_[data, data[0]])
+        return (diff + period//2) % period - period//2
+    
+    elif np.issubdtype(dtype, np.number):
+        diff = np.diff(np.r_[data, data[0]])
+        return (diff + period/2) % period - period/2
+    
+    else:
+        raise TypeError('Cannot calculate the difference for type `%s`' % dtype)
+
+
+
 def mean(values, empty=0):
     """ calculates mean of generator or iterator.
     Returns `empty` in case of an empty sequence """
@@ -197,7 +220,7 @@ def mean(values, empty=0):
     for value in values:
         total += value
         n += 1
-    return total/n if n > 0 else empty
+    return total / n if n > 0 else empty
 
 
 

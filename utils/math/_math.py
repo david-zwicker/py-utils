@@ -20,7 +20,7 @@ from ..misc import estimate_computation_speed
 
 
 __all__ = ['xlog2x', 'heaviside', 'average_angles', 'euler_phi', 'arrays_close',
-           'logspace', 'is_pos_semidef', 'trim_nan', 'diff1d_circular', 'mean',
+           'logspace', 'is_pos_semidef', 'trim_nan', 'diff1d_periodic', 'mean',
            'moving_average', 'Interpolate_1D_Extrapolated', 'round_to_even',
            'round_to_odd', 'get_fastest_entropy_function', 'calc_entropy',
            'popcount', 'to_array', 'take_popcount', 'get_number_range',
@@ -190,7 +190,7 @@ def trim_nan(data, left=True, right=True):
     
 
 
-def diff1d_circular(data, period):
+def diff1d_periodic(data, period):
     """ calculates the discrete difference for a circular integer variable with
     given period """
     data = np.asanyarray(data)

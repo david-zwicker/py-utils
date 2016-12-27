@@ -155,6 +155,17 @@ class Curve3D(object):
     def normals(self):
         """ return the normal vector at each support point """
         normals = np.gradient(self.tangents, axis=0)
+        if np.all(normals == 0):
+            # the line seems to be a simple straight line
+            # => pick a normal direction based on the tangent
+            tangent = self.tangents[0]
+            normal = np.zeros(3)
+            # find axis direction with smallest component
+            normal[np.argmin(np.abs(tangent))] = 1
+            # make it orthogonal to tangent
+            normal -= np.dot(tangent, normal) * tangent
+            # use the normal with bigger angle (smaller dot product)
+            normals = np.repeat([normal], self.num_points, axis=0)
         return _normalize_vectors(normals)
 
 

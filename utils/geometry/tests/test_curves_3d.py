@@ -61,7 +61,7 @@ class TestCurves3D(unittest.TestCase):
             # treat end points differently
             f = 0.5 if k == 0 or k == c.num_points - 1 else 1
             self.assertAlmostEqual(d['stretching_factor'], f)
-            self.assertTrue(np.isnan(d['torsion']))
+            self.assertEqual(d['torsion'], 0)
             
         # test intersections with plane
         p = c.plane_intersects((0, 0, 0.5), (0, 0, 1))
@@ -223,24 +223,45 @@ class TestCurves3D(unittest.TestCase):
     def test_corner_case(self):
         """ test some more complicated cases """
         for smoothing in (0, 0.1):
-            ps = np.zeros((4, 3))
+            ps = np.zeros((4, 3))  # constant curve (all points equal) 
             c = Curve3D(ps, smoothing)
             for _, d in c.iter(data='all'):
-                self.assertTrue(np.all(np.isnan(d['unit_vectors'])))
+                self.assertTrue(np.all(np.isnan(d['tangent'])))
+                self.assertTrue(np.all(np.isnan(d['normal'])))
                 self.assertAlmostEqual(d['stretching_factor'], 0)
                 self.assertAlmostEqual(d['arc_length'], 0)
     
+            # straight line
             ps = np.zeros((4, 3))
             ps[:] = np.arange(4)[:, None]
             c = Curve3D(ps)
             tangent = np.ones(3) / np.sqrt(3)
             for k, (_, d) in enumerate(c.iter(data='all')):
                 np.testing.assert_array_equal(d['tangent'], tangent)
-                self.assertTrue(np.all(np.isnan(d['normal'])))
-                self.assertTrue(np.all(np.isnan(d['binormal'])))
                 self.assertAlmostEqual(d['arc_length'], k * np.sqrt(3))
                 f = 0.5 if k == 0 or k == 3 else 1
                 self.assertAlmostEqual(d['stretching_factor'], f * np.sqrt(3))
+                
+                
+    def test_straight_lines(self):
+        """ test normal generation for straight lines """
+        c = Curve3D(np.c_[np.arange(8), [0]*8, [0]*8])
+        np.testing.assert_allclose(c.tangents,
+                                   np.repeat([[1, 0, 0]], 8, axis=0))
+        np.testing.assert_allclose(c.normals,
+                                   np.repeat([[0, 1, 0]], 8, axis=0))
+
+        c = Curve3D(np.c_[[0]*8, np.arange(8), [0]*8])
+        np.testing.assert_allclose(c.tangents,
+                                   np.repeat([[0, 1, 0]], 8, axis=0))
+        np.testing.assert_allclose(c.normals,
+                                   np.repeat([[1, 0, 0]], 8, axis=0))
+
+        c = Curve3D(np.c_[[0]*8, [0]*8, np.arange(8)])
+        np.testing.assert_allclose(c.tangents,
+                                   np.repeat([[0, 0, 1]], 8, axis=0))
+        np.testing.assert_allclose(c.normals,
+                                   np.repeat([[1, 0, 0]], 8, axis=0))
 
 
     def test_io(self):

@@ -16,6 +16,7 @@ class ExecutableBase(object):
 
     name = 'program_name'
     standards_args = []
+    _detected_path = None  # automatically detected path to the program
     
 
     def __init__(self, program_path=None):
@@ -26,8 +27,22 @@ class ExecutableBase(object):
             self.program_path = program_path
 
 
-    def find_program(self):
-        raise RuntimeError('Could not find %s' % self.name)
+    @classmethod
+    def _find_program(cls):
+        """ find the path to the program automatically. This method should be
+        overwritten to implement custom search algorithms """
+        raise NotImplementedError('Do not know how to find program `%s`' %
+                                  cls.name)
+        
+        
+    @classmethod
+    def find_program(cls):
+        """ detect program path automatically """
+        if cls._detected_path is None:
+            # detect the path
+            cls._detected_path = cls._find_program()
+            
+        return cls._detected_path
         
         
     def _run_command(self, command, stdin=None, skip_stdout_lines=None,

@@ -24,7 +24,8 @@ class Mathematica(ExecutableBase):
     skip_stdout_lines = 0
     
     
-    def find_program(self):
+    @classmethod
+    def _find_program(cls):
         """ tries to locate Mathematica. If successful, the function returns the
         command to run Mathematica
         

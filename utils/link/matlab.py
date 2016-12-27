@@ -24,7 +24,8 @@ class Matlab(ExecutableBase):
     skip_stdout_lines = 12
     
     
-    def find_program(self):
+    @classmethod
+    def _find_program(cls):
         """ tries to locate matlab. If successful, the function returns the
         command to run matlab """
         # look for matlab in Applications folder on mac     

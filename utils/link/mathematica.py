@@ -25,7 +25,7 @@ class Mathematica(ExecutableBase):
     
     
     @classmethod
-    def _find_program(cls):
+    def _find_executable(cls):
         """ tries to locate Mathematica. If successful, the function returns the
         command to run Mathematica
         

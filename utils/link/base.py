@@ -19,16 +19,16 @@ class ExecutableBase(object):
     _detected_path = None  # automatically detected path to the program
     
 
-    def __init__(self, program_path=None):
+    def __init__(self, executable_path=None):
         """ initializes the external program interface """
-        if program_path is None:
-            self.program_path = self.find_program()
+        if executable_path is None:
+            self.executable_path = self.find_executable()
         else:
-            self.program_path = program_path
+            self.executable_path = executable_path
 
 
     @classmethod
-    def _find_program(cls):
+    def _find_executable(cls):
         """ find the path to the program automatically. This method should be
         overwritten to implement custom search algorithms """
         raise NotImplementedError('Do not know how to find program `%s`' %
@@ -36,13 +36,27 @@ class ExecutableBase(object):
         
         
     @classmethod
-    def find_program(cls):
+    def find_executable(cls):
         """ detect program path automatically """
         if cls._detected_path is None:
             # detect the path
-            cls._detected_path = cls._find_program()
+            cls._detected_path = cls._find_executable()
             
         return cls._detected_path
+    
+    
+    @classmethod
+    def found_executable(cls):
+        """ returns True if the program could be found. This swallows all
+        exceptions that are raised during the automatic detection of the
+        executable and may thus mask problems during the detection. Instead, use
+        `find_executable` to discover the path and any problems."""
+        try:
+            cls.find_executable()
+        except:
+            return False
+        else:
+            return True        
         
         
     def _run_command(self, command, stdin=None, skip_stdout_lines=None,
@@ -58,7 +72,7 @@ class ExecutableBase(object):
             from stdout (usually because they are some kind of startup message)
         """
         # build the command to run the program
-        cmd = [self.program_path] + self.standards_args
+        cmd = [self.executable_path] + self.standards_args
         if isinstance(command, six.string_types):
             cmd.append(command)
         else:

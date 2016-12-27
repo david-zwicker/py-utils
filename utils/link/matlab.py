@@ -25,7 +25,7 @@ class Matlab(ExecutableBase):
     
     
     @classmethod
-    def _find_program(cls):
+    def _find_executable(cls):
         """ tries to locate matlab. If successful, the function returns the
         command to run matlab """
         # look for matlab in Applications folder on mac     

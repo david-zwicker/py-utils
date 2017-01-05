@@ -39,12 +39,24 @@ class Curve3D(object):
     
     @points.setter
     def points(self, points):
+        """ changes the points that define the curve """
         self._points = np.atleast_2d(points)
         if self._points.ndim != 2:
             raise ValueError('Coordinates must be a 2d array')
         if self._points.size > 0 and self._points.shape[-1] != 3:
             raise ValueError('Coordinates must be 3-dimensional')
-        # clear cache
+        self.clear_cache()
+        
+        
+    def clear_cache(self):
+        """ clear the cache of curve attributes. The cache is also cleared
+        automatically, when the points are set using the `points` attribute.
+        Note however, that modifying the `points` attribute in-place does not
+        reset the cache! Consequently, `clear_cache` has to be called manually
+        after any of the following or similar modifications:
+            line.points[0] = 1 
+            line.points[1:-1] += 1
+        """
         self._cache_methods = {}
         
         

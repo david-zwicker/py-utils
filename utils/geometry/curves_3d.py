@@ -18,7 +18,7 @@ from utils.data_structures.cache import cached_property
 class Curve3D(object):
     ''' represents a curve in 3d space '''
 
-    mutable = False
+    mutable = False  # determines whether the support points can be changed 
 
 
     def __init__(self, points, smoothing_distance=0):

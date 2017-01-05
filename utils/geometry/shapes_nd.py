@@ -13,9 +13,14 @@ import numpy as np
 class Line(object):
     """ represents a line in n dimensions """
     
+    mutable = False  # determines whether the defining vectors can be changed 
+    
+    
     def __init__(self, origin, direction):
-        self.origin = np.asanyarray(origin, np.double)
-        self.direction = direction  # normalizes the normal
+        """ initialize the line with an `origin` point and a `direction` """
+        self.origin = asanyarray_flags(origin, np.double,
+                                       writeable=self.mutable) 
+        self.direction = direction  # normalizes the direction
         
     
     @property
@@ -24,11 +29,12 @@ class Line(object):
     
     @direction.setter
     def direction(self, value):
-        self._direction = np.asanyarray(value, np.double)
+        self._direction = np.array(value, np.double)  # make copy
         if self.origin.shape != self._direction.shape:
             raise ValueError('Direction vector must have the same dimension as '
                              'the origin vector')
-        self._direction /= np.linalg.norm(self._direction)    
+        self._direction /= np.linalg.norm(self._direction)
+        self._direction.flags.writeable = self.mutable    
     
     
     @classmethod
@@ -71,8 +77,13 @@ class Line(object):
 class Plane(object):
     """ represents a plane in n dimensions """
     
+    mutable = False  # determines whether the defining vectors can be changed
+    
+    
     def __init__(self, origin, normal):
-        self.origin = np.asanyarray(origin, np.double)
+        """ initialize the plane with an `origin` and a `normal` vector """ 
+        self.origin = asanyarray_flags(origin, np.double,
+                                       writeable=self.mutable) 
         self.normal = normal  # normalizes the vector and checks consistency
         
             
@@ -82,18 +93,19 @@ class Plane(object):
     
     @normal.setter
     def normal(self, value):
-        self._normal = np.asanyarray(value, np.double)
+        self._normal = np.array(value, np.double)  # make copy
         if self.origin.shape != self._normal.shape:
             raise ValueError('Normal vector (dim=%d) must have the same '
                              'dimension as the origin vector (dim=%d)' %
                              (len(self._normal), len(self.origin)))
         self._normal /= np.linalg.norm(self._normal)
+        self._normal.flags.writeable = self.mutable
         
     
     @classmethod
     def from_points(cls, points, **kwargs):
         """ estimates a plane from a point cloud """
-        points = np.asanyarray(points, np.double)
+        points = np.array(points, np.double)  # make copy
         num, dim = points.shape
         if num < dim:
             raise ValueError('At least as many points as dimensions are '
@@ -180,10 +192,19 @@ class Plane(object):
 class Cuboid(object):
     """ class that represents a cuboid in n dimensions """
     
+    mutable = False  # determines whether the defining vectors can be changed
+    
+    
     def __init__(self, pos, size):
-        self.pos = np.asarray(pos)
-        self.size = np.asarray(size)
-        assert len(self.pos) == len(self.size)
+        """ defines a cuboid from a position of one corner and a vector defining
+        its size """
+        self.pos = asanyarray_flags(pos, writable=self.mutable)
+        self.size = asanyarray_flags(size, writable=self.mutable)
+        if self.pos.shape != self.size.shape:
+            raise ValueError('Position vector (dim=%d) must have the same '
+                             'dimension as the size vector (dim=%d)' %
+                             (len(self.pos), len(self.size)))
+        
         
     @classmethod
     def from_points(cls, p1, p2, **kwargs):
@@ -191,14 +212,17 @@ class Cuboid(object):
         p2 = np.asarray(p2)
         return cls(np.minimum(p1, p2), np.abs(p1 - p2), **kwargs)
     
+    
     @classmethod
     def from_centerpoint(cls, centerpoint, size, **kwargs):
         centerpoint = np.asarray(centerpoint)
         size = np.asarray(size)
         return cls(centerpoint - size/2, size, **kwargs)
     
+    
     def copy(self):
         return self.__class__(self.pos, self.size)
+        
         
     def __repr__(self):
         return "{cls}(pos={pos}, size={size})".format(
@@ -277,3 +301,24 @@ class Cuboid(object):
             return self.__class__(self.pos * factor, self.size * factor)
     
 
+
+def asanyarray_flags(data, dtype=None, writeable=True):
+    """ turns data into an array and sets the respective flags. A copy is only
+    made if necessary """
+    try:
+        data_writeable = data.flags.writeable
+    except AttributeError:
+        # `data` did not have the writable flag => it's not a numpy array  
+        result = np.array(data, dtype)
+    else:
+        if data_writeable != writeable:
+            # need to make a copy because the flags differ
+            result = np.array(data, dtype)
+        else:
+            # might have to make a copy to adjust the dtype
+            result = np.asanyarray(data, dtype)
+            
+    # set the flags and return the array
+    result.flags.writeable = writeable
+    return result
+    

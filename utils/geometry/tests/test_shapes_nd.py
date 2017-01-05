@@ -92,7 +92,8 @@ class TestShapesND(unittest.TestCase):
         origin = np.random.randn(dim)
         normal = np.random.randn(dim)
         plane = shapes_nd.Plane(origin, normal)
-        np.testing.assert_almost_equal(plane.flip_normal().normal, -normal)
+        np.testing.assert_almost_equal(plane.flip_normal().normal,
+                                       -plane.normal)
         
         self.assertIsInstance(repr(plane), str)
         self.assertEqual(plane.dim, dim)
@@ -121,6 +122,26 @@ class TestShapesND(unittest.TestCase):
         self.assertAlmostEqual(plane.distance_point([-1, -1]), np.sqrt(2))
         dist = plane.distance_point([-2, -2], oriented=True)
         self.assertAlmostEqual(dist, -2 * np.sqrt(2))
+
+
+    def test_asanyarray_flags(self):
+        """ test the asanyarray_flags function """
+        self.assertIsNot(np.arange(3), shapes_nd.asanyarray_flags(range(3)))
+        
+        a = np.random.random(3).astype(np.double)
+        self.assertIs(a, shapes_nd.asanyarray_flags(a))
+        self.assertIs(a, shapes_nd.asanyarray_flags(a, np.double))
+        self.assertIs(a, shapes_nd.asanyarray_flags(a, writeable=True))
+        self.assertIsNot(a, shapes_nd.asanyarray_flags(a, np.int))
+        self.assertIsNot(a, shapes_nd.asanyarray_flags(a, writeable=False))
+        
+        for dtype in (np.int, np.double):
+            b = shapes_nd.asanyarray_flags(a, dtype)
+            self.assertEqual(b.dtype, dtype)
+
+        for writeable in (True, False):
+            b = shapes_nd.asanyarray_flags(a, writeable=writeable)
+            self.assertEqual(b.flags.writeable, writeable)
 
 
 

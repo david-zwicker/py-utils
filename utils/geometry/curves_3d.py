@@ -18,6 +18,8 @@ from utils.data_structures.cache import cached_property
 class Curve3D(object):
     ''' represents a curve in 3d space '''
 
+    mutable = False
+
 
     def __init__(self, points, smoothing_distance=0):
         ''' the curve is given by a collection of linear segments
@@ -41,6 +43,8 @@ class Curve3D(object):
     def points(self, points):
         """ changes the points that define the curve """
         self._points = np.atleast_2d(points)
+        self._points.flags.writeable = self.mutable
+        
         if self._points.ndim != 2:
             raise ValueError('Coordinates must be a 2d array')
         if self._points.size > 0 and self._points.shape[-1] != 3:
@@ -56,6 +60,8 @@ class Curve3D(object):
         after any of the following or similar modifications:
             line.points[0] = 1 
             line.points[1:-1] += 1
+        However, these modifications are anyhow only possible if the `mutable`
+        is set to True.
         """
         self._cache_methods = {}
         

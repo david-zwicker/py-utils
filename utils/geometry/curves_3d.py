@@ -425,7 +425,7 @@ class Curve3D(object):
     
     def make_smooth(self, smoothing=10, degree=3, derivative=0,
                     num_points=None):
-        """ smooths the curve by interpolating the points
+        """ smoothes the curve by interpolating the points
         
         `smoothing` determines the smoothness of the curve.  This value can be
             used to control the trade-off between closeness and smoothness of
@@ -434,8 +434,8 @@ class Curve3D(object):
                 sum((y - yi)**2, axis=0) <= smoothing*len(points)
         `degree` determines the degree of the splines used
         `derivative` determines the order of the derivative
-        `num_points` determines how many support points are used. If this value
-            is None, len(points) are used.
+        `num_points` determines how many support points are generated. If this
+            value is None, len(points) are used.
         """
         if num_points is None:
             num_points = len(self.points)

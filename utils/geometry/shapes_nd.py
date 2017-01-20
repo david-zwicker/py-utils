@@ -192,14 +192,14 @@ class Plane(object):
 class Cuboid(object):
     """ class that represents a cuboid in n dimensions """
     
-    mutable = False  # determines whether the defining vectors can be changed
+    mutable = True  # determines whether the defining vectors can be changed
     
     
     def __init__(self, pos, size):
         """ defines a cuboid from a position of one corner and a vector defining
         its size """
-        self.pos = asanyarray_flags(pos, writable=self.mutable)
-        self.size = asanyarray_flags(size, writable=self.mutable)
+        self.pos = asanyarray_flags(pos, writeable=self.mutable)
+        self.size = asanyarray_flags(size, writeable=self.mutable)
         if self.pos.shape != self.size.shape:
             raise ValueError('Position vector (dim=%d) must have the same '
                              'dimension as the size vector (dim=%d)' %
@@ -308,7 +308,7 @@ def asanyarray_flags(data, dtype=None, writeable=True):
     try:
         data_writeable = data.flags.writeable
     except AttributeError:
-        # `data` did not have the writable flag => it's not a numpy array  
+        # `data` did not have the writeable flag => it's not a numpy array  
         result = np.array(data, dtype)
     else:
         if data_writeable != writeable:

@@ -155,3 +155,7 @@ def yaml_database(filename, default_flow_style=False, factory=dict):
     # write the database back to file
     with open(filename, 'w') as fp:
         yaml.dump(database, fp, default_flow_style=default_flow_style)
+
+
+
+# TODO: write context manager for multiple database structures (yaml, pickle)

@@ -123,7 +123,8 @@ class OmniContainer(object):
     
 
 @contextmanager
-def yaml_database(filename, default_flow_style=False, factory=dict):
+def yaml_database(filename, default_flow_style=False, factory=dict,
+                  allow_classes=False):
     """ a context manager that opens a yaml file and yields its content. When
     the context manager is left, the data is written back on the disk. This is
     useful to modify simple configuration files or databases:
@@ -137,6 +138,7 @@ def yaml_database(filename, default_flow_style=False, factory=dict):
         docstring of the `yaml.dump` function for details.
     `factory` defines how the database should be initialized in case the file is
         not present or is empty.
+    `allow_classes` allows dumping classes using `yaml.safe` when enabled
     """
     # read the database
     try:
@@ -154,7 +156,10 @@ def yaml_database(filename, default_flow_style=False, factory=dict):
     
     # write the database back to file
     with open(filename, 'w') as fp:
-        yaml.dump(database, fp, default_flow_style=default_flow_style)
+        if allow_classes:
+            yaml.dump(database, fp, default_flow_style=default_flow_style)
+        else:
+            yaml.safe_dump(database, fp, default_flow_style=default_flow_style)
 
 
 

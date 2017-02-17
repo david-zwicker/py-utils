@@ -77,6 +77,8 @@ def log_slope_indicator(xmin=1., xmax=2., factor=None, ymax=None, exponent=1.,
     # add triangle to axis
     if not('facecolor' in kwargs or 'fc' in kwargs):
         kwargs['facecolor'] = 'none'
+    if not('edgecolor' in kwargs or 'ec' in kwargs):
+        kwargs['edgecolor'] = 'k'
     p = Polygon(pts, closed=True, **kwargs)
     ax.add_patch(p)
 

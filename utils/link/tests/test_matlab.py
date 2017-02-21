@@ -19,13 +19,19 @@ class TestMatlab(unittest.TestCase):
     _multiprocess_can_split_ = True  # let nose know that tests can run parallel
 
 
+    def setUp(self):
+        """ find matlab """
+        try:
+            self.m = matlab.Matlab()
+        except RuntimeError:
+            raise unittest.SkipTest('Matlab cannot be found.')
+
+
     def test_run_code(self):
         """ test running code with Matlab """
-        m = matlab.Matlab()
-        
-        res, err = m.run_code(b'disp(1 + 2)')
+        res, err = self.m.run_code(b'disp(1 + 2)')
         self.assertEqual(err, b'')  # no message on stderr
-        cells = m.extract_output_cells(res)
+        cells = self.m.extract_output_cells(res)
         self.assertEqual(len(cells), 1)
         self.assertEqual(cells[0].rstrip(), b'3')
         
@@ -36,11 +42,9 @@ class TestMatlab(unittest.TestCase):
         script.write(b'disp(1 + 2)')
         script.flush()
          
-        m = matlab.Matlab()
-         
-        res, err = m.run_script(script.name)
+        res, err = self.m.run_script(script.name)
         self.assertEqual(err, b'')  # no message on stderr
-        cells = m.extract_output_cells(res)
+        cells = self.m.extract_output_cells(res)
         self.assertEqual(len(cells), 1)
         self.assertEqual(cells[0].rstrip(), b'3')
 

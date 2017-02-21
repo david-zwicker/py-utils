@@ -30,6 +30,13 @@ class TestShapesND(unittest.TestCase):
         self.assertAlmostEqual(line.point_distance([1, 5]), 1)
         np.testing.assert_almost_equal(line.point_distance([[0, 0], [0, 1]]),
                                        [0, 0])
+        
+        l2 = shapes_nd.Line(np.random.random(2), np.random.random(2))
+        self.assertAlmostEqual(line.line_distance(l2), 0)
+        l2 = shapes_nd.Line([1, 1], [0, 1])
+        self.assertAlmostEqual(line.line_distance(l2), 1)
+        l2 = shapes_nd.Line([-1, 1], [0, 1])
+        self.assertAlmostEqual(line.line_distance(l2), 1)
 
         line = shapes_nd.Line.from_points([0, 0], [1, 1])
         np.testing.assert_almost_equal(line.project_point([[1, 0], [-2, -2]]),
@@ -37,6 +44,14 @@ class TestShapesND(unittest.TestCase):
         self.assertAlmostEqual(line.point_distance([2, 2]), 0)
         self.assertAlmostEqual(line.point_distance([0, 1]), 1/np.sqrt(2))
         
+        
+    def test_line_3d(self):
+        """ test the Line class in 2d """
+        # example taken from http://math.stackexchange.com/q/210848/198991
+        l1 = shapes_nd.Line([-1, 1, 4], [1, 1, -1])
+        l2 = shapes_nd.Line([5, 3, -3], [-2, 0, 1])
+        self.assertAlmostEqual(l1.line_distance(l2), np.sqrt(6))
+
 
     def test_line(self):
         """ tests the Line class """
@@ -54,6 +69,8 @@ class TestShapesND(unittest.TestCase):
         self.assertTrue(np.all(line.contains_point(line.project_point(ps))))
         self.assertAlmostEqual(line.point_distance(origin), 0)
         self.assertAlmostEqual(line.point_distance(origin + 2*direction), 0)
+        l2 = shapes_nd.Line(np.random.random(dim), np.random.random(dim))
+        self.assertGreater(line.line_distance(l2), 0)
         
         # test wrong arguments
         self.assertRaises(ValueError, lambda: shapes_nd.Line([], [1]))

@@ -83,6 +83,41 @@ class Line(object):
         diff_vector = p_o - np.outer(dist_projection, self.direction)
         dist = np.linalg.norm(diff_vector, axis=1)
         return dist[0] if is_1d else dist
+    
+    
+    def line_distance(self, line):
+        """ calculates distance to another line
+        
+        The math and the notation used here was taken from
+        http://geomalgorithms.com/a07-_distance.html#dist3D_Segment_to_Segment
+        """
+        if self.dim != line.dim:
+            raise ValueError('Lines must be in space of same dimensions')
+        
+        p_0 = self.origin
+        u = self.direction
+        q_0 = line.origin
+        v = line.direction
+        w_0 = p_0 - q_0
+        
+        a = np.dot(u, u)
+        b = np.dot(u, v)
+        c = np.dot(v, v)
+        d = np.dot(u, w_0)
+        e = np.dot(v, w_0)
+        
+        denom = a*c - b**2
+        if denom == 0:
+            # lines are parallel
+            s_c = 0
+            t_c = d / b  # b != 0, since b**2 = a*c and a*c != 0
+        else:
+            # lines are skewed
+            s_c = (b*e - c*d) / denom
+            t_c = (a*e - b*d) / denom
+        
+        diff = w_0 + s_c * u - t_c * v
+        return np.linalg.norm(diff)
 
 
 

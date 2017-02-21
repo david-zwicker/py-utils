@@ -56,7 +56,7 @@ class Line(object):
 
   
     def contains_point(self, points):
-        """ tests whether the points lie on the plane """
+        """ tests whether the points lie on the line """
         p_o = points - self.origin
         return np.isclose(np.abs(np.dot(p_o, self.direction)),
                           np.linalg.norm(p_o, axis=-1))
@@ -68,9 +68,21 @@ class Line(object):
         is_1d = (points.ndim == 1)
         
         p_o = points - self.origin
-        dist = np.dot(p_o, self.direction)
-        res = self.origin + np.outer(dist, self.direction)
+        dist_projection = np.dot(p_o, self.direction)
+        res = self.origin + np.outer(dist_projection, self.direction)
         return res[0] if is_1d else res
+    
+    
+    def point_distance(self, points):
+        """ calculates the distance of points from the line """
+        points = np.asanyarray(points, np.double)
+        is_1d = (points.ndim == 1)
+        
+        p_o = points - self.origin
+        dist_projection = np.dot(p_o, self.direction)
+        diff_vector = p_o - np.outer(dist_projection, self.direction)
+        dist = np.linalg.norm(diff_vector, axis=1)
+        return dist[0] if is_1d else dist
 
 
 

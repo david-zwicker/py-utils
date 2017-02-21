@@ -23,11 +23,20 @@ class TestShapesND(unittest.TestCase):
         line = shapes_nd.Line.from_points([0, 0], [0, 1])
         np.testing.assert_almost_equal(line.project_point([1, 1]), [0, 1])
         np.testing.assert_almost_equal(line.project_point([-1, -2]), [0, -2])
+        
+        self.assertAlmostEqual(line.point_distance([0, 0]), 0)
+        self.assertAlmostEqual(line.point_distance([0, 4]), 0)
+        self.assertAlmostEqual(line.point_distance([1, 0]), 1)
+        self.assertAlmostEqual(line.point_distance([1, 5]), 1)
+        np.testing.assert_almost_equal(line.point_distance([[0, 0], [0, 1]]),
+                                       [0, 0])
 
         line = shapes_nd.Line.from_points([0, 0], [1, 1])
         np.testing.assert_almost_equal(line.project_point([[1, 0], [-2, -2]]),
                                        [[0.5, 0.5], [-2, -2]])
-
+        self.assertAlmostEqual(line.point_distance([2, 2]), 0)
+        self.assertAlmostEqual(line.point_distance([0, 1]), 1/np.sqrt(2))
+        
 
     def test_line(self):
         """ tests the Line class """
@@ -36,13 +45,15 @@ class TestShapesND(unittest.TestCase):
         origin = np.random.randn(dim)
         direction = np.random.randn(dim)
         line = shapes_nd.Line(origin, direction)
-
+        
         self.assertIsInstance(repr(line), str)
         self.assertEqual(line.dim, dim)
         p = np.random.randn(dim)
         self.assertTrue(line.contains_point(line.project_point(p)))
         ps = np.random.randn(5, dim)
         self.assertTrue(np.all(line.contains_point(line.project_point(ps))))
+        self.assertAlmostEqual(line.point_distance(origin), 0)
+        self.assertAlmostEqual(line.point_distance(origin + 2*direction), 0)
         
         # test wrong arguments
         self.assertRaises(ValueError, lambda: shapes_nd.Line([], [1]))

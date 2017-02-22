@@ -77,6 +77,16 @@ class TestShapesND(unittest.TestCase):
         self.assertRaises(ValueError, lambda: shapes_nd.Line([1], [1, 2]))
         
 
+    def test_segment_2d(self):
+        """ test the Segment class in 2d """
+        segment = shapes_nd.Segment([0, 0], [0, 1])
+
+        self.assertIsInstance(repr(segment), str)
+        self.assertEqual(segment.dim, 2)
+        self.assertAlmostEqual(segment.length, 1)
+        np.testing.assert_equal(segment.points, np.array([[0, 0], [0, 1]]))
+
+
     def test_plane_2d(self):
         """ test the Plane class in 2d """
         plane1 = shapes_nd.Plane([0, 0], [0, 1])
@@ -150,6 +160,25 @@ class TestShapesND(unittest.TestCase):
         self.assertAlmostEqual(plane.distance_point([-1, -1]), np.sqrt(2))
         dist = plane.distance_point([-2, -2], oriented=True)
         self.assertAlmostEqual(dist, -2 * np.sqrt(2))
+        
+        
+    def test_cylinder(self):
+        """ test the Cylinder class """
+        o = np.random.random(3)  # random origin
+        cyl = shapes_nd.Cylinder(o + [0, 0, 0], o + [0, 0, 10], 2)
+        
+        self.assertIsInstance(repr(cyl), str)
+        self.assertEqual(cyl.height, 10)
+        self.assertEqual(cyl.dim, 3)
+        
+        self.assertEqual(cyl.distance_point(o + [1, 0, 0]), 0)
+        self.assertEqual(cyl.distance_point(o + [2, 0, 0]), 0)
+        self.assertEqual(cyl.distance_point(o + [3, 0, 0]), 1)
+        self.assertEqual(cyl.distance_point(o + [2, 0, -2]), 2)
+        self.assertEqual(cyl.distance_point(o + [2, 0, 12]), 2)
+        self.assertEqual(cyl.distance_point(o + [5, 0, -4]), 5)
+        self.assertEqual(cyl.distance_point(o + [5, 0, 14]), 5)
+        self.assertEqual(cyl.distance_point(o + [0, 5, 14]), 5)
 
 
     def test_asanyarray_flags(self):

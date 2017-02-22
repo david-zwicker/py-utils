@@ -126,6 +126,53 @@ class Line(object):
 
 
 
+class Segment(object):
+    """ represents a segment in n dimensions """
+    
+    mutable = False  # determines whether the defining vectors can be changed 
+    
+    
+    def __init__(self, start, end):
+        """ initialize the straight segment from point p1 to p2 """
+        self.start = asanyarray_flags(start, np.double, writeable=self.mutable) 
+        self.end = asanyarray_flags(end, np.double, writeable=self.mutable)
+        
+        # consistency check
+        shape = (self.dim,) 
+        if self.start.shape != shape or self.end.shape != shape:
+            raise ValueError('Both `start` and `end` must be points with the '
+                             'same dimension.')
+        
+        
+    @property
+    def dim(self):
+        return len(self.start)
+
+        
+    def __repr__(self):
+        return "{cls}(start={start}, end={end})".format(
+                    cls=self.__class__.__name__, start=self.start, end=self.end)
+
+  
+    @property
+    def length(self):
+        """ return the length of the segment """
+        return np.linalg.norm(self.end - self.start)
+    
+    
+    @property
+    def points(self):
+        """ return the two endpoints as a single array """
+        return np.vstack((self.start, self.end))
+        
+    
+    @property
+    def line(self):
+        """ return the line that corresponds to this segment """
+        return Line.from_points(self.start, self.end)
+  
+        
+        
 class Plane(object):
     """ represents a plane in n dimensions """
     
@@ -352,6 +399,72 @@ class Cuboid(object):
         else:
             return self.__class__(self.pos * factor, self.size * factor)
     
+
+
+class Cylinder(object):
+    """ represents a single cylinder """
+    
+    mutable = False  # determines whether the defining vectors can be changed
+    
+    
+    def __init__(self, center_1, center_2, radius):
+        """ defines a cylinder from the two centers of the circles and a
+        radius """
+        self.center_1 = asanyarray_flags(center_1, np.double, self.mutable)
+        self.center_2 = asanyarray_flags(center_2, np.double, self.mutable)
+        self.radius = float(radius)
+        
+        # consistency check
+        shape = (self.dim,) 
+        if self.center_1.shape != shape or self.center_2.shape != shape:
+            raise ValueError('Both center points must have the same dimension.')
+    
+        
+    def __repr__(self):
+        return '{cls}(center_1={p1}, center_2={p2}, radius={radius})'.format(
+                cls=self.__class__, p1=self.center_1, p2=self.center_2,
+                radius=self.radius)
+        
+        
+    @property
+    def dim(self):
+        return len(self.center_1)
+        
+
+    @property
+    def height(self):
+        """ return the height of the cylinder """
+        return np.linalg.norm(self.center_2 - self.center_1)
+
+    
+    def distance_point(self, point):
+        """ this does only calculate the distance to the side walls """
+        point = np.asanyarray(point, np.double)
+        
+        # move origin of the coordinate system onto p1
+        p_o = point - self.center_1
+        direction = self.center_2 - self.center_1
+        direction /= self.height  # normalize direction
+    
+        # get normalized vector from (extended) center axis to point
+        s_projection = np.dot(p_o, direction)
+        proj_vec = p_o - s_projection * direction
+        proj_vec /= np.linalg.norm(proj_vec)
+        
+        # get the vector to the cylinder surface
+        radius_vector = self.radius * proj_vec
+        
+        # get point along the center axis, restricted to cylinder
+        p_axis = np.clip(s_projection, 0, self.height) * direction
+        
+        # get vector from point to cylinder surface
+        dist_centerline = np.linalg.norm(p_axis - p_o)
+        if dist_centerline < self.radius:
+            return 0
+        else:
+            dist_surface = np.linalg.norm(p_axis + radius_vector - p_o)
+            return dist_surface
+        
 
 
 def asanyarray_flags(data, dtype=None, writeable=True):

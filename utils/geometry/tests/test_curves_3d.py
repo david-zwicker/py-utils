@@ -197,7 +197,7 @@ class TestCurves3D(unittest.TestCase):
         
         c = Curve3D(ps)
         c = c.make_equidistant(count=64)
-        c = c.make_smooth()
+        c = c.make_smooth(smoothing=1)
         
         for _, d in c.iter(data=['unit_vectors']):
             

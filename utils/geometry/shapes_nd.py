@@ -419,6 +419,12 @@ class Cylinder(object):
         if self.center_1.shape != shape or self.center_2.shape != shape:
             raise ValueError('Both center points must have the same dimension.')
     
+    
+    @classmethod
+    def from_segment(cls, segment, radius):
+        """ creates a cylinder from a Segment """
+        return cls(segment.start, segment.end, radius)
+        
         
     def __repr__(self):
         return '{cls}(center_1={p1}, center_2={p2}, radius={radius})'.format(

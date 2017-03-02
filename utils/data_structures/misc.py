@@ -122,10 +122,13 @@ class OmniContainer(object):
     
     
                 
-class SimpleDatabase(object):
+class PeristentObject(object):
+    """ context manager for simple persistent storage """
+    
     
     formats = {'yaml': {'default_flow_style': False,
-                        'allow_classes': False}}    
+                        'allow_classes': False}}
+                            
 
     def __init__(self, filename, locking=True, factory=dict, db_format='yaml',
                  format_parameters=None):
@@ -275,9 +278,8 @@ def yaml_database(filename, default_flow_style=False, factory=dict,
                   category=DeprecationWarning, stacklevel=1)
     
     # translate this call to the newer interface
-    return SimpleDatabase(
+    return PeristentObject(
         filename, locking=False, factory=dict, db_format='yaml',
         format_parameters={'allow_classes': allow_classes,
-                           'default_flow_style': default_flow_style}
-    )
+                           'default_flow_style': default_flow_style})
 

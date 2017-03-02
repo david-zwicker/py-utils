@@ -87,15 +87,15 @@ class TestMisc(unittest.TestCase):
         self.assertTrue(isinstance(repr(container), str))
         
         
-    def test_yaml_database(self):
-        """ test the yaml_database function """
+    def test_persistent_object(self):
+        """ test the PeristentObject class """
         import portalocker
         db_file = tempfile.NamedTemporaryFile(delete=False).name
         
         testcases = {
             'legacy': lambda: misc.yaml_database(db_file),
-            'simple': lambda: misc.SimpleDatabase(db_file, locking=False),
-            'locking': lambda: misc.SimpleDatabase(db_file, locking=True),
+            'simple': lambda: misc.PeristentObject(db_file, locking=False),
+            'locking': lambda: misc.PeristentObject(db_file, locking=True),
         }
         
         for msg, database in testcases.items():
@@ -115,14 +115,44 @@ class TestMisc(unittest.TestCase):
                 self.assertEqual(db, {}, msg=msg)        
             
         # test that database cannot be opened a second time if locked
-        with misc.SimpleDatabase(db_file, locking=True):
+        with misc.PeristentObject(db_file, locking=True):
             def open_db():
-                with misc.SimpleDatabase(db_file, locking=True):
+                with misc.PeristentObject(db_file, locking=True):
                     pass
             self.assertRaises(portalocker.LockException, open_db)
             
         # clean-up
         os.remove(db_file)
+
+
+    def test_persistent_object_list(self):
+        """ test the PeristentObject class with a list factory """
+        db_file = tempfile.NamedTemporaryFile(delete=False).name
+        
+        for locking in (True, False):
+            msg = 'Locking: %s' % locking
+            def database():
+                return misc.PeristentObject(db_file, factory=list,
+                                            locking=locking)
+                
+            with database() as db:
+                self.assertEqual(db, [], msg=msg)
+                db.append(1)
+                
+            with database() as db:
+                self.assertEqual(db, [1], msg=msg)
+                db.append(2)
+                
+            with database() as db:
+                self.assertEqual(db, [1, 2], msg=msg)
+    
+            os.remove(db_file)  # simulate removing the file
+            with database() as db:
+                self.assertEqual(db, [], msg=msg)        
+            
+        # clean-up
+        os.remove(db_file)
+
 
 
 if __name__ == "__main__":

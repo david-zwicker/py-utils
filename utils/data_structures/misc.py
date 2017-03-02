@@ -190,7 +190,7 @@ class PeristentObject(object):
                 # file did not exist => create it
                 self._database_fh = open(self._filename, 'w+')
                 
-            # try locking the file
+            # try locking the file exclusively and without blocking
             portalocker.lock(self._database_fh,
                              portalocker.LOCK_EX | portalocker.LOCK_NB)
             

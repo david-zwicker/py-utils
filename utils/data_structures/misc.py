@@ -121,10 +121,10 @@ class OmniContainer(object):
         return '%s()' % self.__class__.__name__
     
     
-
+    
 @contextmanager
 def yaml_database(filename, default_flow_style=False, factory=dict,
-                  allow_classes=False):
+                  allow_classes=False, locking=False):
     """ a context manager that opens a yaml file and yields its content. When
     the context manager is left, the data is written back on the disk. This is
     useful to modify simple configuration files or databases:
@@ -140,23 +140,140 @@ def yaml_database(filename, default_flow_style=False, factory=dict,
         not present or is empty.
     `allow_classes` allows dumping classes using `yaml.safe` when enabled
     """
-    # read the database
-    try:
-        with open(filename, 'r') as fp:
-            database = yaml.load(fp)
-    except IOError:
-        # file does not seem to exists
-        database = None
+    if locking:
+        # read and update the database with locking
+        import portalocker
         
-    # initialize an empty database
-    if database is None and factory is not None:
-        database = factory()
+        with portalocker.Lock(filename, mode='r+', timeout=1) as fp:
+            try:
+                database = yaml.load(fp)
+            except IOError:
+                database = None # file does not seem to exists
+                
+            # initialize an empty database
+            if database is None and factory is not None:
+                database = factory()
+                
+            yield database
+
+            fp.seek(0)
+            if allow_classes:
+                yaml.dump(database, fp, default_flow_style=default_flow_style)
+            else:
+                yaml.safe_dump(database, fp,
+                               default_flow_style=default_flow_style)
+        
+    else:
+        # read the database without locking
+        try:
+            with open(filename, 'r') as fp:
+                database = yaml.load(fp)
+        except IOError:
+            database = None  # file does not seem to exists
             
-    yield database
+        # initialize an empty database
+        if database is None and factory is not None:
+            database = factory()
+                
+        yield database
+        
+        # write the database back to file
+        with open(filename, 'w') as fp:
+            if allow_classes:
+                yaml.dump(database, fp, default_flow_style=default_flow_style)
+            else:
+                yaml.safe_dump(database, fp,
+                               default_flow_style=default_flow_style)
+                
+                
+class YAMLDatabase(object):
     
-    # write the database back to file
-    with open(filename, 'w') as fp:
-        if allow_classes:
-            yaml.dump(database, fp, default_flow_style=default_flow_style)
+    locking_timeout = 1    
+
+    def __init__(self, filename, locking=False, default_flow_style=False,
+                 factory=dict, allow_classes=False):
+        """ save some options for using this decorator """
+        self._filename = filename
+        self._locking = locking
+        self.default_flow_style = default_flow_style
+        self.factory = factory
+        self.allow_classes = allow_classes
+        
+        self._database_fh = None
+        self._database = None
+
+
+    def __enter__(self):
+        """ read the database or initialize it if it was not setup """
+        # read the 
+        if self._locking:
+            # open database file with locking
+            try:
+                import portalocker
+            except ImportError:
+                logging.error('The `portalocker` module must be installed to '
+                              'support locking of files on all platforms.')
+                raise
+    
+            logging.debug('Open and lock file `%s` to work with YAML database',
+                          self._filename)
+            try:
+                self._database_fh = open(self._filename, 'r+')
+            except IOError:
+                # file did not exist => create it
+                self._database_fh = open(self._filename, 'w+')
+                
+            # try locking the file
+            portalocker.lock(self._database_fh, portalocker.LOCK_EX)
+            
         else:
-            yaml.safe_dump(database, fp, default_flow_style=default_flow_style)
+            # open database file without locking
+            logging.debug('Open file `%s` to read entire YAML database',
+                          self._filename)
+            try:
+                self._database_fh = open(self._filename, 'r') 
+            except IOError:
+                self._database_fh = None  # file does not seem to exists
+
+        # read the database if file handle is available
+        if self._database_fh is None:
+            self._database = None
+        else:
+            self._database = yaml.load(self._database_fh)
+
+        # close database file it is not locked for the entire time
+        if not self._locking and self._database_fh is not None:
+            self._database_fh.close()
+            
+        # initialize the database if it was empty
+        if self._database is None and self.factory is not None:
+            self._database = self.factory()
+        
+        return self._database
+
+
+    def __exit__(self, *args):
+        """ write back the database after it was potentially changed """
+        # prepare the database file
+        if self._locking:
+            # rewind the database file
+            logging.debug('Rewind file `%s` to update YAML database',
+                          self._filename)
+            self._database_fh.seek(0)
+        else:
+            # reopen the database file
+            logging.debug('Open file `%s` to write entire YAML database',
+                          self._filename)
+            self._database_fh = open(self._filename, 'w')
+            
+        # dump the database as yaml
+        if self.allow_classes:
+            yaml.dump(self._database, self._database_fh,
+                      default_flow_style=self.default_flow_style)
+        else:
+            yaml.safe_dump(self._database, self._database_fh,
+                           default_flow_style=self.default_flow_style)
+
+        # close file and release lock if it was acquired
+        self._database_fh.close()
+        self._database_fh = None

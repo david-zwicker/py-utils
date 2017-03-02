@@ -7,6 +7,7 @@ Created on Aug 25, 2016
 from __future__ import division
 
 import csv
+import os
 import unittest
 import tempfile
 
@@ -85,6 +86,45 @@ class TestMisc(unittest.TestCase):
         self.assertTrue('anything' in container)
         self.assertTrue(isinstance(repr(container), str))
         
+        
+    def test_yaml_database(self):
+        """ test the yaml_database function """
+#         import portalocker
+        db_file = tempfile.NamedTemporaryFile(delete=False).name
+        
+        for locking in (True, False):
+            # prepare this testcase
+            msg = 'Locking=%s' % locking
+            def database():
+                return misc.YAMLDatabase(db_file, locking=locking,
+                                         allow_classes=False)
+            
+            with database() as db:
+                self.assertEqual(db, {}, msg=msg)
+                db['a'] = 1
+                
+            with database() as db:
+                self.assertEqual(db, {'a': 1}, msg=msg)
+                db['b'] = 2
+                
+            with database() as db:
+                self.assertEqual(db, {'a': 1, 'b': 2}, msg=msg)
+    
+            os.remove(db_file) # simulate removing the file
+            with database() as db:
+                self.assertEqual(db, {}, msg=msg)        
+            
+        # test that database cannot be opened a second time if locked
+#         misc.YAMLDatabase.locking_timeout = 0.01
+#         with misc.YAMLDatabase(db_file, locking=True):
+#             def open_db():
+#                 with misc.YAMLDatabase(db_file, locking=True):
+#                     pass
+#             open_db()
+#             self.assertRaises(portalocker.LockException, open_db)
+            
+        # clean-up
+        os.remove(db_file)
 
 
 if __name__ == "__main__":

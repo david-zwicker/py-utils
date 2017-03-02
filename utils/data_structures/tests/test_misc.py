@@ -98,23 +98,23 @@ class TestMisc(unittest.TestCase):
             'locking': lambda: misc.PeristentObject(db_file, locking=True),
         }
         
-        for msg, database in testcases.items():
-            with database() as db:
+        for msg, queue in testcases.items():
+            with queue() as db:
                 self.assertEqual(db, {}, msg=msg)
                 db['a'] = 1
                 
-            with database() as db:
+            with queue() as db:
                 self.assertEqual(db, {'a': 1}, msg=msg)
                 db['b'] = 2
                 
-            with database() as db:
+            with queue() as db:
                 self.assertEqual(db, {'a': 1, 'b': 2}, msg=msg)
     
             os.remove(db_file)  # simulate removing the file
-            with database() as db:
+            with queue() as db:
                 self.assertEqual(db, {}, msg=msg)        
             
-        # test that database cannot be opened a second time if locked
+        # test that queue cannot be opened a second time if locked
         with misc.PeristentObject(db_file, locking=True):
             def open_db():
                 with misc.PeristentObject(db_file, locking=True):
@@ -131,23 +131,27 @@ class TestMisc(unittest.TestCase):
         
         for locking in (True, False):
             msg = 'Locking: %s' % locking
-            def database():
+            def queue():
                 return misc.PeristentObject(db_file, factory=list,
                                             locking=locking)
                 
-            with database() as db:
+            with queue() as db:
                 self.assertEqual(db, [], msg=msg)
                 db.append(1)
                 
-            with database() as db:
+            with queue() as db:
                 self.assertEqual(db, [1], msg=msg)
-                db.append(2)
+                db.append('hello')
                 
-            with database() as db:
+            with queue() as db:
+                self.assertEqual(db, [1, 'hello'], msg=msg)
+                db[1] = 2
+    
+            with queue() as db:
                 self.assertEqual(db, [1, 2], msg=msg)
     
             os.remove(db_file)  # simulate removing the file
-            with database() as db:
+            with queue() as db:
                 self.assertEqual(db, [], msg=msg)        
             
         # clean-up

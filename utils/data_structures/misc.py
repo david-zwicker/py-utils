@@ -226,10 +226,12 @@ class PeristentObject(object):
         """ write back the database after it was potentially changed """
         # prepare the database file
         if self._locking:
-            # rewind the database file
-            logging.debug('Rewind file `%s` to update YAML database',
+            # clear the database file
+            logging.debug('Clear file `%s` to update YAML database',
                           self._filename)
             self._database_fh.seek(0)
+            self._database_fh.truncate(0)
+            
         else:
             # reopen the database file
             logging.debug('Open file `%s` to write entire YAML database',

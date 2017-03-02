@@ -8,9 +8,9 @@ determine the test coverage. Finally, the top-level folder `scripts` contains
 python code that can be executed as a command directly from the shell. 
 
 
-## Requirements
+## Necessary python packages
 
-Necessary python packages:
+The following external packages are required for many of the functions 
 
 Package       | Usage                                      
 --------------|-------------------------------------------
@@ -18,8 +18,12 @@ numpy         | Array library used for manipulating data
 scipy         | Miscellaneous scientific functions
 six           | Compatibility layer between python 2 and 3
 
-Python packages that are needed for some optional functions can be installed
-through `pip`, `macports`, or similar repositories:
+
+## Optional python packages
+
+The following packages are only necessary for some packages and need thus not
+all be installed. These packages can be installed through `pip`, `macports`,
+or similar repositories:
 
 Package       | Usage                                      
 --------------|-------------------------------------------

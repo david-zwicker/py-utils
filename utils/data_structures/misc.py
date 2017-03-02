@@ -9,9 +9,9 @@ This module contains several data structures and functions for manipulating them
 from __future__ import division
 
 import collections
-from contextlib import contextmanager
 import logging
 import yaml
+import warnings
 
 
 
@@ -121,84 +121,48 @@ class OmniContainer(object):
         return '%s()' % self.__class__.__name__
     
     
-    
-@contextmanager
-def yaml_database(filename, default_flow_style=False, factory=dict,
-                  allow_classes=False, locking=False):
-    """ a context manager that opens a yaml file and yields its content. When
-    the context manager is left, the data is written back on the disk. This is
-    useful to modify simple configuration files or databases:
-    
-    with yaml_database('config.yaml') as config:
-        config['user'] = 'name'
-    
-    Now, the file `config.yaml` will read "user: name".
-    
-    `default_flow_style` sets the style used for writing the yaml file. See the
-        docstring of the `yaml.dump` function for details.
-    `factory` defines how the database should be initialized in case the file is
-        not present or is empty.
-    `allow_classes` allows dumping classes using `yaml.safe` when enabled
-    """
-    if locking:
-        # read and update the database with locking
-        import portalocker
-        
-        with portalocker.Lock(filename, mode='r+', timeout=1) as fp:
-            try:
-                database = yaml.load(fp)
-            except IOError:
-                database = None # file does not seem to exists
                 
-            # initialize an empty database
-            if database is None and factory is not None:
-                database = factory()
-                
-            yield database
+class SimpleDatabase(object):
+    
+    formats = {'yaml': {'default_flow_style': False,
+                        'allow_classes': False}}    
 
-            fp.seek(0)
-            if allow_classes:
-                yaml.dump(database, fp, default_flow_style=default_flow_style)
-            else:
-                yaml.safe_dump(database, fp,
-                               default_flow_style=default_flow_style)
-        
-    else:
-        # read the database without locking
-        try:
-            with open(filename, 'r') as fp:
-                database = yaml.load(fp)
-        except IOError:
-            database = None  # file does not seem to exists
-            
-        # initialize an empty database
-        if database is None and factory is not None:
-            database = factory()
-                
-        yield database
-        
-        # write the database back to file
-        with open(filename, 'w') as fp:
-            if allow_classes:
-                yaml.dump(database, fp, default_flow_style=default_flow_style)
-            else:
-                yaml.safe_dump(database, fp,
-                               default_flow_style=default_flow_style)
-                
-                
-class YAMLDatabase(object):
+    def __init__(self, filename, locking=True, factory=dict, db_format='yaml',
+                 format_parameters=None):
+        """ a context manager that opens a database file and yields its content.
+        When the context manager is left, the data is written back on the disk.
+        This is useful to modify simple configuration files or databases:
+         
+        with SimpleDatabase('config.yaml', db_format='yaml') as config:
+            config['user'] = 'name'
+         
+        Now, the file `config.yaml` will read "user: name".
+         
+        `filename` gives the name of the database file
+        `locking` determines whether the file will be locked the entire time so
+            other processes cannot use it. This is turned on by default to
+            prevent data corruption and race conditions.
+        `factory` defines how the database should be initialized in case the
+            file is not present or is empty.
+        `db_format` is the file format that is used to read and write the data.
+            So far, only `yaml` has been implemented.
+        `format_parameters` is a dictionary with additional parameters that
+            influence how the database is written to the file.
+        """
     
-    locking_timeout = 1    
-
-    def __init__(self, filename, locking=False, default_flow_style=False,
-                 factory=dict, allow_classes=False):
-        """ save some options for using this decorator """
+        # save some options for using this decorator
         self._filename = filename
         self._locking = locking
-        self.default_flow_style = default_flow_style
         self.factory = factory
-        self.allow_classes = allow_classes
         
+        self.format = db_format
+        try:
+            self.format_parameters = self.formats[self.format]
+        except KeyError:
+            raise ValueError('The format `%s` is not supported' % db_format)
+        if format_parameters is not None:
+            self.format_parameters.update(format_parameters)
+            
         self._database_fh = None
         self._database = None
 
@@ -224,7 +188,8 @@ class YAMLDatabase(object):
                 self._database_fh = open(self._filename, 'w+')
                 
             # try locking the file
-            portalocker.lock(self._database_fh, portalocker.LOCK_EX)
+            portalocker.lock(self._database_fh,
+                             portalocker.LOCK_EX | portalocker.LOCK_NB)
             
         else:
             # open database file without locking
@@ -238,8 +203,10 @@ class YAMLDatabase(object):
         # read the database if file handle is available
         if self._database_fh is None:
             self._database = None
-        else:
+        elif self.format == 'yaml':
             self._database = yaml.load(self._database_fh)
+        else:
+            raise NotImplementedError('Unsupported format `%s`' % self.format)
 
         # close database file it is not locked for the entire time
         if not self._locking and self._database_fh is not None:
@@ -266,14 +233,51 @@ class YAMLDatabase(object):
                           self._filename)
             self._database_fh = open(self._filename, 'w')
             
-        # dump the database as yaml
-        if self.allow_classes:
-            yaml.dump(self._database, self._database_fh,
-                      default_flow_style=self.default_flow_style)
+        if self.format == 'yaml':
+            # dump the database as yaml
+            default_flow_style = self.format_parameters['default_flow_style']
+            if self.format_parameters['allow_classes']:
+                yaml.dump(self._database, self._database_fh,
+                          default_flow_style=default_flow_style)
+            else:
+                yaml.safe_dump(self._database, self._database_fh,
+                               default_flow_style=default_flow_style)
+                
         else:
-            yaml.safe_dump(self._database, self._database_fh,
-                           default_flow_style=self.default_flow_style)
+            raise NotImplementedError('Unsupported format `%s`' % self.format)
 
         # close file and release lock if it was acquired
         self._database_fh.close()
         self._database_fh = None
+
+
+
+def yaml_database(filename, default_flow_style=False, factory=dict,
+                  allow_classes=False):
+    """ a context manager that opens a yaml file and yields its content. When
+    the context manager is left, the data is written back on the disk. This is
+    useful to modify simple configuration files or databases:
+     
+    with yaml_database('config.yaml') as config:
+        config['user'] = 'name'
+     
+    Now, the file `config.yaml` will read "user: name".
+     
+    `default_flow_style` sets the style used for writing the yaml file. See the
+        docstring of the `yaml.dump` function for details.
+    `factory` defines how the database should be initialized in case the file is
+        not present or is empty.
+    `allow_classes` allows dumping classes using `yaml.safe` when enabled
+    """
+    
+    # raise warning that this interface is deprecated
+    warnings.warn("Calling the deprecated function `yaml_database`.",
+                  category=DeprecationWarning, stacklevel=1)
+    
+    # translate this call to the newer interface
+    return SimpleDatabase(
+        filename, locking=False, factory=dict, db_format='yaml',
+        format_parameters={'allow_classes': allow_classes,
+                           'default_flow_style': default_flow_style}
+    )
+

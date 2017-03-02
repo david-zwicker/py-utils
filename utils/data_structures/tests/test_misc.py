@@ -89,16 +89,16 @@ class TestMisc(unittest.TestCase):
         
     def test_yaml_database(self):
         """ test the yaml_database function """
-#         import portalocker
+        import portalocker
         db_file = tempfile.NamedTemporaryFile(delete=False).name
         
-        for locking in (True, False):
-            # prepare this testcase
-            msg = 'Locking=%s' % locking
-            def database():
-                return misc.YAMLDatabase(db_file, locking=locking,
-                                         allow_classes=False)
-            
+        testcases = {
+            'legacy':  lambda: misc.yaml_database(db_file),
+            'simple':  lambda: misc.SimpleDatabase(db_file, locking=False),
+            'locking': lambda: misc.SimpleDatabase(db_file, locking=True),
+        }
+        
+        for msg, database in testcases.items():
             with database() as db:
                 self.assertEqual(db, {}, msg=msg)
                 db['a'] = 1
@@ -115,13 +115,11 @@ class TestMisc(unittest.TestCase):
                 self.assertEqual(db, {}, msg=msg)        
             
         # test that database cannot be opened a second time if locked
-#         misc.YAMLDatabase.locking_timeout = 0.01
-#         with misc.YAMLDatabase(db_file, locking=True):
-#             def open_db():
-#                 with misc.YAMLDatabase(db_file, locking=True):
-#                     pass
-#             open_db()
-#             self.assertRaises(portalocker.LockException, open_db)
+        with misc.SimpleDatabase(db_file, locking=True):
+            def open_db():
+                with misc.SimpleDatabase(db_file, locking=True):
+                    pass
+            self.assertRaises(portalocker.LockException, open_db)
             
         # clean-up
         os.remove(db_file)

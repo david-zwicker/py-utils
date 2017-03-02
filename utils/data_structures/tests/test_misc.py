@@ -93,8 +93,8 @@ class TestMisc(unittest.TestCase):
         db_file = tempfile.NamedTemporaryFile(delete=False).name
         
         testcases = {
-            'legacy':  lambda: misc.yaml_database(db_file),
-            'simple':  lambda: misc.SimpleDatabase(db_file, locking=False),
+            'legacy': lambda: misc.yaml_database(db_file),
+            'simple': lambda: misc.SimpleDatabase(db_file, locking=False),
             'locking': lambda: misc.SimpleDatabase(db_file, locking=True),
         }
         
@@ -110,7 +110,7 @@ class TestMisc(unittest.TestCase):
             with database() as db:
                 self.assertEqual(db, {'a': 1, 'b': 2}, msg=msg)
     
-            os.remove(db_file) # simulate removing the file
+            os.remove(db_file)  # simulate removing the file
             with database() as db:
                 self.assertEqual(db, {}, msg=msg)        
             

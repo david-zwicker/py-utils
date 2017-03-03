@@ -340,9 +340,11 @@ class Cuboid(object):
         self.pos = np.minimum(p1, p2)
         self.size = np.abs(p1 - p2)
 
+
     @property
     def bounds(self):
         return [(p, p + s) for p, s in zip(self.pos, self.size)]
+            
             
     @property
     def corners(self):
@@ -351,17 +353,16 @@ class Cuboid(object):
     def corners(self, ps):
         self.set_corners(ps[0], ps[1])
 
-    @property
-    def dimension(self):
-        return len(self.pos)
-        
+
     @property
     def slices(self):
         return [slice(int(p), int(p + s)) for p, s in zip(self.pos, self.size)]
 
+
     @property
     def centroid(self):
         return [p + s/2 for p, s in zip(self.pos, self.size)]
+    
     
     @property
     def volume(self):
@@ -390,7 +391,8 @@ class Cuboid(object):
     
 
     def scale(self, factor=1, inplace=True):
-        """ scale the cuboid by a certain amount in all directions """
+        """ scale the cuboid by a certain amount in all directions. The corner
+        with the smallest coordinates is used as the center """
         factor = np.asarray(factor)
         if inplace:
             self.pos *= factor

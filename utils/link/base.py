@@ -16,8 +16,9 @@ class ExecutableBase(object):
 
     name = 'program_name'
     standards_args = []
+    skip_stdout_lines = 0    
     _detected_path = None  # automatically detected path to the program
-    
+
 
     def __init__(self, executable_path=None):
         """ initializes the external program interface """

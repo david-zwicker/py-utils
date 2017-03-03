@@ -20,8 +20,6 @@ class Mathematica(ExecutableBase):
     """ class that connects to Mathematica """ 
     
     name = 'Mathematica'
-    standards_args = []
-    skip_stdout_lines = 0
     
     
     @classmethod

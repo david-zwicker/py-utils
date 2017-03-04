@@ -161,7 +161,23 @@ class TestShapesND(unittest.TestCase):
         dist = plane.distance_point([-2, -2], oriented=True)
         self.assertAlmostEqual(dist, -2 * np.sqrt(2))
         
+
+    def test_cuboid_2d(self):
+        """ test Cuboid class in 2d """
+        c = shapes_nd.Cuboid([-1, -1], [2, 2])
+        self.assertEqual(c.dim, 2)
+        self.assertEqual(c.volume, 4)
+        np.testing.assert_array_equal(c.centroid, [0, 0])
+
+        c1 = c.buffer(1, inplace=False)
+        self.assertEqual(c1.volume, 16)
+        c2 = c.extend([1, 1], 1, inplace=False)
+        self.assertEqual(c2.volume, 9)
+        np.testing.assert_array_equal(c2.bounds, [[-1, 2], [-1, 2]])
+        c2.extend([-1, -1], 1)
+        self.assertEqual(c1, c2)
         
+
     def test_cylinder(self):
         """ test the Cylinder class """
         o = np.random.random(3)  # random origin

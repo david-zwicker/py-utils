@@ -329,6 +329,21 @@ class Cuboid(object):
                         pos=self.pos, size=self.size)
             
             
+    def __eq__(self, other):
+        """ override the default equality test """
+        if isinstance(other, self.__class__):
+            return (np.all(self.pos == other.pos) and 
+                    np.all(self.size == other.size))
+        return NotImplemented
+
+
+    def __ne__(self, other):
+        """ overwrite the default non-equality test """
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+    
+    
     @property
     def dim(self):
         return len(self.pos)
@@ -400,6 +415,25 @@ class Cuboid(object):
             return self
         else:
             return self.__class__(self.pos * factor, self.size * factor)
+        
+        
+    def extend(self, direction, magnitude=1, inplace=True):
+        """ extends the box in a given direction """
+        direction = np.asanyarray(direction)
+        if direction.shape != self.pos.shape:
+            raise ValueError('`direction` must have same dimensions as box')
+        
+        dir_neg = (direction < 0)
+        if inplace: 
+            self.size += np.abs(direction) * magnitude
+            self.pos[dir_neg] += direction[dir_neg] * magnitude
+            return self
+        
+        else:
+            size = self.size + np.abs(direction) * magnitude
+            pos = self.pos.copy()
+            pos[dir_neg] += direction[dir_neg] * magnitude
+            return self.__class__(pos, size)
     
 
 

@@ -169,12 +169,32 @@ class TestShapesND(unittest.TestCase):
         self.assertEqual(c.volume, 4)
         np.testing.assert_array_equal(c.centroid, [0, 0])
 
-        c1 = c.buffer(1, inplace=False)
+        c = shapes_nd.Cuboid([0, 0], [1, -1])
+        np.testing.assert_array_equal(c.pos, [0, -1])
+        np.testing.assert_array_equal(c.size, [1, 1])
+        
+        c = shapes_nd.Cuboid.from_points([1, -1], [0, 0])
+        np.testing.assert_array_equal(c.pos, [0, -1])
+        np.testing.assert_array_equal(c.size, [1, 1])
+
+        c = shapes_nd.Cuboid.from_centerpoint([0, 0], [2, -2])
+        np.testing.assert_array_equal(c.pos, [-1, -1])
+        np.testing.assert_array_equal(c.size, [2, 2])
+
+        c = shapes_nd.Cuboid([-1, -1], [2, 2])
+        fp = c.face_plane(axis=0, direction=1)
+        self.assertEqual(fp, shapes_nd.Plane([1, 0], [1, 0]))
+        fp = c.face_plane(axis=0, direction=0)
+        self.assertEqual(fp, shapes_nd.Plane([0, 0], [1, 0]))
+        fp = c.face_plane(axis=0, direction=-1)
+        self.assertEqual(fp, shapes_nd.Plane([-1, 0], [-1, 0]))
+
+        c1 = c.buffer(1)
         self.assertEqual(c1.volume, 16)
-        c2 = c.extend([1, 1], 1, inplace=False)
+        c2 = c.extend([1, 1], 1)
         self.assertEqual(c2.volume, 9)
         np.testing.assert_array_equal(c2.bounds, [[-1, 2], [-1, 2]])
-        c2.extend([-1, -1], 1)
+        c2.extend([-1, -1], 1, inplace=True)
         self.assertEqual(c1, c2)
         
 

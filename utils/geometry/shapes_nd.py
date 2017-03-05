@@ -298,25 +298,40 @@ class Cuboid(object):
         """ defines a cuboid from a position of one corner and a vector defining
         its size """
         self.pos = asanyarray_flags(pos, writeable=self.mutable)
-        self.size = asanyarray_flags(size, writeable=self.mutable)
-        if self.pos.shape != self.size.shape:
-            raise ValueError('Position vector (dim=%d) must have the same '
-                             'dimension as the size vector (dim=%d)' %
-                             (len(self.pos), len(self.size)))
+        self.size = size  # implicitly sets correct shape 
+        
+        
+    @property
+    def size(self):
+        return self._size
+    
+    @size.setter
+    def size(self, value):
+        self._size = np.array(value, self.pos.dtype)  # make copy
+        if self.pos.shape != self._size.shape:
+            raise ValueError('Size vector (dim=%d) must have the same '
+                             'dimension as the position vector (dim=%d)' %
+                             (len(self._size), len(self.pos)))
+        
+        # flip Cuboid with negative size
+        neg = (self._size < 0)
+        self.pos[neg] += self._size[neg]
+        self._size = np.abs(self._size)
+        self._size.flags.writeable = self.mutable
         
         
     @classmethod
     def from_points(cls, p1, p2, **kwargs):
         p1 = np.asarray(p1)
         p2 = np.asarray(p2)
-        return cls(np.minimum(p1, p2), np.abs(p1 - p2), **kwargs)
+        return cls(p1, p2 - p1, **kwargs)
     
     
     @classmethod
     def from_centerpoint(cls, centerpoint, size, **kwargs):
         centerpoint = np.asarray(centerpoint)
         size = np.asarray(size)
-        return cls(centerpoint - size/2, size, **kwargs)
+        return cls(centerpoint - size / 2, size, **kwargs)
     
     
     def copy(self):
@@ -348,13 +363,6 @@ class Cuboid(object):
     def dim(self):
         return len(self.pos)
             
-            
-    def set_corners(self, p1, p2):
-        p1 = np.asarray(p1)
-        p2 = np.asarray(p2)
-        self.pos = np.minimum(p1, p2)
-        self.size = np.abs(p1 - p2)
-
 
     @property
     def bounds(self):
@@ -364,9 +372,14 @@ class Cuboid(object):
     @property
     def corners(self):
         return self.pos, self.pos + self.size
+    
     @corners.setter
-    def corners(self, ps):
-        self.set_corners(ps[0], ps[1])
+    def corners(self, points):
+        points = np.asarray(points)
+        if points.shapes != (2, self.dim):
+            raise ValueError('Expect two points with correct dimensions.')
+        self.pos = points[0, :]
+        self.size = points[1, :] - points[0, :]
 
 
     @property
@@ -376,7 +389,7 @@ class Cuboid(object):
 
     @property
     def centroid(self):
-        return [p + s/2 for p, s in zip(self.pos, self.size)]
+        return self.pos + self.size / 2
     
     
     @property
@@ -384,7 +397,7 @@ class Cuboid(object):
         return np.prod(self.size)
     
 
-    def translate(self, distance=0, inplace=True):
+    def translate(self, distance=0, inplace=False):
         """ translates the cuboid by a certain distance in all directions """
         distance = np.asarray(distance)
         if inplace:
@@ -394,7 +407,7 @@ class Cuboid(object):
             return self.__class__(self.pos + distance, self.size)
     
             
-    def buffer(self, amount=0, inplace=True):
+    def buffer(self, amount=0, inplace=False):
         """ dilate the cuboid by a certain amount in all directions """
         amount = np.asarray(amount)
         if inplace:
@@ -405,7 +418,7 @@ class Cuboid(object):
             return self.__class__(self.pos - amount, self.size + 2*amount)
     
 
-    def scale(self, factor=1, inplace=True):
+    def scale(self, factor=1, inplace=False):
         """ scale the cuboid by a certain amount in all directions. The corner
         with the smallest coordinates is used as the center """
         factor = np.asarray(factor)
@@ -417,7 +430,7 @@ class Cuboid(object):
             return self.__class__(self.pos * factor, self.size * factor)
         
         
-    def extend(self, direction, magnitude=1, inplace=True):
+    def extend(self, direction, magnitude=1, inplace=False):
         """ extends the box in a given direction """
         direction = np.asanyarray(direction)
         if direction.shape != self.pos.shape:
@@ -434,6 +447,17 @@ class Cuboid(object):
             pos = self.pos.copy()
             pos[dir_neg] += direction[dir_neg] * magnitude
             return self.__class__(pos, size)
+        
+        
+    def face_plane(self, axis, direction=1):
+        """ returns a Plane object that represents a plane through on of the
+        sides perpendicular to `axis`. `direction` can be either -1, 0, or 1 and
+        determines which of the sides is used. Here, 0 marks the center """
+        origin = np.array(self.centroid)
+        origin[axis] += 0.5 * np.sign(direction) * self.size[axis]
+        normal = np.zeros(self.dim, np.double)
+        normal[axis] = 1 if direction >= 0 else -1
+        return Plane(origin, normal)
     
 
 

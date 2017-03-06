@@ -13,7 +13,7 @@ import numpy as np
 class Line(object):
     """ represents a line in n dimensions """
     
-    mutable = False  # determines whether the defining vectors can be changed 
+    _mutable = False  # determines whether the defining vectors can be changed 
     
     
     def __init__(self, origin, direction):
@@ -36,6 +36,17 @@ class Line(object):
         self._direction /= np.linalg.norm(self._direction)
         self._direction.flags.writeable = self.mutable    
     
+        
+    @property
+    def mutable(self):
+        return self._mutable
+    
+    @mutable.setter
+    def mutable(self, value):
+        self._mutable = bool(value)
+        self.origin.flags.writeable = self._mutable
+        self._direction.flags.writeable = self._mutable
+
     
     @classmethod
     def from_points(cls, point1, point2, **kwargs):
@@ -129,7 +140,7 @@ class Line(object):
 class Segment(object):
     """ represents a segment in n dimensions """
     
-    mutable = False  # determines whether the defining vectors can be changed 
+    _mutable = False  # determines whether the defining vectors can be changed 
     
     
     def __init__(self, start, end):
@@ -142,6 +153,17 @@ class Segment(object):
         if self.start.shape != shape or self.end.shape != shape:
             raise ValueError('Both `start` and `end` must be points with the '
                              'same dimension.')
+        
+        
+    @property
+    def mutable(self):
+        return self._mutable
+    
+    @mutable.setter
+    def mutable(self, value):
+        self._mutable = bool(value)
+        self.start.flags.writeable = self._mutable
+        self.end.flags.writeable = self._mutable
         
         
     @property
@@ -176,7 +198,7 @@ class Segment(object):
 class Plane(object):
     """ represents a plane in n dimensions """
     
-    mutable = False  # determines whether the defining vectors can be changed
+    _mutable = False  # determines whether the defining vectors can be changed
     
     
     def __init__(self, origin, normal):
@@ -199,6 +221,17 @@ class Plane(object):
                              (len(self._normal), len(self.origin)))
         self._normal /= np.linalg.norm(self._normal)
         self._normal.flags.writeable = self.mutable
+        
+        
+    @property
+    def mutable(self):
+        return self._mutable
+    
+    @mutable.setter
+    def mutable(self, value):
+        self._mutable = bool(value)
+        self.origin.flags.writeable = self._mutable
+        self._normal.flags.writeable = self._mutable
         
     
     @classmethod
@@ -291,7 +324,7 @@ class Plane(object):
 class Cuboid(object):
     """ class that represents a cuboid in n dimensions """
     
-    mutable = True  # determines whether the defining vectors can be changed
+    _mutable = True  # determines whether the defining vectors can be changed
     
     
     def __init__(self, pos, size):
@@ -319,6 +352,17 @@ class Cuboid(object):
         self._size = np.abs(self._size)
         self._size.flags.writeable = self.mutable
         
+        
+    @property
+    def mutable(self):
+        return self._mutable
+    
+    @mutable.setter
+    def mutable(self, value):
+        self._mutable = bool(value)
+        self.pos.flags.writeable = self._mutable
+        self._size.flags.writeable = self._mutable
+
         
     @classmethod
     def from_points(cls, p1, p2, **kwargs):
@@ -464,7 +508,7 @@ class Cuboid(object):
 class Cylinder(object):
     """ represents a single cylinder """
     
-    mutable = False  # determines whether the defining vectors can be changed
+    _mutable = False  # determines whether the defining vectors can be changed
     
     
     def __init__(self, center_1, center_2, radius):
@@ -479,6 +523,17 @@ class Cylinder(object):
         if self.center_1.shape != shape or self.center_2.shape != shape:
             raise ValueError('Both center points must have the same dimension.')
     
+        
+    @property
+    def mutable(self):
+        return self._mutable
+    
+    @mutable.setter
+    def mutable(self, value):
+        self._mutable = bool(value)
+        self.center_1.flags.writeable = self._mutable
+        self.center_2.flags.writeable = self._mutable
+
     
     @classmethod
     def from_segment(cls, segment, radius):

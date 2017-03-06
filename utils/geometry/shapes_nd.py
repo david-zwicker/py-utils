@@ -497,6 +497,10 @@ class Cuboid(object):
         """ returns a Plane object that represents a plane through on of the
         sides perpendicular to `axis`. `direction` can be either -1, 0, or 1 and
         determines which of the sides is used. Here, 0 marks the center """
+        if not np.isscalar(axis):
+            raise TypeError('The `axis` argument must be a scalar that '
+                            'determines along which axis the plane is taken.')
+        
         origin = np.array(self.centroid)
         origin[axis] += 0.5 * np.sign(direction) * self.size[axis]
         normal = np.zeros(self.dim, np.double)

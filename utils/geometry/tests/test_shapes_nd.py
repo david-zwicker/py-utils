@@ -183,6 +183,8 @@ class TestShapesND(unittest.TestCase):
 
         c = shapes_nd.Cuboid([-1, -1], [2, 2])
         fp = c.face_plane(axis=0, direction=1)
+        self.assertRaises(TypeError, lambda: c.face_plane([0, 1], direction=1))
+        
         self.assertEqual(fp, shapes_nd.Plane([1, 0], [1, 0]))
         fp = c.face_plane(axis=0, direction=0)
         self.assertEqual(fp, shapes_nd.Plane([0, 0], [1, 0]))

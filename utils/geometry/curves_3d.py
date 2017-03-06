@@ -119,17 +119,26 @@ class Curve3D(object):
     
     @property
     def num_points(self):
+        """ return the number of support points """
         return len(self.points)
     
     
     @property
     def start(self):
+        """ return the start point """ 
         return self.points[0]
     
     
     @property
     def end(self):
+        """ return the end point """ 
         return self.points[-1]
+    
+    
+    @property
+    def is_closed(self):
+        """ return whether this is a closed curve """
+        return np.all(self.start == self.end)
     
     
     @cached_property()

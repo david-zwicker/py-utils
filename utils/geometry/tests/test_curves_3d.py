@@ -34,6 +34,7 @@ class TestCurves3D(unittest.TestCase):
         # one point
         c = Curve3D([0, 0, 0])
         self.assertEqual(c.length, 0)
+        self.assertTrue(c.is_closed)
         np.testing.assert_array_equal(list(c), [[0, 0, 0]])
         self.assertRaises(ValueError, lambda: list(c.iter(data=['tangent'])))
 
@@ -43,6 +44,7 @@ class TestCurves3D(unittest.TestCase):
         ps = np.array([[0, 0, 0], [0, 0, 1], [0, 0, 2]])
         c = Curve3D(ps)
         self.assertEqual(c.length, 2)
+        self.assertFalse(c.is_closed)
         np.testing.assert_array_equal(list(c), ps)
         np.testing.assert_array_equal(list(c.iter()), ps)
         
@@ -215,7 +217,7 @@ class TestCurves3D(unittest.TestCase):
         self.assertNotEqual(c_len, c2.length)  # check that something changed
         self.assertAlmostEqual(c_len, c2.length, places=2)  # but not too much
 
-        c2 = c.make_smooth(smoothing=100)
+        c2 = c.make_smooth(smoothing=10)
         self.assertNotEqual(c_len, c2.length)  # check that something changed
         self.assertAlmostEqual(c_len, c2.length, places=1)  # but not too much
 

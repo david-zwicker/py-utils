@@ -10,8 +10,10 @@ from __future__ import division
 
 import collections
 import logging
-import yaml
+import os
 import warnings
+
+import yaml
 
 
 
@@ -172,7 +174,7 @@ class PeristentObject(object):
 
     def unlock_file(self):
         """ unlocks the potentially locked file. """
-        if self._locking:
+        if self._locking and os.path.isfile(self._filename):
             import portalocker
             portalocker.unlock(open(self._filename, 'r'))
 

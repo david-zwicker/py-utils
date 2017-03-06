@@ -170,6 +170,13 @@ class PeristentObject(object):
         self._database = None
 
 
+    def unlock_file(self):
+        """ unlocks the potentially locked file. """
+        if self.locking:
+            import portalocker
+            portalocker.unlock(self.filename)
+
+
     def __enter__(self):
         """ read the database or initialize it if it was not setup """
         # read the 

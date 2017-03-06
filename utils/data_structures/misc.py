@@ -174,7 +174,7 @@ class PeristentObject(object):
         """ unlocks the potentially locked file. """
         if self._locking:
             import portalocker
-            portalocker.unlock(self._filename)
+            portalocker.unlock(open(self._filename, 'r'))
 
 
     def __enter__(self):

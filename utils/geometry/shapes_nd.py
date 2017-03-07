@@ -183,6 +183,12 @@ class Segment(object):
     
     
     @property
+    def centroid(self):
+        """ return the centroid of the segment """
+        return 0.5 * (self.start + self.end)
+    
+    
+    @property
     def points(self):
         """ return the two endpoints as a single array """
         return np.vstack((self.start, self.end))
@@ -561,7 +567,13 @@ class Cylinder(object):
         """ return the height of the cylinder """
         return np.linalg.norm(self.center_2 - self.center_1)
 
+
+    @property
+    def centroid(self):
+        """ return the centroid of the segment """
+        return 0.5 * (self.center_1 + self.center_2)
     
+
     def distance_point(self, point):
         """ this does only calculate the distance to the side walls """
         point = np.asanyarray(point, np.double)

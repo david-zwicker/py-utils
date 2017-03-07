@@ -85,6 +85,7 @@ class TestShapesND(unittest.TestCase):
         self.assertEqual(segment.dim, 2)
         self.assertAlmostEqual(segment.length, 1)
         np.testing.assert_equal(segment.points, np.array([[0, 0], [0, 1]]))
+        np.testing.assert_allclose(segment.centroid, [0, 0.5])
 
 
     def test_plane_2d(self):
@@ -208,6 +209,7 @@ class TestShapesND(unittest.TestCase):
         self.assertIsInstance(repr(cyl), str)
         self.assertEqual(cyl.height, 10)
         self.assertEqual(cyl.dim, 3)
+        np.testing.assert_allclose(cyl.centroid, o + [0, 0, 5])
         
         self.assertEqual(cyl.distance_point(o + [1, 0, 0]), 0)
         self.assertEqual(cyl.distance_point(o + [2, 0, 0]), 0)

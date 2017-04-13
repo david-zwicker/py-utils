@@ -111,12 +111,12 @@ class FigureBase(Figure):
                 aspect = GOLDEN_MEAN
 
             if dx is None:
-                dx = 4.*plt.rcParams['axes.labelsize']/fig_width_pt
+                dx = 4. * plt.rcParams['axes.labelsize'] / fig_width_pt
             if not hasattr(dx, '__iter__'):
                 dx = (dx, 0.05)
 
             if dy is None:
-                dy = 4.5*plt.rcParams['axes.labelsize']/fig_width_pt
+                dy = 4.5 * plt.rcParams['axes.labelsize'] / fig_width_pt
             if not hasattr(dy, '__iter__'):
                 dy = (dy, 0.05)
 
@@ -135,7 +135,8 @@ class FigureBase(Figure):
         super(FigureBase, self).__init__(figsize=figsize, **kwargs)
 
         # setup the axes using the calculated dimensions
-        self.ax = self.add_axes([dx[0], dy[0], 1-dx[0]-dx[1], 1-dy[0]-dy[1]])
+        self.ax = self.add_axes([dx[0], dy[0], 1 - dx[0] - dx[1],
+                                 1 - dy[0] - dy[1]])
 
 
     def get_color_iter(self, color=None):

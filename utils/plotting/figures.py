@@ -30,7 +30,7 @@ INCHES_PER_PT = 1.0/72.27  # Convert pt to inch
 
 
 
-def crop_pdf(file_input, file_output=None, silence_output=True):
+def crop_pdf_file(file_input, file_output=None, silence_output=True):
     """ crops the pdf in the input file using the tool `pdfcrop`. If
     `file_output` is not given, the input file is overwritten. `silence_output`
     determines whether the output of the program is shown on the standard
@@ -277,7 +277,7 @@ class FigureBase(Figure):
             subprocess.check_call(['epspdf', filename + '.eps', file_pdf])
 
         if crop_pdf:
-            crop_pdf(file_pdf)
+            crop_pdf_file(file_pdf)
 
         return file_pdf
 

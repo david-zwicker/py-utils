@@ -130,13 +130,30 @@ def blend_colors(color, bg='w', alpha=0.5):
 
 
 
-def set_axis_color(ax=None, axis='y', color='r'):
-    """ Changes the color of an axis including the ticks and the label """
-
+def set_axis_color(ax=None, axis='both', color='r'):
+    """
+    Changes the color of an axis including the ticks and the label
+    
+    `ax` determines what axes object to use. If `None`, use current axes
+    `axis` determines which axes will be changed. Allowed values are any of
+        ['x', 'y', 'both']
+    `color` sets the actual color
+    """
+    # determine axes object
     if ax is None:
         ax = plt.gca()
 
-    ax.tick_params(axis=axis, which='both', color=color, labelcolor=color)
+    # determine which axes should be affected
+    if axis == 'both':
+        axes = ['x', 'y']
+    elif axis == 'x' or axis == 'y':
+        axes = [axis]
+    else:
+        raise ValueError("`axis` parameter must be from ['x', 'y', 'both']")
+    
+    # change the color of the requested axes
+    for axis in axes:
+        ax.tick_params(axis=axis, which='both', color=color, labelcolor=color)
 
 
 

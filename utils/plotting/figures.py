@@ -105,7 +105,6 @@ class FigureBase(Figure):
             figsize = kwargs.pop('figsize', None)
 
         else:
-
             # calculate lengths
             if aspect is None:
                 aspect = GOLDEN_MEAN

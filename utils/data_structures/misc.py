@@ -13,6 +13,7 @@ import logging
 import os
 import warnings
 
+import six
 import yaml
 
 
@@ -263,6 +264,30 @@ class PeristentObject(object):
         # close file and release lock if it was acquired
         self._database_fh.close()
         self._database_fh = None
+
+
+
+class ConstValueDict(dict):
+    """ represents a dictionary where values cannot be set to a new value when
+    they have been set once. An `AssertionError` is raised if a value is
+    attempted to be changed. """
+    
+    def __repr__(self):
+        name = self.__class__.__name__
+        content = super(ConstValueDict, self).__repr__()
+        return '{name}({content})'.format(name=name, content=content)
+    
+    
+    def __setitem__(self, key, value):
+        if key in self and self[key] != value:
+            raise AssertionError('Values for key `%s` are inconsistent.' % key)
+        else:
+            super(ConstValueDict, self).__setitem__(key, value)
+    
+            
+    def update(self, *args, **kwargs):
+        for key, value in six.iteritems(dict(*args, **kwargs)):
+            self[key] = value
 
 
 

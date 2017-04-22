@@ -11,6 +11,8 @@ import os
 import unittest
 import tempfile
 
+import six
+
 from .. import misc
 
 
@@ -158,6 +160,24 @@ class TestMisc(unittest.TestCase):
         os.remove(db_file)
 
 
+    def test_const_value_dict(self):
+        """ test the ConstValueDict class """
+        d = misc.ConstValueDict({'a': 1})
+        self.assertIsInstance(repr(d), six.string_types)
+        self.assertEqual(d, {'a': 1})
+
+        # test setting values
+        d['a'] = 1
+        self.assertEqual(d, {'a': 1})
+        def set_d(): d['a'] = 2
+        self.assertRaises(AssertionError, set_d)
+        
+        # test the update function
+        d.update({'a': 1, 'b': 2})
+        self.assertEqual(d, {'a': 1, 'b': 2})
+        self.assertRaises(AssertionError, lambda: d.update({'a': 1, 'b': 3}))
+        
+        
 
 if __name__ == "__main__":
     unittest.main()

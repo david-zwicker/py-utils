@@ -280,7 +280,8 @@ class ConstValueDict(dict):
     
     def __setitem__(self, key, value):
         if key in self and self[key] != value:
-            raise AssertionError('Values for key `%s` are inconsistent.' % key)
+            raise AssertionError('Values for key `%s` are inconsistent '
+                                 '(%s != %s).' % (key, self[key], value))
         else:
             super(ConstValueDict, self).__setitem__(key, value)
     

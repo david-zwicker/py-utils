@@ -5,6 +5,7 @@ Created on Aug 14, 2016
 '''
 
 import logging
+import os
 import subprocess
 
 import six
@@ -61,7 +62,7 @@ class ExecutableBase(object):
         
         
     def _run_command(self, command, stdin=None, skip_stdout_lines=None,
-                     **kwargs):
+                     environment=None, **kwargs):
         """ runs the script adding `command` to the command line and piping
         `stdin` to its stdin. The function returns the text written to stdout
         and stderr of the script.
@@ -71,6 +72,11 @@ class ExecutableBase(object):
         `stdin` is a string that will be send to the program's stdin
         `skip_stdout_lines` defines the number of lines that will be removed
             from stdout (usually because they are some kind of startup message)
+        `environment` is a dictionary of environment variables that are set on
+            top of the current environment
+            
+        All additional keyword arguments are forwarded to the call of
+        `subprocess.Popen`.
         """
         # build the command to run the program
         cmd = [self.executable_path] + self.standards_args
@@ -78,20 +84,28 @@ class ExecutableBase(object):
             cmd.append(command)
         else:
             cmd.extend(command)
-            
         logging.debug('Command to be executed: %s', cmd)
 
+        # get environment to run the process
+        if environment is not None:
+            process_env = os.environ.copy()
+            process_env.update(environment)
+        else:
+            process_env = None
+            
         if stdin is None:        
             # run program in a separate process and capture output
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE, **kwargs)
+                                       stderr=subprocess.PIPE, env=process_env,
+                                       **kwargs)
             stdout, stderr = process.communicate()
             
         else:
             # run program in a separate process, send stdin, and capture output
             process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE, **kwargs)
+                                       stderr=subprocess.PIPE, env=process_env,
+                                       **kwargs)
             stdout, stderr = process.communicate(stdin)
 
         # process output if necessary

@@ -62,7 +62,7 @@ class ExecutableBase(object):
         
         
     def _run_command(self, command, stdin=None, skip_stdout_lines=None,
-                     environment=None, **kwargs):
+                     environment=None, shell=False, **kwargs):
         """ runs the script adding `command` to the command line and piping
         `stdin` to its stdin. The function returns the text written to stdout
         and stderr of the script.
@@ -74,6 +74,7 @@ class ExecutableBase(object):
             from stdout (usually because they are some kind of startup message)
         `environment` is a dictionary of environment variables that are set on
             top of the current environment
+        `shell` determines whether a separate shell is invoked
             
         All additional keyword arguments are forwarded to the call of
         `subprocess.Popen`.
@@ -93,10 +94,15 @@ class ExecutableBase(object):
         else:
             process_env = None
             
+        if shell:
+            # Using a shell requires us to convert the command list to a string
+            cmd = ' '.join(cmd)
+            
         if stdin is None:        
             # run program in a separate process and capture output
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE, env=process_env,
+                                       stderr=subprocess.PIPE,
+                                       env=process_env, shell=shell,
                                        **kwargs)
             stdout, stderr = process.communicate()
             
@@ -104,7 +110,8 @@ class ExecutableBase(object):
             # run program in a separate process, send stdin, and capture output
             process = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE, env=process_env,
+                                       stderr=subprocess.PIPE,
+                                       env=process_env, shell=shell,
                                        **kwargs)
             stdout, stderr = process.communicate(stdin)
 

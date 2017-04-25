@@ -9,6 +9,7 @@ This module contains functions that can be used to handle files and directories
 from __future__ import division
 
 import contextlib
+import errno
 import glob
 import itertools
 import os
@@ -35,9 +36,9 @@ def ensure_directory_exists(folder):
     """ creates a folder if it not already exists """
     try:
         os.makedirs(folder)
-    except OSError:
-        # assume that the directory already exists
-        pass
+    except OSError as err:
+        if err.errno != errno.EEXIST:
+            raise
 
 
 

@@ -94,7 +94,7 @@ class ExecutableBase(object):
         else:
             process_env = None
             
-        if shell:
+        if shell and not isinstance(cmd, six.string_types):
             # Using a shell requires us to convert the command list to a string
             cmd = ' '.join(cmd)
             

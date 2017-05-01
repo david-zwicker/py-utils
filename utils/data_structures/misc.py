@@ -105,6 +105,55 @@ def save_dict_to_csv(data, filename, first_columns=None, **kwargs):
 
 
 
+def read_comsol_table(filename, ret_header=False, **kwargs):
+    """ read tabular data exported from comsol.
+    
+    `filename` gives the filename where the data has been exported
+    `ret_header` determines whether the header is also returned
+    
+    All other keyword arguments are forwarded to the `pandas.read_csv` call
+    """
+    import pandas as pd  # lazy load so its not a requirement for the module
+    
+    # determine the separator based on the filename
+    if filename.endswith('.csv'):
+        sep = ','
+    elif filename.endswith('.tsv'):
+        sep = '\t'
+    else:
+        sep = ' '
+        
+    kwargs.setdefault('skipinitialspace', True)
+    
+    # reformat the data such that pandas can read it
+    buf = six.StringIO()
+    header, in_header = [], True
+    with open(filename) as fp:
+        for line in fp:
+            if line.startswith('%'):
+                # ignore comments, but keep the first block, which is the
+                # header
+                if in_header:
+                    header.append(line[2:])  # remove comment character
+            else:
+                if header and in_header:
+                    buf.write(header.pop())  # write column names from header
+                    in_header = False
+                buf.write(line)
+
+    buf.flush()
+    buf.seek(0)
+    
+    # read the data using pandas
+    data = pd.read_csv(buf, sep=sep)
+    
+    if ret_header:
+        return data, header
+    else:
+        return data
+
+
+
 class OmniContainer(object):
     """ helper class that acts as a container that contains everything """
     

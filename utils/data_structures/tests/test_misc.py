@@ -12,6 +12,7 @@ import unittest
 import tempfile
 
 import six
+import numpy as np
 
 from .. import misc
 
@@ -176,6 +177,18 @@ class TestMisc(unittest.TestCase):
         d.update({'a': 1, 'b': 2})
         self.assertEqual(d, {'a': 1, 'b': 2})
         self.assertRaises(AssertionError, lambda: d.update({'a': 1, 'b': 3}))
+        
+        
+    def test_read_comsol_table(self):
+        """ test the read_comsol_table function """
+        # get path to test data
+        path = os.path.join(os.path.dirname(__file__),
+                            'resources', 'comsol.csv')
+        
+        data, header = misc.read_comsol_table(path, ret_header=True)
+        self.assertListEqual(list(data.columns), ["Column", "Column, Complex"])
+        np.testing.assert_array_equal(data.values, [[1, 2], [2, 4]])
+        self.assertEqual(len(header), 4)
         
         
 

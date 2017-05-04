@@ -58,8 +58,14 @@ class ExecutableBase(object):
         except:
             return False
         else:
-            return True        
+            return True  
         
+        
+    def log_output(self, stdout, stderr):
+        """ logs the output of a command """
+        logging.debug('stdout:\n%s', stdout)
+        logging.debug('stderr:\n%s', stderr)
+                
         
     def _run_command(self, command, stdin=None, skip_stdout_lines=None,
                      environment=None, shell=False, **kwargs):
@@ -120,9 +126,8 @@ class ExecutableBase(object):
             skip_stdout_lines = self.skip_stdout_lines
         if skip_stdout_lines > 0:
             stdout = stdout.split(b"\n", skip_stdout_lines + 1)[-1]
-        
-        logging.debug('stdout:\n%s', stdout)
-        logging.debug('stderr:\n%s', stderr)
+
+        self.log_output(stdout, stderr)
         
         return stdout, stderr
     

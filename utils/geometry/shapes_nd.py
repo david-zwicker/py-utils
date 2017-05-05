@@ -441,6 +441,10 @@ class Cuboid(object):
     def centroid(self):
         return self.pos + self.size / 2
     
+    @centroid.setter
+    def centroid(self, center):
+        self.pos[:] = np.asanyarray(center) - self.size / 2
+    
     
     @property
     def volume(self):

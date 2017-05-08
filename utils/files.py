@@ -66,6 +66,27 @@ def replace_in_file(infile, outfile=None, *args, **kwargs):
 
 
 
+def is_binary_file(path, bufsize=1024):
+    """ detects whether the file given in `path` is a binary file.
+    
+    `bufsize` determines how many bytes of the file are checked.
+    
+    The method was inspired by http://stackoverflow.com/a/7392391/932593
+    """
+    # determine the set of binary characters or load them from cache
+    try:
+        textchars = is_binary_file._textchars
+    except AttributeError:
+        is_binary_file._textchars = bytearray({7,8,9,10,12,13,27} |
+                                              set(range(0x20, 0x100)) - {0x7f})
+        textchars = is_binary_file._textchars
+        
+    # check whether these characters appear in the file
+    file_content = open(path, 'rb').read(bufsize)
+    return bool(file_content.translate(None, textchars))
+
+
+
 def pattern_alternatives(pattern):
     """ parse a glob pattern and yields all possible pattern combinations """
     alternatives = []

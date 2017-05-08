@@ -107,5 +107,23 @@ class TestFiles(unittest.TestCase):
         self.assertRaises(RuntimeError, lambda: alts('}'))
 
 
+    def test_is_binary_file(self):
+        """ test the is_binary_file function """
+        this_dir = os.path.dirname(__file__)
+        ascii_file = os.path.join(this_dir, 'resources', 'ascii.txt')
+        bin_file = os.path.join(this_dir, 'resources', 'data.bin')
+        
+        self.assertFalse(files.is_binary_file(ascii_file))
+        self.assertTrue(files.is_binary_file(bin_file))
+        
+        self.assertFalse(files.is_binary_file(ascii_file, 16))
+        self.assertTrue(files.is_binary_file(bin_file, 16))
+
+        # the first character happens to be a readable character
+        self.assertFalse(files.is_binary_file(ascii_file, 1))
+        self.assertFalse(files.is_binary_file(bin_file, 1))
+
+
+
 if __name__ == "__main__":
     unittest.main()

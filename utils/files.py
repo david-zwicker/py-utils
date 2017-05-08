@@ -77,7 +77,7 @@ def is_binary_file(path, bufsize=1024):
     try:
         textchars = is_binary_file._textchars
     except AttributeError:
-        is_binary_file._textchars = bytearray({7,8,9,10,12,13,27} |
+        is_binary_file._textchars = bytearray({7, 8, 9, 10, 12, 13, 27} |
                                               set(range(0x20, 0x100)) - {0x7f})
         textchars = is_binary_file._textchars
         

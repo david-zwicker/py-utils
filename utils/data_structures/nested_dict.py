@@ -23,7 +23,7 @@ def get_chunk_size(shape, num_elements):
     chunks = list(shape)
     while np.prod(chunks) > num_elements:
         dim_long = np.argmax(chunks)  # get longest dimension
-        chunks[dim_long] = 1  # temporary set to one for np.prod 
+        chunks[dim_long] = 1  # temporary set to one for np.prod
         chunks[dim_long] = max(1, num_elements // np.prod(chunks))
     return tuple(chunks)
     
@@ -46,7 +46,7 @@ class LazyValue(object):
 class LazyHDFValue(LazyValue):
     """ class that represents a value that is only loaded from HDF when it is
     accessed """
-    chunk_elements = 10000
+    chunk_elements = True  # 10000
     compression = None
     
 
@@ -109,7 +109,11 @@ class LazyHDFValue(LazyValue):
             if cls.compression is None and data_array.size < cls.chunk_elements:
                 hdf_file.create_dataset(key, data=data_array, track_times=True)
             else:
-                chunks = get_chunk_size(data_array.shape, cls.chunk_elements)
+                if isinstance(cls.chunk_elements, int): 
+                    chunks = get_chunk_size(data_array.shape,
+                                            cls.chunk_elements)
+                else:
+                    chunks = cls.chunk_elements
                 hdf_file.create_dataset(key, data=data_array, track_times=True,
                                         chunks=chunks,
                                         compression=cls.compression)

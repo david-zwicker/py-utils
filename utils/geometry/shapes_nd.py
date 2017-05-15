@@ -378,6 +378,12 @@ class Cuboid(object):
     
     
     @classmethod
+    def from_bounds(cls, bounds, **kwargs):
+        bounds = np.asarray(bounds)
+        return cls(bounds[:, 0], bounds[:, 1] - bounds[:, 0], **kwargs)
+    
+    
+    @classmethod
     def from_centerpoint(cls, centerpoint, size, **kwargs):
         centerpoint = np.asarray(centerpoint)
         size = np.asarray(size)

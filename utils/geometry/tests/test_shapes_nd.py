@@ -210,6 +210,15 @@ class TestShapesND(unittest.TestCase):
             c.centroid = [0, 0]
         self.assertRaises(ValueError, test)
         
+        
+    def test_cuboid_nd(self):
+        """ test Cuboid class in n dimensions """
+        dim = np.random.randint(5, 10)
+        c = shapes_nd.Cuboid(np.random.randn(dim), np.random.randn(dim))
+        self.assertEqual(c.dim, dim)
+        c2 = shapes_nd.Cuboid.from_bounds(c.bounds)
+        np.testing.assert_allclose(c.bounds, c2.bounds)
+                
 
     def test_cylinder(self):
         """ test the Cylinder class """

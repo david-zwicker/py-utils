@@ -106,17 +106,16 @@ class LazyHDFValue(LazyValue):
                 
             # save actual data as an array
             data_array = np.asarray(data.to_array())
-            if cls.compression is None and data_array.size < cls.chunk_elements:
-                hdf_file.create_dataset(key, data=data_array, track_times=True)
+
+            # determine the chunk size if necessary            
+            if isinstance(cls.chunk_elements, int): 
+                chunks = get_chunk_size(data_array.shape, cls.chunk_elements)
             else:
-                if isinstance(cls.chunk_elements, int): 
-                    chunks = get_chunk_size(data_array.shape,
-                                            cls.chunk_elements)
-                else:
-                    chunks = cls.chunk_elements
-                hdf_file.create_dataset(key, data=data_array, track_times=True,
-                                        chunks=chunks,
-                                        compression=cls.compression)
+                chunks = cls.chunk_elements
+
+            # create the dataset with the given options
+            hdf_file.create_dataset(key, data=data_array, track_times=True,
+                                    chunks=chunks, compression=cls.compression)
                 
             # add attributes to describe data 
             hdf_file[key].attrs['written_on'] = str(datetime.datetime.now())

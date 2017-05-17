@@ -216,11 +216,11 @@ def diff1d_periodic(data, period):
 def mean(values, empty=0):
     """ calculates mean of generator or iterator.
     Returns `empty` in case of an empty sequence """
-    n, total = 0, 0
+    n, mean = 0, 0
     for value in values:
-        total += value
         n += 1
-    return total / n if n > 0 else empty
+        mean += (value - mean) / n
+    return mean if n > 0 else empty
 
 
 

@@ -14,6 +14,8 @@ import glob
 import itertools
 import os
 
+import six
+
 
 
 @contextlib.contextmanager
@@ -157,4 +159,31 @@ def glob_alternatives(pattern):
         for res in glob.iglob(sub_pattern):
             yield res
     
+    
+    
+class open_filename(object):
+    """Context manager that opens a filename and closes it on exit, but does
+    nothing for file-like objects.
+    
+    Taken from https://stackoverflow.com/a/26590797/932593
+    """
+
+    def __init__(self, filename, *args, **kwargs):
+        self.closing = kwargs.pop('closing', False)
+        if isinstance(filename, six.string_types):
+            self.fh = open(filename, *args, **kwargs)
+            self.closing = True
+        else:
+            self.fh = filename
+    
+    
+    def __enter__(self):
+        return self.fh
+    
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.closing:
+            self.fh.close()
+    
+        return False    
     

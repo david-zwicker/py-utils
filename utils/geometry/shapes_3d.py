@@ -16,7 +16,8 @@ from ..data_structures.cache import cached_property
 
 
 class CoordinatePlane(shapes_nd.Plane):
-    """ represents a 2d plane equipped with a local coordinate system """
+    """ represents a 2d plane embedded in 3d space equipped with a local
+    coordinate system """
  
     def __init__(self, origin, normal, up_vector=None):
         """ initialize the plane using a position vector to the origin, a normal
@@ -25,11 +26,15 @@ class CoordinatePlane(shapes_nd.Plane):
         # this also normalizes the normal vector
         super(CoordinatePlane, self).__init__(origin, normal)
         
+        if self.dim != 3:
+            raise NotImplementedError('CoordiantePlanes can only be embedded '
+                                      'in 3d space, yet.')
+        
         if up_vector is None:
             # choose random up_vector until its sufficiently perpendicular
             logging.debug('Choose a random up_vector')
             while True:
-                up_vector = np.random.rand(3)
+                up_vector = np.random.rand(self.dim)
                 up_vector_norm = np.linalg.norm(up_vector)
                 if np.dot(up_vector, self.normal) < 0.99 * up_vector_norm:
                     break

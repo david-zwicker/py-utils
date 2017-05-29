@@ -24,7 +24,7 @@ class TestTransformations(TestBase):
         dim = np.random.randint(4, 10)
         offset = np.random.random(dim)
         scale = np.random.random(dim)
-        trans = AffineTransformation.from_no_rotation(scale, offset)
+        trans = AffineTransformation.from_scaling(scale, offset)
         return trans
     
     

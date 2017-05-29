@@ -55,7 +55,7 @@ class AffineTransformation(object):
     
         
     @classmethod
-    def from_no_rotation(cls, scale, offset=0):
+    def from_scaling(cls, scale, offset=0):
         """ initialize the coordinate transform """
         return cls(np.diag(scale), offset)
 

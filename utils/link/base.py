@@ -27,6 +27,7 @@ class ExecutableBase(object):
             self.executable_path = self.find_executable()
         else:
             self.executable_path = executable_path
+        self._logger = logging.getLogger(__name__)
 
 
     @classmethod
@@ -63,8 +64,8 @@ class ExecutableBase(object):
         
     def log_output(self, stdout, stderr):
         """ logs the output of a command """
-        logging.debug('stdout:\n%s', stdout)
-        logging.debug('stderr:\n%s', stderr)
+        self._logger.debug('STDOUT:\n%s', stdout)
+        self._logger.debug('STDERR:\n%s', stderr)
                 
         
     def _run_command(self, command, stdin=None, skip_stdout_lines=None,
@@ -91,7 +92,7 @@ class ExecutableBase(object):
             cmd.append(command)
         else:
             cmd.extend(command)
-        logging.debug('Command to be executed: %s', cmd)
+        self._logger.debug('Command to be executed: %s', cmd)
 
         # get environment to run the process
         if environment is not None:

@@ -32,7 +32,7 @@ class CoordinatePlane(shapes_nd.Plane):
         
         if up_vector is None:
             # choose random up_vector until its sufficiently perpendicular
-            logging.debug('Choose a random up_vector')
+            logging.getLogger(__name__).debug('Choose a random up_vector')
             while True:
                 up_vector = np.random.rand(self.dim)
                 up_vector_norm = np.linalg.norm(up_vector)

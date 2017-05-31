@@ -82,9 +82,10 @@ def save_dict_to_csv(data, filename, first_columns=None, **kwargs):
                             if item is not None)
             except AttributeError:
                 # one item did not have a unit
+                logger = logging.getLogger(__name__)
                 for k, item in enumerate(value):
                     if not hasattr(item, 'units'):
-                        logging.info([val[k] for val in data.values()])
+                        logger.info([val[k] for val in data.values()])
                         raise AttributeError('Value `%s = %s` does not have '
                                              'any units' % (key, item))
                 raise
@@ -208,6 +209,7 @@ class PeristentObject(object):
         # save some options for using this decorator
         self._filename = filename
         self._locking = locking
+        self.logger = logging.getLogger(__name__) 
         self.factory = factory
         
         self.format = db_format
@@ -237,12 +239,13 @@ class PeristentObject(object):
             try:
                 import portalocker
             except ImportError:
-                logging.error('The `portalocker` module must be installed to '
-                              'support locking of files on all platforms.')
+                self.logger.error('The `portalocker` module must be installed '
+                                  'to support locking of files on all '
+                                  'platforms.')
                 raise
     
-            logging.debug('Open and lock file `%s` to work with YAML database',
-                          self._filename)
+            self.logger.debug('Open and lock file `%s` to work with YAML '
+                              'database', self._filename)
             try:
                 self._database_fh = open(self._filename, 'r+')
             except IOError:
@@ -255,8 +258,8 @@ class PeristentObject(object):
             
         else:
             # open database file without locking
-            logging.debug('Open file `%s` to read entire YAML database',
-                          self._filename)
+            self.logger.debug('Open file `%s` to read entire YAML database',
+                              self._filename)
             try:
                 self._database_fh = open(self._filename, 'r') 
             except IOError:
@@ -286,15 +289,15 @@ class PeristentObject(object):
         # prepare the database file
         if self._locking:
             # clear the database file
-            logging.debug('Clear file `%s` to update YAML database',
-                          self._filename)
+            self.logger.debug('Clear file `%s` to update YAML database',
+                              self._filename)
             self._database_fh.seek(0)
             self._database_fh.truncate(0)
             
         else:
             # reopen the database file
-            logging.debug('Open file `%s` to write entire YAML database',
-                          self._filename)
+            self.logger.debug('Open file `%s` to write entire YAML database',
+                              self._filename)
             self._database_fh = open(self._filename, 'w')
             
         if self.format == 'yaml':

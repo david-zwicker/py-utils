@@ -26,6 +26,7 @@ class AffineTransformation(object):
         """
         self.matrix = np.atleast_2d(matrix)
         self.offset = offset
+        self._logger = logging.getLogger(__name__)
     
     
     @property
@@ -90,7 +91,7 @@ class AffineTransformation(object):
             matrix = np.eye(dim)
 
         obj = cls(matrix, offset)
-        logging.debug('Read %s from file', obj)
+        obj._logger.debug('Read %s from file', obj)
         return obj
     
     
@@ -100,7 +101,7 @@ class AffineTransformation(object):
                 'transformation_matrix': self.matrix.tolist()}
         file_handle.write(yaml.dump(data, default_flow_style=None))
 
-        logging.debug('Wrote %s to file', self)
+        self._logger.debug('Wrote %s to file', self)
 
      
     def __repr__(self):
@@ -129,8 +130,8 @@ class AffineTransformation(object):
         else:  # self.dim_to != self.dim_from
             # create the inverse transformation using a pseudo-inverse
             if warn:
-                logging.warn('Inverse transform is constructed using pseudo-'
-                             'inverse.')
+                self._logger.warn('Inverse transform is constructed using '
+                                  'pseudo-inverse.')
             matrix_inv = np.linalg.pinv(self.matrix)
             offset_inv = -np.dot(matrix_inv, self.offset)
             trans = self.__class__(matrix_inv, offset_inv)

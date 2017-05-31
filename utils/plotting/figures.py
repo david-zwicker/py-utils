@@ -66,6 +66,7 @@ class FigureBase(Figure):
         # read parameters
         self.transparent = kwargs.pop('transparent', None)
         self.verbose = kwargs.pop('verbose', False)
+        self._logger = logging.getLogger(__name__)
 
         backend = kwargs.pop('backend', None)
         safe_colors = kwargs.pop('safe_colors', False)
@@ -80,10 +81,8 @@ class FigureBase(Figure):
             self.backend_old = plt.get_backend()
             plt.switch_backend(backend)
             if backend.lower() != plt.get_backend().lower():
-                logging.warning(
-                    'Backend could not be switched from `%s` to `%s`',
-                    plt.get_backend(), backend
-                )
+                self._logger.warning('Backend could not be switched from `%s` '
+                                     'to `%s`', plt.get_backend(), backend)
 
         # choose the color list used in this figure
         if safe_colors:
@@ -120,8 +119,8 @@ class FigureBase(Figure):
                 dy = (dy, 0.05)
 
             if self.verbose:
-                logging.info('Parameter dx: %g, %g', *dx)
-                logging.info('Parameter dy: %g, %g', *dy)
+                self._logger.info('Parameter dx: %g, %g', *dx)
+                self._logger.info('Parameter dy: %g, %g', *dy)
 
             fig_width = fig_width_pt*INCHES_PER_PT  # width in inches
             axes_width = fig_width*(1. - dx[0] - dx[1])

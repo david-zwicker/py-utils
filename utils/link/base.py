@@ -27,7 +27,7 @@ class ExecutableBase(object):
             self.executable_path = self.find_executable()
         else:
             self.executable_path = executable_path
-        self._logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger(self.__class__.__module__)
 
 
     @classmethod

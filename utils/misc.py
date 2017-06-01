@@ -278,17 +278,3 @@ def format_timedelta(value, time_format=None):
     })
     
     
-    
-def with_logger(cls):
-    """ decorator that can be used on classes to provide them with a properly
-    initialized logger, which is available as `obj._logger` after the class
-    has been constructed using `obj = cls(*args, **kwargs)` """
-    
-    @functools.wraps(cls)
-    def wrapper(*args, **kwds):
-        obj = cls(*args, **kwds)
-        obj._logger = logging.getLogger(cls.__module__)
-        return obj
-    
-    return wrapper
-    

@@ -9,6 +9,7 @@ purpose.
 
 from __future__ import division
 
+import logging
 import os.path
 import shutil
 import subprocess as sp
@@ -126,6 +127,8 @@ def tex2pdf(tex_source, outfile, use_pdflatex=True):
             output += call(['pdflatex', 'document.tex'])
 
         else:
+            logging.getLogger(__name__).warn('Using tex->dvi->ps->pdf workflow '
+                                             'might not work in newer latex')
             # use ordinary latex
             output += call(['latex', 'document.tex'])
             output += call(['latex', 'document.tex'])

@@ -27,6 +27,10 @@ class ExecutableBase(object):
             self.executable_path = self.find_executable()
         else:
             self.executable_path = executable_path
+            
+        self.stdout = None
+        self.stderr = None
+            
         self._logger = logging.getLogger(self.__class__.__module__)
 
 
@@ -62,10 +66,10 @@ class ExecutableBase(object):
             return True  
         
         
-    def log_output(self, stdout, stderr):
+    def log_output(self, level=logging.DEBUG):
         """ logs the output of a command """
-        self._logger.debug('STDOUT:\n%s', stdout)
-        self._logger.debug('STDERR:\n%s', stderr)
+        self._logger.log(level, 'STDOUT:\n%s', self.stdout)
+        self._logger.log(level, 'STDERR:\n%s', self.stderr)
                 
         
     def _run_command(self, command, stdin=None, skip_stdout_lines=None,
@@ -111,7 +115,7 @@ class ExecutableBase(object):
                                        stderr=subprocess.PIPE,
                                        env=process_env, shell=shell,
                                        **kwargs)
-            stdout, stderr = process.communicate()
+            self.stdout, self.stderr = process.communicate()
             
         else:
             # run program in a separate process, send stdin, and capture output
@@ -120,16 +124,16 @@ class ExecutableBase(object):
                                        stderr=subprocess.PIPE,
                                        env=process_env, shell=shell,
                                        **kwargs)
-            stdout, stderr = process.communicate(stdin)
+            self.stdout, self.stderr = process.communicate(stdin)
 
         # process output if necessary
         if skip_stdout_lines is None:
             skip_stdout_lines = self.skip_stdout_lines
         if skip_stdout_lines > 0:
-            stdout = stdout.split(b"\n", skip_stdout_lines + 1)[-1]
+            self.stdout = self.stdout.split(b"\n", skip_stdout_lines + 1)[-1]
 
-        self.log_output(stdout, stderr)
+        self.log_output(level=logging.DEBUG)
         
-        return stdout, stderr
+        return self.stdout, self.stderr
     
         

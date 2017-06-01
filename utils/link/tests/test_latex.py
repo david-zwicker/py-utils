@@ -67,10 +67,9 @@ class Test(unittest.TestCase):
                          \end{document}"""
         outfile = tempfile.NamedTemporaryFile(suffix='.pdf')
         
-        for use_pdflatex in (True, False):
-            output = latex.tex2pdf(tex_source, outfile.name, use_pdflatex)
-            self.assertGreater(len(output), 0)
-            self.assertGreater(os.path.getsize(outfile.name), 0)
+        output = latex.tex2pdf(tex_source, outfile.name, use_pdflatex=True)
+        self.assertGreater(len(output), 0)
+        self.assertGreater(os.path.getsize(outfile.name), 0)
 
 
 

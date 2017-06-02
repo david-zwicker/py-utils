@@ -42,8 +42,7 @@ class TestTransformations(TestBase):
         self.assertAllClose(c1, trans_inv(c2))
         
         trans_inv2 = trans_inv.inverse()
-        self.assertAllClose(trans.offset, trans_inv2.offset)
-        self.assertAllClose(trans.matrix, trans_inv2.matrix)
+        self.assertEqual(trans, trans_inv2)
         
         p = np.random.random(trans.dim_from)
         self.assertAllClose(p, trans.project(p))
@@ -78,12 +77,10 @@ class TestTransformations(TestBase):
             np.testing.assert_allclose(trans.apply_inverse(v3), v2)
     
         trans_inv3 = trans_inv2.inverse(warn=False)
-        np.testing.assert_allclose(trans_inv3.offset, trans_inv.offset)
-        np.testing.assert_allclose(trans_inv3.matrix, trans_inv.matrix)
+        self.assertEqual(trans_inv3, trans_inv)
 
         trans_inv4 = trans_inv3.inverse(warn=False)
-        np.testing.assert_allclose(trans_inv4.offset, trans_inv2.offset)
-        np.testing.assert_allclose(trans_inv4.matrix, trans_inv2.matrix)
+        self.assertEqual(trans_inv4, trans_inv2)
             
             
     def test_save_transformation(self):
@@ -98,11 +95,16 @@ class TestTransformations(TestBase):
         
         # read the data back
         loaded = AffineTransformation.from_file(string_buffer)
-        self.assertEqual(trans.dim_to, loaded.dim_to)
-        self.assertEqual(trans.dim_from, loaded.dim_from)
-        self.assertAllClose(trans.offset, loaded.offset)
-        self.assertAllClose(trans.matrix, loaded.matrix)
+        self.assertEqual(trans, loaded)
         
+        
+    def test_pickling(self):
+        """ test pickling of transformations """
+        import pickle
+        trans = self._random_transform()        
+        trans2 = pickle.loads(pickle.dumps(trans))
+        self.assertEqual(trans, trans2)
+
 
 
 if __name__ == "__main__":

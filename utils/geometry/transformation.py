@@ -18,6 +18,7 @@ from ..files import open_filename
 class AffineTransformation(object):
     """ class that represents an affine coordinate transformation """
     
+    
     def __init__(self, matrix, offset=0):
         """ initialize the affine transformation
         
@@ -44,6 +45,20 @@ class AffineTransformation(object):
                                  'compatible with the target dimension (%d)' % 
                                  (len(self._offset), self.dim_to))
     
+    
+    def __eq__(self, other):
+        return (np.allclose(self.matrix, other.matrix) and
+                np.allclose(self.offset, other.offset))
+            
+    
+    def __getstate__(self):
+        return {'matrix': self.matrix, 'offset': self.offset}
+    
+    
+    def __setstate__(self, state):
+        self.matrix = state['matrix']
+        self.offset = state['offset']
+
     
     @property
     def dim_to(self):

@@ -379,7 +379,7 @@ class Cuboid(object):
     
     @classmethod
     def from_bounds(cls, bounds, **kwargs):
-        bounds = np.asarray(bounds)
+        bounds = np.asarray(bounds).reshape(-1, 2)
         return cls(bounds[:, 0], bounds[:, 1] - bounds[:, 0], **kwargs)
     
     

@@ -19,13 +19,28 @@ from utils.testing import TestBase
 class TestTransformations(TestBase):
 
     
-    def _random_transform(self):
+    def _random_transform(self, pure_scaling=False):
         """ generates a random transform """
         dim = np.random.randint(4, 10)
         offset = np.random.random(dim)
-        scale = np.random.random(dim)
-        trans = AffineTransformation.from_scaling(scale, offset)
+        if pure_scaling:
+            scale = np.random.random(dim)
+            trans = AffineTransformation.from_scaling(scale, offset)
+        else:
+            matrix = np.random.random((dim, dim))
+            trans = AffineTransformation(matrix, offset)
         return trans
+    
+    
+    def test_simple(self):
+        """ test simple properties of transformations """
+        trans_scaling = self._random_transform(pure_scaling=True)
+        trans_general = self._random_transform(pure_scaling=False)
+        
+        self.assertTrue(trans_scaling.is_scaling)
+        self.assertFalse(trans_scaling.is_identity)
+        self.assertFalse(trans_general.is_scaling)
+        self.assertFalse(trans_general.is_identity)
     
     
     def test_inverse(self):

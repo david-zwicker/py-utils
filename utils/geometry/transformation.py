@@ -74,7 +74,7 @@ class AffineTransformation(object):
     def from_scaling(cls, scale, offset=0):
         """ initialize the coordinate transform """
         return cls(np.diag(scale), offset)
-
+    
             
     @classmethod
     def from_file(cls, filename, dimension=3):
@@ -132,6 +132,14 @@ class AffineTransformation(object):
         return (self.dim_to == self.dim_from and
                 np.all(self.offset == 0) and
                 np.all(self.matrix == np.eye(self.dim_to)))
+    
+    
+    @property
+    def is_scaling(self):
+        """ returns True if transformation is one-to-one and a pure scaling and
+        some offset, i.e., if there is no shear or rotation. """
+        return (self.dim_to == self.dim_from and
+                np.allclose(self.matrix, np.diag(np.diag(self.matrix))))
     
     
     def inverse(self, warn=True):

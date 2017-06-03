@@ -168,21 +168,26 @@ class TestShapesND(unittest.TestCase):
         c = shapes_nd.Cuboid([-1, -1], [2, 2])
         self.assertEqual(c.dim, 2)
         self.assertEqual(c.volume, 4)
+        self.assertAlmostEqual(c.diagonal, np.sqrt(8))
         np.testing.assert_array_equal(c.centroid, [0, 0])
 
         c = shapes_nd.Cuboid([0, 0], [1, -1])
+        self.assertAlmostEqual(c.diagonal, np.sqrt(2))
         np.testing.assert_array_equal(c.pos, [0, -1])
         np.testing.assert_array_equal(c.size, [1, 1])
         
         c = shapes_nd.Cuboid.from_points([1, -1], [0, 0])
+        self.assertAlmostEqual(c.diagonal, np.sqrt(2))
         np.testing.assert_array_equal(c.pos, [0, -1])
         np.testing.assert_array_equal(c.size, [1, 1])
 
         c = shapes_nd.Cuboid.from_centerpoint([0, 0], [2, -2])
+        self.assertAlmostEqual(c.diagonal, np.sqrt(8))
         np.testing.assert_array_equal(c.pos, [-1, -1])
         np.testing.assert_array_equal(c.size, [2, 2])
 
         c = shapes_nd.Cuboid([-1, -1], [2, 2])
+        self.assertAlmostEqual(c.diagonal, np.sqrt(8))
         fp = c.face_plane(axis=0, direction=1)
         self.assertRaises(TypeError, lambda: c.face_plane([0, 1], direction=1))
         
@@ -214,8 +219,10 @@ class TestShapesND(unittest.TestCase):
     def test_cuboid_nd(self):
         """ test Cuboid class in n dimensions """
         dim = np.random.randint(5, 10)
-        c = shapes_nd.Cuboid(np.random.randn(dim), np.random.randn(dim))
+        size = np.random.randn(dim)
+        c = shapes_nd.Cuboid(np.random.randn(dim), size)
         self.assertEqual(c.dim, dim)
+        self.assertAlmostEqual(c.diagonal, np.linalg.norm(size))
         c2 = shapes_nd.Cuboid.from_bounds(c.bounds)
         np.testing.assert_allclose(c.bounds, c2.bounds)
                 

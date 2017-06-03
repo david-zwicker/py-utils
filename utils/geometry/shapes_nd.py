@@ -424,7 +424,7 @@ class Cuboid(object):
     def bounds(self):
         return [(p, p + s) for p, s in zip(self.pos, self.size)]
             
-            
+    
     @property
     def corners(self):
         return self.pos, self.pos + self.size
@@ -436,6 +436,12 @@ class Cuboid(object):
             raise ValueError('Expect two points with correct dimensions.')
         self.pos = points[0, :]
         self.size = points[1, :] - points[0, :]
+
+
+    @property
+    def diagonal(self):
+        """ returns the length of the diagonal """
+        return np.linalg.norm(self.size)
 
 
     @property

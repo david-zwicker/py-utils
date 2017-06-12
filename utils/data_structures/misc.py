@@ -157,7 +157,7 @@ def read_comsol_table(filename, ret_header=False, **kwargs):
     
     
     
-def write_comsol_paramters(path, data):
+def write_comsol_parameters(path, data):
     """ function for writing parameters to a file that comsol can read
     
     `path` gives the path to the file where the data is stored

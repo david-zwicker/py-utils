@@ -16,6 +16,8 @@ import warnings
 import six
 import yaml
 
+from ..math import homogenize_unit_array
+
 
 
 def transpose_list_of_dicts(data, missing=None):
@@ -152,7 +154,40 @@ def read_comsol_table(filename, ret_header=False, **kwargs):
         return data, header
     else:
         return data
+    
+    
+    
+def write_comsol_paramters(path, data):
+    """ function for writing parameters to a file that comsol can read
+    
+    `path` gives the path to the file where the data is stored
+    `data` is a dictionary with the name of the parameter as the key and a list
+        (potentially with units) of the parameter values
+    """    
+    
+    # unit translation table
+    UNITS = {'kilogram': 'kg',
+             'millimeter': 'mm',
+             'millimeter ** 2': 'mm^2',
+             '1 / second': '1/s'}
 
+    with open(path, 'w') as fp:
+        # iterate through the given data
+        for name, values in data.iteritems():
+            values = homogenize_unit_array(values)
+            try:
+                values_s = ', '.join('%g' % v.magnitude for v in values)
+            except AttributeError:
+                values_s = ', '.join('%g' % v for v in values)
+                s = '{name} {{{values}}}'.format(name=name, values=values_s)
+            else:
+                unit = str(values.units)
+                unit = UNITS.get(unit, unit)
+                s = '{name} {{{values}}} [{unit}]'.format(
+                                        name=name, values=values_s, unit=unit)
+
+            fp.write(s + '\n')
+            
 
 
 class OmniContainer(object):

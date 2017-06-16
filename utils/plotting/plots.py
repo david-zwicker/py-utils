@@ -856,7 +856,6 @@ def hist_logscale(data, bins=10, data_range=None, **kwargs):
     # try determining the bins
     try:
         bins = logspace(data_range[0], data_range[1], bins + 1)
-        print(bins)
     except TypeError:
         # `bins` might have been a numpy array already
         pass

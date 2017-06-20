@@ -9,6 +9,7 @@ from __future__ import division
 import itertools
 
 import numpy as np
+import matplotlib.pyplot as plt
 import matplotlib.colors as mclr
 from matplotlib.ticker import FormatStrFormatter, FuncFormatter, MaxNLocator
 
@@ -289,8 +290,6 @@ def reordered_legend(order=None, ax=None, *args, **kwargs):
 if __name__ == "__main__":
     print('This file is intended to be used as a module.')
     print('This code serves as a test for the defined methods.')
-
-    import matplotlib.pyplot as plt
 
     tests = (
         'safe_colors',

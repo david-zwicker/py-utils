@@ -282,12 +282,12 @@ class _class_cache(object):
             # cache for each method.
             
         The cache can be cleared by setting foo._cache_methods = {}
-        Alternatively, each cached method has a `clear_cache` method, which
-        clears the cache of this particular method. In the example above we
-        could thus call `foo.bar.clear_cache(foo)` to clear the cache. Note
-        that the object instance has to be passed as a parameter, since the
+        Alternatively, each cached method has a `clear_cache_of_obj` method,
+        which clears the cache of this particular method. In the example above
+        we could thus call `foo.bar.clear_cache_of_obj(foo)` to clear the cache.
+        Note that the object instance has to be passed as a parameter, since the
         method `bar` is defined on the class, not the instance, i.e., we could
-        also call Foo.bar.clear_cache(foo). 
+        also call Foo.bar.clear_cache_of_obj(foo). 
         
         Additionally, `extra_args` can specify a list of properties that are 
         added to the cache key. They are then treated as if they are supplied as

@@ -12,6 +12,7 @@ import tempfile
 import numpy as np
 
 from .. import cache
+from ...testing import deep_getsizeof
 
 
 
@@ -397,6 +398,40 @@ class TestCache(unittest.TestCase):
                 self._test_method_cache(serializer, cache_factory)
                 self._test_method_cache_extra_args(serializer, cache_factory)
 
+
+    def test_cache_clearing(self):
+        """ make sure that memory is freed when cache is cleared """
+        class Test(object):
+            """ simple test object with a cache """
+            @cache.cached_method()
+            def calc(self, n):
+                return np.empty(n)
+            
+            def clear_cache(self):
+                self._cache_methods = {}
+                
+            def clear_specific(self):
+                self.calc.clear_cache_of_obj(self)
+            
+        t = Test()
+        
+        mem0 = deep_getsizeof(t)
+        
+        for clear_cache in (t.clear_cache, t.clear_specific):
+            t.calc(100)
+            mem1 = deep_getsizeof(t)
+            self.assertGreater(mem1, mem0)
+            t.calc(200)
+            mem2 = deep_getsizeof(t)
+            self.assertGreater(mem2, mem1)
+            t.calc(100)
+            mem3 = deep_getsizeof(t)
+            self.assertEqual(mem3, mem2)
+        
+            clear_cache()
+            mem4 = deep_getsizeof(t)
+            self.assertGreaterEqual(mem4, mem0)
+            self.assertGreaterEqual(mem1, mem4)
 
 
     def test_CachedArray(self):

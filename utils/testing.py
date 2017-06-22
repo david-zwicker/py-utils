@@ -6,6 +6,7 @@ Created on Aug 21, 2015
 
 from __future__ import division
 
+import collections
 import logging
 import sys
 import unittest
@@ -13,6 +14,7 @@ import warnings
 from contextlib import contextmanager
 
 import numpy as np
+import six
 from six.moves import zip_longest
 
 from .math import arrays_close
@@ -142,6 +144,51 @@ class WarnAssertionsMixin(object):
                     self.fail('Message `%s` was not contained in warnings'
                               % message)
             
+
+
+def deep_getsizeof(obj, ids=None):
+    """Find the memory footprint of a Python object
+ 
+    This is a recursive function that drills down a Python object graph
+    like a dictionary holding nested dictionaries with lists of lists
+    and tuples and sets.
+ 
+    The sys.getsizeof function does a shallow size of only. It counts each
+    object inside a container as pointer only regardless of how big it
+    really is.
+ 
+    Function modified from
+    https://code.tutsplus.com/tutorials/understand-how-much-memory-your-python-objects-use--cms-25609
+    """
+    if ids is not None:
+        if id(obj) in ids:
+            return 0
+    else:
+        ids = set()
+ 
+    r = sys.getsizeof(obj)
+    ids.add(id(obj))
+ 
+    if isinstance(obj, six.string_types):
+        # simple string
+        return r
+ 
+    if isinstance(obj, collections.Mapping):
+        # simple mapping
+        return r + sum(deep_getsizeof(k, ids) + deep_getsizeof(v, ids)
+                       for k, v in six.iteritems(obj))
+ 
+    if isinstance(obj, collections.Container):
+        # collection that is neither a string nor a mapping
+        return r + sum(deep_getsizeof(x, ids) for x in obj)
+    
+    if hasattr(obj, '__dict__'):
+        # custom object
+        return r + deep_getsizeof(obj.__dict__, ids)
+ 
+    # basic object: neither of the above
+    return r 
+
 
 
 if __name__ == '__main__':

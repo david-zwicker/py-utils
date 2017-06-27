@@ -60,6 +60,13 @@ class CoordinatePlane(shapes_nd.Plane):
     @classmethod
     def from_plane(cls, plane, up_vector=None):
         """ create a coordinate plane from a simple plane """
+        if up_vector is None:
+            # check whether the given plane has already an up-vector
+            try:
+                up_vector = plane.up_vector
+            except AttributeError:
+                pass
+            
         return cls(plane.origin, plane.normal, up_vector)
         
     

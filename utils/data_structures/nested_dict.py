@@ -459,7 +459,7 @@ class LazyNestedDict(NestedDict):
                 # not found in NestedDict (raising KeyError) and items not being
                 # able to load (raising LazyLoadError)
                 msg = ('Cannot load item `%s`.\nThe original error was: %s'
-                        % (key, str(err)))
+                       % (key, str(err)))
                 six.raise_from(LazyLoadError(msg), err)
             self.data[key] = value  # replace loader with actual value
             

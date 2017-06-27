@@ -63,7 +63,7 @@ class CoordinatePlane(shapes_nd.Plane):
         if up_vector is None:
             # check whether the given plane has already an up-vector
             try:
-                up_vector = plane.up_vector
+                up_vector = plane.basis_v
             except AttributeError:
                 pass
             

@@ -91,5 +91,28 @@ class CoordinatePlane(shapes_nd.Plane):
         """ gives the coordinate transformation from 3d space to the local 2d
         coordinate system """
         return self.trans_2d_3d.inverse(warn=False)
+    
+    
+    def project_point(self, point, ret_dist=False):
+        """ projects a 3d point onto the plane. Returns the coordinates in the
+        plane and the distance to the plane. The original point can thus be
+        reconstructed using
+            self.trans_2d_3d(coords) + self.normal * dist
+        """
+        coords = self.trans_3d_2d(point)
+        if ret_dist:
+            dist = np.dot(point - self.trans_2d_3d(coords), self.normal)
+            return coords, dist
+        else:
+            return coords
+        
+    
+    def revert_projection(self, coordinates, distance=0):
+        """ reverts a projection operation """
+        points = self.trans_2d_3d(coordinates)
+        if points.ndim > 1:
+            return points + np.outer(distance, self.normal)
+        else:
+            return points + distance * self.normal
         
         

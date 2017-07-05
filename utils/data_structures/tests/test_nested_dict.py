@@ -320,7 +320,17 @@ class TestNestedDict(unittest.TestCase):
 
         d = self.dict_cls({'a.b.c': 1}, sep='.')
         self.assertEqual(d, {'a': {'b': {'c': 1}}})
+        
+        
+    def test_update(self):
+        """ test the difference between update and update recursive """
+        d = nested_dict.NestedDict({'a': {'b': 1}})
+        d.update({'a': {'c': 2}})
+        self.assertEqual(d, {'a': {'c': 2}})
 
+        d = nested_dict.NestedDict({'a': {'b': 1}})
+        d.update_recursive({'a': {'c': 2}})
+        self.assertEqual(d, {'a': {'b': 1, 'c': 2}})
 
 
 

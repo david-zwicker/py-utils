@@ -372,11 +372,12 @@ class NestedDict(collections.MutableMapping):
 
     def update_recursive(self, other):
         """ update the dictionary recursively """
-        for k, v in six.iteritems(other):
-            try:
-                self[k].update_recursive(v)
-            except (AttributeError, KeyError):
-                self[k] = v
+        if other:
+            for k, v in six.iteritems(other):
+                try:
+                    self[k].update_recursive(v)
+                except (AttributeError, KeyError):
+                    self[k] = v
 
 
     def copy(self):

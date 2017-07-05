@@ -373,9 +373,9 @@ class NestedDict(collections.MutableMapping):
     def update_recursive(self, other):
         """ update the dictionary recursively """
         for k, v in six.iteritems(other):
-            if k in self:
+            try:
                 self[k].update_recursive(v)
-            else:
+            except (AttributeError, KeyError):
                 self[k] = v
 
 

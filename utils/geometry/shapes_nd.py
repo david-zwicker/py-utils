@@ -292,6 +292,12 @@ class Plane(object):
         return NotImplemented
     
     
+    def copy(self, origin=None, normal=None):
+        """ create a copy of the current plane with the given attributes """
+        return self.__class__(origin=self.origin if origin is None else origin,
+                              normal=self.normal if normal is None else normal)
+    
+    
     def distance_point(self, points, oriented=False):
         """ calculates the distance of points to the plane
         If `oriented` is True, the oriented distance is returned, which is
@@ -323,7 +329,17 @@ class Plane(object):
     
     def flip_normal(self):
         """ returns a plane with the normal flipped """
-        return self.__class__(self.origin, -self.normal)
+        return self.copy(normal=-self.normal)
+
+
+    def translate(self, vector=0, inplace=False):
+        """ translates the plane by the `vector` """
+        vector = np.asarray(vector)
+        if inplace:
+            self.origin += vector
+            return self
+        else:
+            return self.copy(origin=self.origin + vector)
 
     
 

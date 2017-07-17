@@ -171,7 +171,13 @@ def display_progress(iterator, total=None, **kwargs):
     if tqdm is not None:
         return tqdm(iterator, total=total, **kwargs)
     else:
+        if display_progress._show_warning:
+            logging.getLogger(__name__).warn('Module `tqdm` is not available '
+                                             'and progress cannot be displayed')
+            display_progress._show_warning = False
         return iterator
+    
+display_progress._show_warning = True
     
     
     

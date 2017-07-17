@@ -77,6 +77,15 @@ class CoordinatePlane(shapes_nd.Plane):
                 for key, value in self.__dict__.iteritems()
                 if not key.startswith('_')}
         
+        
+    def copy(self, origin=None, normal=None, up_vector=None):
+        """ create a copy of the current plane with the given attributes """
+        if up_vector is None:
+            up_vector = self.basis_v
+        return self.__class__(origin=self.origin if origin is None else origin,
+                              normal=self.normal if normal is None else normal,
+                              up_vector=up_vector)
+    
     
     @cached_property()
     def trans_2d_3d(self):

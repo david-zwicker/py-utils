@@ -57,6 +57,11 @@ class CoordinatePlane(shapes_nd.Plane):
         self.basis_u = -np.cross(self.normal, self.basis_v)
         
         
+    @property
+    def up_vector(self):
+        return self.basis_v
+        
+        
     @classmethod
     def from_plane(cls, plane, up_vector=None):
         """ create a coordinate plane from a simple plane """
@@ -69,6 +74,13 @@ class CoordinatePlane(shapes_nd.Plane):
             
         return cls(plane.origin, plane.normal, up_vector)
         
+        
+    def __repr__(self):
+        return ("{cls}(origin={origin}, normal={normal}, "
+                "up_vector={up_vector})".format(
+                        cls=self.__class__.__name__, origin=self.origin,
+                        normal=self.normal, up_vector=self.basis_v))
+
     
     def __getstate__(self):
         """ support for pickling objects """

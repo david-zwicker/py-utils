@@ -141,6 +141,12 @@ class TestShapesND(unittest.TestCase):
         ps = np.random.randn(5, dim)
         self.assertTrue(np.all(plane.contains_point(plane.project_point(ps))))
         
+        # test copy
+        p2 = plane.copy()
+        self.assertNotEqual(id(plane), id(p2))
+        p2 = plane.copy(origin=np.random.randn(dim))
+        np.testing.assert_almost_equal(plane.normal, p2.normal)
+        
         # test wrong arguments
         self.assertRaises(ValueError, lambda: shapes_nd.Plane([], [1]))
         self.assertRaises(ValueError, lambda: shapes_nd.Plane([1], [1, 2]))

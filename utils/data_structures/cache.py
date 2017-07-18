@@ -257,8 +257,8 @@ class SerializedDict(collections.MutableMapping):
 class _class_cache(object):
     """ class handling the caching of results of methods and properties """
     
-    def __init__(self, factory=None, extra_args=None, serializer='pickle',
-                 doc=None, name=None):
+    def __init__(self, factory=None, extra_args=None, ignore_args=None,
+                 serializer='pickle', doc=None, name=None):
         """ decorator that caches calls in a dictionary attached to the
         instances. This can be used with most classes
     
@@ -293,7 +293,8 @@ class _class_cache(object):
         added to the cache key. They are then treated as if they are supplied as
         arguments to the method. This is important to include when the result of
         a method depends not only on method arguments but also on instance
-        properties.
+        properties. Conversely, the keyword arguments listed in `ignore_args`
+        are ignored in the cache key.
             
         This class also plays together with user-supplied storage backends by 
         defining a cache factory. The cache factory should return a dict-like
@@ -313,12 +314,19 @@ class _class_cache(object):
         self.serializer = serializer
         self.name = name
 
+        # setup the ignored arguments
+        if ignore_args is not None:
+            if isinstance(ignore_args, six.string_types):
+                ignore_args = [ignore_args]
+            self.ignore_args = set(ignore_args)
+        else:
+            self.ignore_args = None
+
         # check whether the decorator has been applied correctly
         if callable(factory):
             class_name = self.__class__.__name__
             raise ValueError('Missing function call. Call this decorator as '
                              '@{0}() instead of @{0}'.format(class_name))
-            
             
         else:
             self.factory = factory
@@ -379,14 +387,18 @@ class _class_cache(object):
                 obj._cache_methods[self.name] = cache
     
             # determine the key that encodes the current arguments
-            if self.extra_args:
+            if self.ignore_args:
+                kwargs_key = {k: v for k, v in six.iteritems(kwargs)
+                              if k not in self.ignore_args}
+                func_args = [args, kwargs_key]
+            else:
                 func_args = [args, kwargs]
+                
+            if self.extra_args:
                 for extra_arg in self.extra_args:
                     func_args.append(getattr(obj, extra_arg))
-                func_args = tuple(func_args)
-            else:
-                func_args = (args, kwargs)
-            cache_key = serialize_key(func_args)
+                    
+            cache_key = serialize_key(tuple(func_args))
     
             try:
                 # try loading the results from the cache

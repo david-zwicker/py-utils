@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mclr
 from matplotlib.ticker import FormatStrFormatter, FuncFormatter, MaxNLocator
+import six
 
 from ..link.latex import number2latex
 
@@ -104,18 +105,28 @@ plot_styles = get_style_iter
 
 
 
-def get_colormap(colors='rgb'):
-    """ builds a segmented colormap with the color sequence given
-    as a string """
-    COLORS = {
-        'r': '#E6001C', 'g': '#00A919', 'b': '#0673B7',
-        'w': '#FFFFFF', 'k': '#000000'
-    }
+def get_colormap(colors, name=None):
+    """ builds a segmented colormap with the color sequence given as a string,
+    e.g., 'rgb' for a colormap cycling through red, green, and blue.
+    Alternatively, a list of colors can be given.
+    
+    `name` sets the internal name of the colormap
+    """
+    if isinstance(colors, six.string_types):
+        COLORS = {
+            'r': '#E6001C', 'g': '#00A919', 'b': '#0673B7',
+            'w': '#FFFFFF', 'k': '#000000'
+        }
+        colors = [COLORS[c] for c in colors]
+    
+        if name is None:
+            name = colors
+            
+    elif name is None:
+        name = 'custom'
 
-    return mclr.LinearSegmentedColormap.from_list(
-        colors, [COLORS[c] for c in colors]
-    )
-
+    return mclr.LinearSegmentedColormap.from_list(name, colors) 
+    
 
 
 def blend_colors(color, bg='w', alpha=0.5):

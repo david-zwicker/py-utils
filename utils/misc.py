@@ -235,6 +235,7 @@ def iter_pairwise(iterable, circular=False):
     return zip(a, b)
 
 
+
 def format_timedelta(value, time_format=None):
     """ formats a datetime.timedelta with the given format.
     Code copied from Django as explained in

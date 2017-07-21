@@ -264,7 +264,7 @@ class TestCache(unittest.TestCase):
             def __init__(self):
                 self.counter = 0
             
-            def get_finite_dict(self, n):
+            def get_finite_dict(self, name):
                 return cache.DictFiniteCapacity(capacity=1)
             
             def uncached(self, arg):
@@ -358,7 +358,7 @@ class TestCache(unittest.TestCase):
                 self.counter = 0
                 self.value = 0
             
-            def get_finite_dict(self, n):
+            def get_finite_dict(self, name):
                 return cache.DictFiniteCapacity(capacity=1)
             
             @cache.cached_method(serializer=serializer, extra_args=['value'],
@@ -393,37 +393,40 @@ class TestCache(unittest.TestCase):
 
     def _test_method_cache_ignore(self, serializer, cache_factory=None):
         """ test ignored parameters of the cached_method decorator """
-       
-        # create test class
-        class CacheTest(object):
-            """ class for testing caching """
-            
-            def __init__(self):
-                self.counter = 0
-            
-            def get_finite_dict(self, n):
-                return cache.DictFiniteCapacity(capacity=1)
-            
-            @cache.cached_method(serializer=serializer, ignore_args=['display'],
-                                 factory=cache_factory)
-            def cached(self, arg, display=True):
-                return arg    
-            
-        obj = CacheTest()
-            
-        # test simple caching behavior
-        self.assertEqual(obj.cached(1, True), 1)
-        self.assertEqual(obj.counter, 1)
-        self.assertEqual(obj.cached(1, True), 1)
-        self.assertEqual(obj.counter, 1)
-        self.assertEqual(obj.cached(1, False), 1)
-        self.assertEqual(obj.counter, 1)
-        self.assertEqual(obj.cached(2, True), 2)
-        self.assertEqual(obj.counter, 2)
-        self.assertEqual(obj.cached(2, False), 2)
-        self.assertEqual(obj.counter, 2)
-        self.assertEqual(obj.cached(2, False), 2)
-        self.assertEqual(obj.counter, 2)
+        # test two different ways of ignoring arguments
+        for ignore_args in ['display', ['display']]:
+           
+            # create test class
+            class CacheTest(object):
+                """ class for testing caching """
+                
+                def __init__(self):
+                    self.counter = 0
+                
+                def get_finite_dict(self, name):
+                    return cache.DictFiniteCapacity(capacity=1)
+                
+                @cache.cached_method(serializer=serializer,
+                                     ignore_args=ignore_args,
+                                     factory=cache_factory)
+                def cached(self, arg, display=True):
+                    return arg    
+                
+            obj = CacheTest()
+                
+            # test simple caching behavior
+            self.assertEqual(obj.cached(1, True), 1)
+            self.assertEqual(obj.counter, 1)
+            self.assertEqual(obj.cached(1, True), 1)
+            self.assertEqual(obj.counter, 1)
+            self.assertEqual(obj.cached(1, False), 1)
+            self.assertEqual(obj.counter, 1)
+            self.assertEqual(obj.cached(2, True), 2)
+            self.assertEqual(obj.counter, 2)
+            self.assertEqual(obj.cached(2, False), 2)
+            self.assertEqual(obj.counter, 2)
+            self.assertEqual(obj.cached(2, False), 2)
+            self.assertEqual(obj.counter, 2)
 
 
     def test_method_cache(self):
@@ -469,6 +472,36 @@ class TestCache(unittest.TestCase):
             self.assertGreaterEqual(mem4, mem0)
             self.assertGreaterEqual(mem1, mem4)
 
+
+    def test_clear_cache_decorator(self):
+        """ make sure that memory is freed when cache is cleared """
+        @cache.add_clear_cache_method
+        class Test(object):
+            """ simple test object with a cache """
+            
+            @cache.cached_method()
+            def calc(self, n):
+                return np.empty(n)
+            
+        t = Test()
+        
+        mem0 = deep_getsizeof(t)
+        
+        t.calc(100)
+        mem1 = deep_getsizeof(t)
+        self.assertGreater(mem1, mem0)
+        t.calc(200)
+        mem2 = deep_getsizeof(t)
+        self.assertGreater(mem2, mem1)
+        t.calc(100)
+        mem3 = deep_getsizeof(t)
+        self.assertEqual(mem3, mem2)
+    
+        t.clear_cache()
+        mem4 = deep_getsizeof(t)
+        self.assertGreaterEqual(mem4, mem0)
+        self.assertGreaterEqual(mem1, mem4)
+            
 
     def test_CachedArray(self):
         """ test the CachedArray class """

@@ -281,13 +281,18 @@ class _class_cache(object):
             # `foo._cache_methods`, which is a dictionary containing the
             # cache for each method.
             
-        The cache can be cleared by setting foo._cache_methods = {}
+        The cache can be cleared by setting foo._cache_methods = {} if the cache
+        factor is a simple dict, i.e, if `factory` == None.        
         Alternatively, each cached method has a `clear_cache_of_obj` method,
         which clears the cache of this particular method. In the example above
         we could thus call `foo.bar.clear_cache_of_obj(foo)` to clear the cache.
         Note that the object instance has to be passed as a parameter, since the
         method `bar` is defined on the class, not the instance, i.e., we could
-        also call Foo.bar.clear_cache_of_obj(foo). 
+        also call Foo.bar.clear_cache_of_obj(foo).
+        
+        For convenience there is also the class decorator
+        `add_clear_cache_method` that adds a method `clear_cache` that can be
+        used to clear the caches of all methods of the class and its subclasses
         
         Additionally, `extra_args` can specify a list of properties that are 
         added to the cache key. They are then treated as if they are supplied as
@@ -472,6 +477,29 @@ class cached_method(_class_cache):
         wrapper.clear_cache_of_obj = self._get_clear_cache_method()
     
         return wrapper
+
+
+
+def add_clear_cache_method(cls):
+    """ a class decorator that adds a clear_cache method to the class """
+    # gather the methods that need to be cleared
+    methods_with_cache = []
+    for method_name in dir(cls):
+        if method_name.startswith('__'):
+            continue
+        
+        method = getattr(cls, method_name)
+        if hasattr(method, 'clear_cache_of_obj'):
+            methods_with_cache.append(method)
+
+    # add the actual method for clearing the cache            
+    def clear_cache(self):
+        """ clears the cache of all methods """
+        for method in methods_with_cache:
+            method.clear_cache_of_obj(self)
+    cls.clear_cache = clear_cache
+            
+    return cls
 
 
 

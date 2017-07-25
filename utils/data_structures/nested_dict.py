@@ -477,24 +477,36 @@ class LazyNestedDict(NestedDict):
     
     
 
-def prepare_data_for_yaml(data):
+def prepare_data_for_yaml(data, _key=None):
     """ recursively converts some special types to close python equivalents """
+    if _key is None:
+        _key = []
+        
     if isinstance(data, np.ndarray):
         return data.tolist()
+    
     elif isinstance(data, np.floating):
         return float(data)
+    
     elif isinstance(data, np.integer):
         return int(data)
+    
     elif isinstance(data, collections.MutableMapping):
-        return {k: prepare_data_for_yaml(v) for k, v in six.iteritems(data)}
+        return {k: prepare_data_for_yaml(v, _key + [k])
+                for k, v in six.iteritems(data)}
+        
     elif isinstance(data, (list, tuple, set)):
-        return [prepare_data_for_yaml(v) for v in data]
+        return [prepare_data_for_yaml(v, _key + [n])
+                for n, v in enumerate(data)]
+    
     elif isinstance(data, LazyHDFValue):
         return data.get_yaml_string()
+    
     elif (data is None or 
           isinstance(data, (bool, int, float, six.string_types))):
         return data
+    
     else:
-        warnings.warn('Encountered unknown instance of `%s` in YAML '
-                      'preparation' % data.__class__)
+        warnings.warn('Encountered unknown instance of `%s` at `%s` in YAML '
+                      'preparation' % (data.__class__, _key))
     return data    

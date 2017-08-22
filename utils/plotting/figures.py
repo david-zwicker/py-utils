@@ -266,9 +266,8 @@ class FigureBase(Figure):
         file_pdf = filename + '.pdf'
 
         # save figure in the requested format
-        self.savefig(
-            filename + extension, transparent=self.transparent, **kwargs
-        )
+        self.savefig(filename + extension, transparent=self.transparent,
+                     **kwargs)
         
         if extension == '.ps':
             subprocess.check_call(['ps2pdf', filename + '.ps', file_pdf])

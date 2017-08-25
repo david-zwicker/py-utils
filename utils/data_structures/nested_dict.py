@@ -477,6 +477,20 @@ class LazyNestedDict(NestedDict):
     
     
 
+def normalize_dict(data, flatten=False):
+    """ converts the NestedDict `data` into a normal dict by calling its
+    `to_dict` method. If data is already a dict it is returned unchanged.
+    
+    `flatten` determines whether the NestedDict is flattened into a dictionary
+        with a single level and complex keys
+    """
+    try:
+        return data.to_dict(flatten=flatten)
+    except AttributeError:
+        return data
+    
+    
+
 def prepare_data_for_yaml(data, _key=None):
     """ recursively converts some special types to close python equivalents """
     if _key is None:

@@ -72,7 +72,7 @@ def connect_components(graph, pos_attr, length_attr=None):
             attr_dict = {length_attr: dists[nid_res, nid_sg]}
         else:
             attr_dict = None
-        result.add_edge(nodes[nid_res], nodes[nid_sg], attr_dict)
+        result.add_edge(nodes[nid_res], nodes[nid_sg], **attr_dict)
             
         # remove the subgraph from the to-do list
         result_nids.extend(sg_nids_list.pop(sg_min))

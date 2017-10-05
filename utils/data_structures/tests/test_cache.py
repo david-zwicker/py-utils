@@ -40,20 +40,41 @@ class TestCache(unittest.TestCase):
         return methods
 
 
-    def test_serializer(self):
-        """ test the make_serializer and make_unserializer """
-        methods = self.get_serialization_methods()
-        data = [None, 1, [1, 2], {'b': 1, 'a': 2}]
-        for method, data in zip(methods, data):
-            encode = cache.make_serializer(method)
-            decode = cache.make_unserializer(method)
-            self.assertEqual(data, decode(encode(data)))
-            
+    def test_serializer_nonsense(self):
+        """ test whether errors are thrown for wrong input """
         with self.assertRaises(ValueError):
             cache.make_serializer('non-sense')
         with self.assertRaises(ValueError):
             cache.make_unserializer('non-sense')
-    
+
+
+    def test_serializer(self):
+        """ tests whether the make_serializer returns a canonical hash """
+        methods = self.get_serialization_methods()
+        for method in methods:
+            encode = cache.make_serializer(method)
+            
+            self.assertEqual(encode(1), encode(1))
+            self.assertEqual(encode({'a': 1, 'b': 2}), encode({'b': 2, 'a': 1}))
+            
+            self.assertNotEqual(encode([1, 2, 3]), encode([2, 3, 1]))
+            if method != 'json':
+                # json cannot encode sets
+                self.assertEqual(encode({1, 2, 3}), encode({2, 3, 1}))
+
+
+    def test_unserializer(self):
+        """ tests whether the make_serializer and make_unserializer return the 
+        original objects """
+        methods = self.get_serialization_methods()
+        data_list = [None, 1, [1, 2], {'b': 1, 'a': 2}]
+        
+        for method in methods:
+            encode = cache.make_serializer(method)
+            decode = cache.make_unserializer(method)
+            for data in data_list:
+                self.assertEqual(data, decode(encode(data)))
+
     
     def test_DictFiniteCapacity(self):
         """ tests the DictFiniteCapacity class """

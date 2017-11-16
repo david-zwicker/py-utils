@@ -42,7 +42,7 @@ def hash_mutable(obj):
                         collections.OrderedDict, collections.defaultdict,
                         collections.Counter)):
         return _hash_iter(frozenset((k, hash_mutable(v))
-                          for k, v in six.iteritems(obj)))
+                          for k, v in sorted(six.iteritems(obj))))
     
     # otherwise, just use the internal hash function
     try:    

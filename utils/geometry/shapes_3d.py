@@ -19,16 +19,20 @@ class CoordinatePlane(shapes_nd.Plane):
     """ represents a 2d plane embedded in 3d space equipped with a local
     coordinate system """
  
+    _mutable = False  # determines whether the defining vectors can be changed
+
+ 
     def __init__(self, origin, normal, up_vector=None):
         """ initialize the plane using a position vector to the origin, a normal
         vector defining the plane orientation and a basis vector denoting the
         up-direction """
-        # this also normalizes the normal vector
-        super(CoordinatePlane, self).__init__(origin, normal)
-        
-        if self.dim != 3:
+        # establish the plane
+        plane = shapes_nd.Plane(origin, normal)
+        if plane.dim != 3:
             raise NotImplementedError('CoordiantePlanes can only be embedded '
                                       'in 3d space, yet.')
+
+        self.origin = plane.origin
         
         if up_vector is None:
             # choose random up_vector until its sufficiently perpendicular
@@ -36,30 +40,46 @@ class CoordinatePlane(shapes_nd.Plane):
             while True:
                 up_vector = np.random.rand(self.dim)
                 up_vector_norm = np.linalg.norm(up_vector)
-                if np.dot(up_vector, self.normal) < 0.99 * up_vector_norm:
+                if np.dot(up_vector, plane.normal) < 0.99 * up_vector_norm:
                     break
         
         else:
-            up_vector = np.asanyarray(up_vector)
+            up_vector = np.asanyarray(up_vector, np.double)
             
         # project `up_vector` onto plane
-        up_vector_proj = np.dot(up_vector, self.normal) * self.normal
+        up_vector_proj = np.dot(up_vector, plane.normal) * plane.normal
         self.basis_v = up_vector - up_vector_proj
         self.basis_v /= np.linalg.norm(self.basis_v)  # normalize
+        self.basis_v.flags.writeable = self.mutable
 
         # check consistency
         if not np.all(np.isfinite(self.basis_v)):
             raise RuntimeError('Could not determine a consistent basis using '
                                'the normal vector %s and the up vector %s' % 
-                               (self.normal, up_vector))
+                               (plane.normal, up_vector))
         
         # calculate an orthogonal vector 
-        self.basis_u = -np.cross(self.normal, self.basis_v)
+        self.basis_u = -np.cross(plane.normal, self.basis_v)
+        self.basis_u.flags.writeable = self.mutable
         
         
     @property
     def up_vector(self):
         return self.basis_v
+    
+    
+    @property
+    def normal(self):
+        """ obtain normal of the plane """
+        # re-calculate the normal from the basis vectors of the coordinate
+        # system, because only these have been pickled. Also, this makes the
+        # class more consistent when the basis vectors are changed after
+        # initialization
+        return np.cross(self.basis_u, self.basis_v)
+
+    @normal.setter
+    def normal(self, value):
+        raise AttributeError('Cannot change the normal of a coordinate plane')
         
         
     @classmethod
@@ -85,16 +105,8 @@ class CoordinatePlane(shapes_nd.Plane):
     def __getstate__(self):
         """ support for pickling objects """
         return {'origin': self.origin,
-                'normal': self.normal,
-                'basis_v': self.up_vector}
-        
-        
-    def __setstate__(self, state):
-        """ support for pickling objects """
-        self.origin = state['origin']
-        self.normal = state['normal']
-        self.basis_v = state['basis_v']
-        self.basis_u = -np.cross(self.normal, self.basis_v)
+                'basis_u': self.basis_u,
+                'basis_v': self.basis_v}
         
         
     def copy(self, origin=None, normal=None, up_vector=None):

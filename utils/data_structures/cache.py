@@ -20,11 +20,27 @@ import numpy as np
 
 
 
+def make_hash_key(obj):
+    """ return hash also for mutable objects """
+    try:
+        return hash(obj)
+    except TypeError:
+        if isinstance(obj, list):
+            return hash(make_hash_key(v) for v in obj)
+        elif isinstance(obj, set):
+            return hash(frozenset(make_hash_key(v) for v in obj))
+        elif isinstance(obj, dict):
+            return hash(frozenset((k, make_hash_key(v))
+                                  for k, v in six.iteritems(obj)))
+        raise
+    
+    
+
 def make_serializer(method):
     """ returns a function that serialize data with the  given method """
     if method is None:
         return lambda s: s
-
+    
     elif method == 'json':
         import json
         return lambda s: json.dumps(s, sort_keys=True).encode('utf-8')
@@ -258,7 +274,7 @@ class _class_cache(object):
     """ class handling the caching of results of methods and properties """
     
     def __init__(self, factory=None, extra_args=None, ignore_args=None,
-                 serializer='pickle', doc=None, name=None):
+                 hash_function='pickle', doc=None, name=None):
         """ decorator that caches calls in a dictionary attached to the
         instances. This can be used with most classes
     
@@ -316,7 +332,7 @@ class _class_cache(object):
                     return "Cached"
         """
         self.extra_args = extra_args
-        self.serializer = serializer
+        self.hash_function = hash_function
         self.name = name
 
         # setup the ignored arguments
@@ -370,7 +386,7 @@ class _class_cache(object):
             self.name = func.__name__
     
         # create the function to serialize the keys
-        serialize_key = make_serializer(self.serializer)
+        hash_key = make_serializer(self.hash_function)
     
         @functools.wraps(func)
         def wrapper(obj, *args, **kwargs):
@@ -403,7 +419,7 @@ class _class_cache(object):
                 for extra_arg in self.extra_args:
                     func_args.append(getattr(obj, extra_arg))
                     
-            cache_key = serialize_key(tuple(func_args))
+            cache_key = hash_key(tuple(func_args))
     
             try:
                 # try loading the results from the cache

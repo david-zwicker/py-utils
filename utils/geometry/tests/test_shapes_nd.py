@@ -266,6 +266,17 @@ class TestShapesND(unittest.TestCase):
         np.testing.assert_almost_equal(plane.normal, p2.normal)
 
 
+    def test_hash(self):
+        """ test whether the objects can be hashed """
+        dim = np.random.randint(4, 6)
+        origin = np.random.randn(dim)
+        normal = np.random.randn(dim)
+        p1 = shapes_nd.Plane(origin, normal)
+        p2 = shapes_nd.Plane(origin, normal)
+
+        self.assertEqual(hash(p1), hash(p2))
+
+
     def test_asanyarray_flags(self):
         """ test the asanyarray_flags function """
         self.assertIsNot(np.arange(3), shapes_nd.asanyarray_flags(range(3)))

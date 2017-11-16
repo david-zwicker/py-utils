@@ -6,6 +6,7 @@ Created on Aug 25, 2016
 
 from __future__ import division
 
+import copy
 import unittest
 import tempfile
 
@@ -38,6 +39,31 @@ class TestCache(unittest.TestCase):
             methods.append('yaml')
             
         return methods
+
+
+    def test_make_hash_key(self):
+        """ test whether the hash key makes sense """
+        f = cache.make_hash_key
+        
+        class Dummy(object):
+            def __init__(self, value):
+                self.value = value
+            def __hash__(self):
+                return self.value
+        
+        # test simple objects
+        for obj in (1, 1.2, 'a', (1, 2), [1, 2], {1, 2}, {1: 2},
+                    {(1, 2): [2, 3], (1, 3): [1, 2]},
+                    Dummy(1)):
+            o2 = copy.deepcopy(obj)
+            self.assertEqual(f(obj), f(o2),
+                             msg='Hash different for `%s`' % str(obj))
+
+        # make sure different objects get different hash
+        self.assertNotEqual(1, '1')
+        self.assertNotEqual('a', 'b')
+        self.assertNotEqual((1, 2), [1, 2])
+        self.assertNotEqual({1, 2}, (1, 2))
 
 
     def test_serializer_nonsense(self):
@@ -292,12 +318,12 @@ class TestCache(unittest.TestCase):
                 self.counter += 1
                 return arg
             
-            @cache.cached_method(serializer=serializer, factory=cache_factory)
+            @cache.cached_method(hash_function=serializer, factory=cache_factory)
             def cached(self, arg):
                 self.counter += 1
                 return arg    
             
-            @cache.cached_method(serializer=serializer, factory=cache_factory)
+            @cache.cached_method(hash_function=serializer, factory=cache_factory)
             def cached_kwarg(self, a=0, b=0):
                 self.counter += 1
                 return a + b
@@ -382,7 +408,7 @@ class TestCache(unittest.TestCase):
             def get_finite_dict(self, name):
                 return cache.DictFiniteCapacity(capacity=1)
             
-            @cache.cached_method(serializer=serializer, extra_args=['value'],
+            @cache.cached_method(hash_function=serializer, extra_args=['value'],
                                  factory=cache_factory)
             def cached(self, arg):
                 self.counter += 1

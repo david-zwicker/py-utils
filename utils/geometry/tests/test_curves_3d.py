@@ -199,7 +199,11 @@ class TestCurves3D(unittest.TestCase):
         
         c = Curve3D(ps)
         c = c.make_equidistant(count=64)
+
+        c_len = c.length
         c = c.make_smooth(smoothing=.1)
+        self.assertNotEqual(c_len, c.length)  # check that something changed
+        self.assertAlmostEqual(c_len, c.length, delta=2)  # but not too much
         
         for _, d in c.iter(data=['unit_vectors']):
             
@@ -216,10 +220,6 @@ class TestCurves3D(unittest.TestCase):
         c2 = c.make_equidistant(count=50)
         self.assertNotEqual(c_len, c2.length)  # check that something changed
         self.assertAlmostEqual(c_len, c2.length, places=2)  # but not too much
-
-        c2 = c.make_smooth(smoothing=10)
-        self.assertNotEqual(c_len, c2.length)  # check that something changed
-        self.assertAlmostEqual(c_len, c2.length, places=1)  # but not too much
 
             
     def test_corner_case(self):

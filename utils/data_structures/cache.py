@@ -20,19 +20,30 @@ import numpy as np
 
 
 
+def _hash_iter(it):
+    """ get hash of an iterable but turning it into a tuple first """
+    return hash(tuple(it))
+
+
+
 def hash_mutable(obj):
-    """ return hash also for mutable objects """
-    try:
-        return hash(obj)
-    except TypeError:
-        if isinstance(obj, list):
-            return hash(hash_mutable(v) for v in obj)
-        elif isinstance(obj, set):
-            return hash(frozenset(hash_mutable(v) for v in obj))
-        elif isinstance(obj, dict):
-            return hash(frozenset((k, hash_mutable(v))
-                                  for k, v in six.iteritems(obj)))
-        raise
+    """ return hash also for (nested) mutable objects. This function might be a
+    bit slow, since it iterates over all containers and hashes objects
+    recursively. """
+    # deal with some special classes
+    if isinstance(obj, (list, tuple)):
+        return _hash_iter(hash_mutable(v) for v in obj)
+    
+    if isinstance(obj, (set, frozenset)):
+        return hash(frozenset(hash_mutable(v) for v in obj))
+    
+    if isinstance(obj, (dict, collections.OrderedDict,
+                          collections.defaultdict, collections.Counter)):
+        return _hash_iter(frozenset((k, hash_mutable(v))
+                          for k, v in six.iteritems(obj)))
+    
+    # otherwise, just use the internal hash function    
+    return hash(obj)
     
     
 
@@ -279,7 +290,7 @@ class _class_cache(object):
     """ class handling the caching of results of methods and properties """
     
     def __init__(self, factory=None, extra_args=None, ignore_args=None,
-                 hash_function='pickle', doc=None, name=None):
+                 hash_function='hash_mutable', doc=None, name=None):
         """ decorator that caches calls in a dictionary attached to the
         instances. This can be used with most classes
     

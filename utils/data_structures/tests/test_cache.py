@@ -41,9 +41,9 @@ class TestCache(unittest.TestCase):
         return methods
 
 
-    def test_make_hash_key(self):
+    def test_hash_mutable(self):
         """ test whether the hash key makes sense """
-        f = cache.make_hash_key
+        f = cache.hash_mutable
         
         class Dummy(object):
             def __init__(self, value):
@@ -81,12 +81,15 @@ class TestCache(unittest.TestCase):
             encode = cache.make_serializer(method)
             
             self.assertEqual(encode(1), encode(1))
-            self.assertEqual(encode({'a': 1, 'b': 2}), encode({'b': 2, 'a': 1}))
             
             self.assertNotEqual(encode([1, 2, 3]), encode([2, 3, 1]))
             if method != 'json':
                 # json cannot encode sets
                 self.assertEqual(encode({1, 2, 3}), encode({2, 3, 1}))
+
+        # test special serializer
+        encode = cache.make_serializer('hash_mutable')
+        self.assertEqual(encode({'a': 1, 'b': 2}), encode({'b': 2, 'a': 1}))
 
 
     def test_unserializer(self):

@@ -20,44 +20,50 @@ import numpy as np
 
 
 
-def make_hash_key(obj):
+def hash_mutable(obj):
     """ return hash also for mutable objects """
     try:
         return hash(obj)
     except TypeError:
         if isinstance(obj, list):
-            return hash(make_hash_key(v) for v in obj)
+            return hash(hash_mutable(v) for v in obj)
         elif isinstance(obj, set):
-            return hash(frozenset(make_hash_key(v) for v in obj))
+            return hash(frozenset(hash_mutable(v) for v in obj))
         elif isinstance(obj, dict):
-            return hash(frozenset((k, make_hash_key(v))
+            return hash(frozenset((k, hash_mutable(v))
                                   for k, v in six.iteritems(obj)))
         raise
     
     
 
 def make_serializer(method):
-    """ returns a function that serialize data with the  given method """
+    """ returns a function that serialize data with the given method. Note that
+    some of the methods destroy information and cannot be reverted. """
     if method is None:
         return lambda s: s
     
-    elif method == 'json':
+    if method == 'hash':
+        return hash
+    
+    if method == 'hash_mutable':
+        return hash_mutable
+    
+    if method == 'json':
         import json
         return lambda s: json.dumps(s, sort_keys=True).encode('utf-8')
 
-    elif method == 'pickle':
+    if method == 'pickle':
         try:
             import cPickle as pickle
         except ImportError:
             import pickle
         return lambda s: pickle.dumps(s, protocol=pickle.HIGHEST_PROTOCOL)
 
-    elif method == 'yaml':
+    if method == 'yaml':
         import yaml
         return lambda s: yaml.dump(s).encode('utf-8')
     
-    else:
-        raise ValueError('Unknown serialization method `%s`' % method)
+    raise ValueError('Unknown serialization method `%s`' % method)
 
 
 
@@ -66,11 +72,11 @@ def make_unserializer(method):
     if method is None:
         return lambda s: s
 
-    elif method == 'json':
+    if method == 'json':
         import json
         return lambda s: json.loads(s.decode('utf-8'))
 
-    elif method == 'pickle':
+    if method == 'pickle':
         try:
             import cPickle as pickle
         except ImportError:
@@ -82,12 +88,11 @@ def make_unserializer(method):
             # python 2 sometimes needs an explicit conversion to string
             return lambda s: pickle.loads(str(s))
 
-    elif method == 'yaml':
+    if method == 'yaml':
         import yaml
         return yaml.load
     
-    else:
-        raise ValueError('Unknown serialization method `%s`' % method)
+    raise ValueError('Unknown serialization method `%s`' % method)
     
     
 

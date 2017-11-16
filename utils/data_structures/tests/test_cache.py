@@ -321,12 +321,14 @@ class TestCache(unittest.TestCase):
                 self.counter += 1
                 return arg
             
-            @cache.cached_method(hash_function=serializer, factory=cache_factory)
+            @cache.cached_method(hash_function=serializer,
+                                 factory=cache_factory)
             def cached(self, arg):
                 self.counter += 1
                 return arg    
             
-            @cache.cached_method(hash_function=serializer, factory=cache_factory)
+            @cache.cached_method(hash_function=serializer,
+                                 factory=cache_factory)
             def cached_kwarg(self, a=0, b=0):
                 self.counter += 1
                 return a + b

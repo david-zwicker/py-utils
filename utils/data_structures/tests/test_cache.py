@@ -54,7 +54,7 @@ class TestCache(unittest.TestCase):
         # test simple objects
         for obj in (1, 1.2, 'a', (1, 2), [1, 2], {1, 2}, {1: 2},
                     {(1, 2): [2, 3], (1, 3): [1, 2]},
-                    Dummy(1)):
+                    Dummy(1), np.arange(5)):
             o2 = copy.deepcopy(obj)
             self.assertEqual(f(obj), f(o2),
                              msg='Hash different for `%s`' % str(obj))

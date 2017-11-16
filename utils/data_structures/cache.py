@@ -9,6 +9,7 @@ This module contains functions that can be used to manage cache structures
 from __future__ import division
 
 import collections
+from hashlib import sha1
 import functools
 import logging
 import os
@@ -37,19 +38,26 @@ def hash_mutable(obj):
     if isinstance(obj, (set, frozenset)):
         return hash(frozenset(hash_mutable(v) for v in obj))
     
-    if isinstance(obj, (dict, collections.OrderedDict,
-                          collections.defaultdict, collections.Counter)):
+    if isinstance(obj, (dict, collections.MutableMapping,
+                        collections.OrderedDict, collections.defaultdict,
+                        collections.Counter)):
         return _hash_iter(frozenset((k, hash_mutable(v))
                           for k, v in six.iteritems(obj)))
     
-    # otherwise, just use the internal hash function    
-    return hash(obj)
+    # otherwise, just use the internal hash function
+    try:    
+        return hash(obj)
+    except TypeError:
+        return hash(sha1(obj))
     
     
 
 def make_serializer(method):
     """ returns a function that serialize data with the given method. Note that
     some of the methods destroy information and cannot be reverted. """
+    if callable(method):
+        return method
+    
     if method is None:
         return lambda s: s
     
@@ -80,6 +88,9 @@ def make_serializer(method):
 
 def make_unserializer(method):
     """ returns a function that unserialize data with the  given method """
+    if callable(method):
+        return method
+
     if method is None:
         return lambda s: s
 

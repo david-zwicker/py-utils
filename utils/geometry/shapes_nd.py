@@ -213,7 +213,7 @@ class Plane(object):
                                        writeable=self.mutable) 
         self.normal = normal  # normalizes the vector and checks consistency
         
-            
+        
     @property
     def normal(self):
         return self._normal

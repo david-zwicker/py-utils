@@ -34,7 +34,7 @@ def make_serializer(method):
             import cPickle as pickle
         except ImportError:
             import pickle
-        return pickle.dumps
+        return lambda s: pickle.dumps(s, protocol=pickle.HIGHEST_PROTOCOL)
 
     elif method == 'yaml':
         import yaml

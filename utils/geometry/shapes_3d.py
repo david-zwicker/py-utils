@@ -84,10 +84,17 @@ class CoordinatePlane(shapes_nd.Plane):
     
     def __getstate__(self):
         """ support for pickling objects """
-        # remove private variables, e.g. caches
-        return {key: value
-                for key, value in self.__dict__.iteritems()
-                if not key.startswith('_')}
+        return {'origin': self.origin,
+                'normal': self.normal,
+                'basis_v': self.up_vector}
+        
+        
+    def __setstate__(self, state):
+        """ support for pickling objects """
+        self.origin = state['origin']
+        self.normal = state['normal']
+        self.basis_v = state['basis_v']
+        self.basis_u = -np.cross(self.normal, self.basis_v)
         
         
     def copy(self, origin=None, normal=None, up_vector=None):

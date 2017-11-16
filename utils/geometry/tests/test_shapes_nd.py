@@ -7,6 +7,7 @@ Created on Nov 8, 2016
 from __future__ import division
 
 import unittest
+import pickle
 
 import numpy as np
 
@@ -251,6 +252,18 @@ class TestShapesND(unittest.TestCase):
         self.assertEqual(cyl.distance_point(o + [5, 0, -4]), 5)
         self.assertEqual(cyl.distance_point(o + [5, 0, 14]), 5)
         self.assertEqual(cyl.distance_point(o + [0, 5, 14]), 5)
+
+
+    def test_pickle(self):
+        """ test whether the objects can be pickled and unpickled """
+        dim = np.random.randint(4, 6)
+        origin = np.random.randn(dim)
+        normal = np.random.randn(dim)
+        plane = shapes_nd.Plane(origin, normal)
+        
+        p2 = pickle.loads(pickle.dumps(plane))
+        np.testing.assert_almost_equal(plane.origin, p2.origin)
+        np.testing.assert_almost_equal(plane.normal, p2.normal)
 
 
     def test_asanyarray_flags(self):

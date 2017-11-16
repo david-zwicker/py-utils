@@ -276,6 +276,11 @@ class Plane(object):
                         cls=self.__class__.__name__,
                         origin=self.origin, normal=self.normal)
 
+    
+    def __hash__(self):
+        """ custom hash function """
+        return hash((tuple(self.origin), tuple(self.normal)))
+
 
     def __eq__(self, other):
         """ override the default equality test """

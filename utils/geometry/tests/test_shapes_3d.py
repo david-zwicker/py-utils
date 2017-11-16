@@ -52,6 +52,20 @@ class TestShapes3D(unittest.TestCase):
         np.testing.assert_almost_equal(plane.normal, p2.normal)
         np.testing.assert_almost_equal(plane.basis_u, p2.basis_u)
         np.testing.assert_almost_equal(plane.basis_v, p2.basis_v)
+        
+        
+    def test_hash_equality(self):
+        """ test hashing and equality test """
+        origin = np.random.randn(3)
+        normal = np.random.randn(3)
+        up_vector = np.random.randn(3)
+        up_vector2 = np.random.randn(3)
+        p1 = shapes_3d.CoordinatePlane(origin, normal, up_vector)
+        p2 = shapes_3d.CoordinatePlane(origin, normal, up_vector)
+        p3 = shapes_3d.CoordinatePlane(origin, normal, up_vector2)
+        
+        self.assertEqual(p1, p2)
+        self.assertNotEqual(p1, p3)
 
 
 if __name__ == "__main__":

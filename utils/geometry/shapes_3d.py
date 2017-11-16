@@ -101,7 +101,29 @@ class CoordinatePlane(shapes_nd.Plane):
                         cls=self.__class__.__name__, origin=self.origin,
                         normal=self.normal, up_vector=self.basis_v))
 
-    
+
+    def __hash__(self):
+        """ custom hash function """
+        return hash((tuple(self.origin), tuple(self.basis_u),
+                     tuple(self.basis_v)))
+ 
+ 
+    def __eq__(self, other):
+        """ override the default equality test """
+        if isinstance(other, self.__class__):
+            return (np.all(self.origin == other.origin) and 
+                    np.all(self.basis_u == other.basis_u) and 
+                    np.all(self.basis_v == other.basis_v))
+        return NotImplemented
+ 
+ 
+    def __ne__(self, other):
+        """ overwrite the default non-equality test """
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+     
+         
     def __getstate__(self):
         """ support for pickling objects """
         return {'origin': self.origin,

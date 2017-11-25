@@ -124,6 +124,19 @@ class TestFiles(unittest.TestCase):
         self.assertFalse(files.is_binary_file(bin_file, 1))
 
 
+    def test_temporary_directory(self):
+        """ test the temporary directory context manager """
+        with files.temporary_directory() as folder:
+            path = os.path.join(folder, 'test')
+            self.assertTrue(os.path.isdir(folder))
+            open(path, 'a').close()  # create empty file
+            self.assertTrue(os.path.isfile(path))
+            
+        self.assertFalse(os.path.isfile(path))
+        self.assertFalse(os.path.isdir(folder))
+        
+
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -13,6 +13,8 @@ import errno
 import glob
 import itertools
 import os
+import shutil
+import tempfile
 
 import six
 
@@ -187,3 +189,14 @@ class open_filename(object):
     
         return False    
     
+    
+
+@contextlib.contextmanager
+def temporary_directory():
+    """ a context manager that provides a temporary directory and deletes it on
+    finalization """
+    folder = tempfile.mkdtemp()
+    try:
+        yield folder
+    finally:
+        shutil.rmtree(folder)

@@ -381,7 +381,9 @@ class NestedDict(collections.MutableMapping):
 
 
     def copy(self):
-        """ makes a shallow copy of the data """
+        """ makes a deepcopy of the dictionary (but a shallow copy of the actual
+        values stored in the dictionary. Use copy.deepcopy if the values also
+        need to be copied """
         res = self.create_dict()
         for key, value in six.iteritems(self):
             if isinstance(value, (dict, NestedDict)):

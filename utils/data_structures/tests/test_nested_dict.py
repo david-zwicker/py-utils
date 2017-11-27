@@ -6,6 +6,7 @@ Created on Aug 25, 2016
 
 from __future__ import division
 
+import copy
 import os.path
 import unittest
 import tempfile
@@ -320,6 +321,29 @@ class TestNestedDict(unittest.TestCase):
 
         d = self.dict_cls({'a.b.c': 1}, sep='.')
         self.assertEqual(d, {'a': {'b': {'c': 1}}})
+        
+        
+    def test_copy(self):
+        """ test copies (including copy.copy and copy.deepcopy) """
+        a = nested_dict.NestedDict({'a': {'b': TestValue(1)}})
+        
+        b = a.copy()
+        self.assertEqual(a, b)
+        self.assertNotEqual(id(a), id(b))
+        self.assertNotEqual(id(a['a']), id(b['a']))
+        self.assertEqual(id(a['a']['b']), id(b['a']['b']))
+        
+        b = copy.copy(a)
+        self.assertEqual(a, b)
+        self.assertNotEqual(id(a), id(b))
+        self.assertEqual(id(a['a']), id(b['a']))
+        self.assertEqual(id(a['a']['b']), id(b['a']['b']))
+        
+        b = copy.deepcopy(a)
+        self.assertEqual(a, b)
+        self.assertNotEqual(id(a), id(b))
+        self.assertNotEqual(id(a['a']), id(b['a']))
+        self.assertNotEqual(id(a['a']['b']), id(b['a']['b']))
         
         
     def test_update(self):

@@ -221,6 +221,14 @@ class TestShapesND(unittest.TestCase):
             c.mutable = False 
             c.centroid = [0, 0]
         self.assertRaises(ValueError, test)
+
+        # test surface area        
+        c = shapes_nd.Cuboid([0, 0], [1, 3])
+        self.assertEqual(c.surface_area, 8)
+        c = shapes_nd.Cuboid([0, 0], [1, 0])
+        self.assertEqual(c.surface_area, 2)
+        c = shapes_nd.Cuboid([0, 0], [0, 0])
+        self.assertEqual(c.surface_area, 0)
         
         
     def test_cuboid_nd(self):
@@ -232,6 +240,16 @@ class TestShapesND(unittest.TestCase):
         self.assertAlmostEqual(c.diagonal, np.linalg.norm(size))
         c2 = shapes_nd.Cuboid.from_bounds(c.bounds)
         np.testing.assert_allclose(c.bounds, c2.bounds)
+        
+        # test surface area
+        c = shapes_nd.Cuboid([0], [1])
+        self.assertEqual(c.surface_area, 2)
+        c = shapes_nd.Cuboid([0, 0, 0], [1, 2, 3])
+        self.assertEqual(c.surface_area, 22)
+        
+        for n in range(1, 5):
+            c = shapes_nd.Cuboid(np.zeros(n), np.full(n, 3))
+            self.assertEqual(c.surface_area, 2 * n * 3**(n-1))
                 
 
     def test_cylinder(self):

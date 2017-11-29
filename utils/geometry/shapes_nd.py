@@ -463,6 +463,26 @@ class Cuboid(object):
     def diagonal(self):
         """ returns the length of the diagonal """
         return np.linalg.norm(self.size)
+    
+    
+    @property
+    def surface_area(self):
+        """ generalization of the surface area of a cuboid in n dimensions. The
+        surface area is the volume of the (n-1)-dimensional hypercubes that
+        bound the current cuboid:
+            n=1, the number of end points (2)
+            n=2, the perimeter of the rectangle
+            n=3, the surface area of the cuboid
+        """
+        sides = self.size
+        null = (sides == 0)
+        null_count = null.sum()
+        if null_count == 0:
+            return 2 * np.sum(np.product(sides) / sides)
+        elif null_count == 1:
+            return 2 * np.product(sides[~null])
+        else:
+            return 0
 
 
     @property

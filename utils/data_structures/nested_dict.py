@@ -370,6 +370,16 @@ class NestedDict(collections.MutableMapping):
         return self[key]
 
 
+    def insert(self, key, value):
+        """ insert new data into the location at key. If the `value` is a
+        subclass of collections.Mapping it is turned into a NestedDict, so it
+        can be accessed nicely """
+        if isinstance(value, collections.Mapping):
+            self[key] = self.create_dict(value)
+        else:
+            self[key] = value
+
+
     def update_recursive(self, other):
         """ update the dictionary recursively """
         if other:

@@ -355,6 +355,17 @@ class TestNestedDict(unittest.TestCase):
         d = nested_dict.NestedDict({'a': {'b': 1}})
         d.update_recursive({'a': {'c': 2}})
         self.assertEqual(d, {'a': {'b': 1, 'c': 2}})
+        
+    def test_insert(self):
+        d = nested_dict.NestedDict({'a': None})
+        d['a'] = {'b': 1}
+        self.assertRaises(KeyError, lambda: d['a/b'])
+        self.assertEqual(d['a']['b'], 1)
+
+        d = nested_dict.NestedDict({'a': None})
+        d.insert('a', {'b': 1})
+        self.assertEqual(d['a/b'], 1)
+        self.assertEqual(d['a']['b'], 1)
 
 
 

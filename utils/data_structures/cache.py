@@ -12,6 +12,7 @@ import collections
 from hashlib import sha1
 import functools
 import logging
+import numbers
 import os
 import sys
 
@@ -51,6 +52,55 @@ def hash_mutable(obj):
         return hash(sha1(obj))
     
     
+    
+def hash_readable(obj):
+    """ return human readable hash also for (nested) mutable objects. This
+    function returns a json-like representation of the object. The function
+    might be a bit slow, since it iterates over all containers and hashes
+    objects recursively. Note that this hash function tries to return the same
+    value for equivalent objects, but it does not ensure that the objects can 
+    be reconstructed from this data. """
+    if isinstance(obj, numbers.Number):
+        return str(obj)
+    
+    if isinstance(obj, (six.string_types, six.text_type)):
+        return '"' + str(obj).replace('\\', '\\\\').replace('"', '\"') + '"'
+    
+    if isinstance(obj, (list, tuple)):
+        return '[' + ', '.join(hash_readable(v) for v in obj) + ']'
+    
+    if isinstance(obj, (set, frozenset)):
+        return '{' + ', '.join(hash_readable(v) for v in sorted(obj)) + '}'
+    
+    if isinstance(obj, (dict, collections.MutableMapping,
+                        collections.OrderedDict, collections.defaultdict,
+                        collections.Counter)):
+        return '{' + ', '.join(hash_readable(k) + ': ' + hash_readable(v)
+                               for k, v in sorted(six.iteritems(obj))) + '}'
+                               
+    if isinstance(obj, np.ndarray):
+        return repr(obj)
+    
+    # otherwise, assume it's a generic object
+    try:
+        if hasattr(obj, '__getstate__'):
+            data = obj.__getstate__()
+        else:
+            data = obj.__dict__
+            
+    except AttributeError:
+        # strange object without a dictionary attached to it
+        return repr(obj)
+    
+    else:
+        # turn arguments into something readable
+        args = ', '.join(str(k) + '=' + hash_readable(v)
+                         for k, v in sorted(six.iteritems(data))
+                         if not k.startswith('_'))
+    
+        return '{name}({args})'.format(name=obj.__class__.__name__, args=args)
+    
+    
 
 def make_serializer(method):
     """ returns a function that serialize data with the given method. Note that
@@ -66,6 +116,9 @@ def make_serializer(method):
     
     if method == 'hash_mutable':
         return hash_mutable
+    
+    if method == 'hash_readable':
+        return hash_readable
     
     if method == 'json':
         import json

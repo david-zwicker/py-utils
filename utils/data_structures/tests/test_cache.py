@@ -41,29 +41,27 @@ class TestCache(unittest.TestCase):
         return methods
 
 
-    def test_hash_mutable(self):
+    def test_hashes(self):
         """ test whether the hash key makes sense """
-        f = cache.hash_mutable
-        
         class Dummy(object):
             def __init__(self, value):
                 self.value = value
             def __hash__(self):
                 return self.value
-        
-        # test simple objects
-        for obj in (1, 1.2, 'a', (1, 2), [1, 2], {1, 2}, {1: 2},
-                    {(1, 2): [2, 3], (1, 3): [1, 2]},
-                    Dummy(1), np.arange(5)):
-            o2 = copy.deepcopy(obj)
-            self.assertEqual(f(obj), f(o2),
-                             msg='Hash different for `%s`' % str(obj))
 
-        # make sure different objects get different hash
-        self.assertNotEqual(1, '1')
-        self.assertNotEqual('a', 'b')
-        self.assertNotEqual((1, 2), [1, 2])
-        self.assertNotEqual({1, 2}, (1, 2))
+        for f in (cache.hash_mutable, cache.hash_readable):
+            # test simple objects
+            for obj in (1, 1.2, 'a', (1, 2), [1, 2], {1, 2}, {1: 2},
+                        {(1, 2): [2, 3], (1, 3): [1, 2]},
+                        Dummy(1), np.arange(5)):
+                o2 = copy.deepcopy(obj)
+                self.assertEqual(f(obj), f(o2),
+                                 msg='Hash different for `%s`' % str(obj))
+    
+            # make sure different objects get different hash
+            self.assertNotEqual(1, '1')
+            self.assertNotEqual('a', 'b')
+            self.assertNotEqual({1, 2}, (1, 2))
 
 
     def test_serializer_nonsense(self):

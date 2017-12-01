@@ -11,6 +11,7 @@ import logging
 import itertools
 import math
 import sys
+import re
 import timeit
 import types
 import warnings
@@ -285,3 +286,16 @@ def format_timedelta(value, time_format=None):
     })
     
     
+    
+def replace_words(text, replacements):
+    """ applies the replacement rules given in `replacements` to the text. The
+    replacements are given as a simple dictionary.
+    
+    The function is inspired by https://stackoverflow.com/a/17730939/932593 
+    """
+    def replace(match):
+        return replacements[match.group(0)]
+
+    pattern = '|'.join(r'\b%s\b' % re.escape(s) for s in replacements) 
+    return re.sub(pattern, replace, text)
+

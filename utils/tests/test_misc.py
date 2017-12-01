@@ -6,6 +6,7 @@ Created on Aug 29, 2016
 
 from __future__ import division
 
+import functools
 import logging
 import unittest
 import warnings
@@ -121,6 +122,19 @@ class TestMisc(unittest.TestCase):
         self.assertSequenceEqual(pairwise_c([1, 2, 3]),
                                  [(1, 2), (2, 3), (3, 1)])
         self.assertEqual(len(pairwise_c(range(10))), 10)
+
+    
+    def test_replace_words(self):
+        """ test the replace_words function """
+        r = functools.partial(misc.replace_words,
+                              replacements={'a': 'A', 'ab': 'AB'})
+        self.assertEqual(r('a'), 'A')
+        self.assertEqual(r('ab'), 'AB')
+        self.assertEqual(r('ac'), 'ac')
+
+        self.assertEqual(r(' a'), ' A')
+        self.assertEqual(r('a '), 'A ')
+        self.assertEqual(r('a*b'), 'A*b')
 
 
 

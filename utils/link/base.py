@@ -53,7 +53,7 @@ class ExecutableBase(object):
     
     
     @classmethod
-    def found_executable(cls):
+    def is_available(cls):
         """ returns True if the program could be found. This swallows all
         exceptions that are raised during the automatic detection of the
         executable and may thus mask problems during the detection. Instead, use

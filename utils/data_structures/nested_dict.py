@@ -202,6 +202,11 @@ class NestedDict(collections.MutableMapping):
     
     d
     >>>> {'a': {'b': 1, 'c': 2}}
+    
+    
+    Warning: multiple, equivalent items will be merged and one item will be lost
+        NestedDict({'a/b': 1, 'a': {'b': 2}}).to_dict()
+        >>>> {'a': {'b': 1}}
     """
     
     def __init__(self, data=None, sep='/', dict_class=dict):

@@ -217,6 +217,21 @@ class TestShapesND(unittest.TestCase):
         np.testing.assert_array_equal(c.pos, [-1, -2])
         np.testing.assert_array_equal(c.size, [2, 4])
         
+        c = shapes_nd.Cuboid([0, 2], [2, 4])  # extends to [2, 6]
+        d = c.adjust_side(0, 1, 3)
+        np.testing.assert_array_equal(d.pos, [0, 2])
+        np.testing.assert_array_equal(d.size, [3, 4])
+        
+        d = c.adjust_side(0, -1, 1)
+        np.testing.assert_array_equal(d.pos, [1, 2])
+        np.testing.assert_array_equal(d.size, [1, 4])
+        
+        c = shapes_nd.Cuboid([0, 0], [1, 1])  # unit cube
+        c.adjust_side(0, -1, -1, inplace=True)
+        c.adjust_side(1, 1, 3, inplace=True)
+        np.testing.assert_array_equal(c.pos, [-1, 0])
+        np.testing.assert_array_equal(c.size, [2, 3])
+        
         def test():
             c.mutable = False 
             c.centroid = [0, 0]

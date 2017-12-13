@@ -538,7 +538,7 @@ class Cuboid(object):
         
         
     def extend(self, direction, magnitude=1, inplace=False):
-        """ extends the box in a given direction """
+        """ extends the box in a given direction by the given `magnitude` """
         direction = np.asanyarray(direction)
         if direction.shape != self.pos.shape:
             raise ValueError('`direction` must have same dimensions as box')
@@ -553,6 +553,32 @@ class Cuboid(object):
             size = self.size + np.abs(direction) * magnitude
             pos = self.pos.copy()
             pos[dir_neg] += direction[dir_neg] * magnitude
+            return self.__class__(pos, size)
+        
+        
+    def adjust_side(self, axis, direction, position, inplace=False):
+        """ adjust the position of a single side specified by the `axis` and a
+        `direction`, which is either `1` or `-1`. The position of the side will
+        be set to `position` """
+        if inplace:
+            if direction == 1:
+                self.size[axis] = position - self.pos[axis]
+            elif direction == -1:
+                self.size[axis] -= position - self.pos[axis]
+                self.pos[axis] = position
+            else:
+                RuntimeError('Direction should be either 1 or -1')
+            return self
+                
+        else:
+            pos, size = self.pos.copy(), self.size.copy()
+            if direction == 1:
+                size[axis] = position - pos[axis]
+            elif direction == -1:
+                size[axis] -= position - pos[axis]
+                pos[axis] = position
+            else:
+                RuntimeError('Direction should be either 1 or -1')
             return self.__class__(pos, size)
         
         

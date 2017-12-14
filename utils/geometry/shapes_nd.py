@@ -455,7 +455,7 @@ class Cuboid(object):
         points = np.asarray(points)
         if points.shapes != (2, self.dim):
             raise ValueError('Expect two points with correct dimensions.')
-        self.pos = points[0, :]
+        self.pos[:] = points[0, :]
         self.size = points[1, :] - points[0, :]
 
 

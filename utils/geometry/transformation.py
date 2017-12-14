@@ -58,6 +58,13 @@ class AffineTransformation(object):
     def __setstate__(self, state):
         self.matrix = state['matrix']
         self.offset = state['offset']
+        
+    
+    @classmethod
+    def from_state(cls, state):
+        """ create transformation from a state dictionary, which could be
+        created using AffineTransformation.__getstate__ """
+        return cls(state['matrix'], state['offset'])
 
     
     @property

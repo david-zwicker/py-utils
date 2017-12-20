@@ -102,7 +102,7 @@ class MonitorProcessOutput(object):
     """
     
     
-    def __init__(self, args, env=None, timeout=0.1):
+    def __init__(self, args, env=None, timeout=0.1, bufsize=1024):
         """
         `args` is a list or string setting the program to call
         `env` can be a dictionary that defines additonal environmental variables
@@ -110,6 +110,7 @@ class MonitorProcessOutput(object):
             `None` implies indefinite waiting time.
         """
         self.timeout = timeout
+        self.bufsize = bufsize
         
         # create pipes to receive stdout and stderr from process
         (self._pipe_out_r, self._pipe_out_w) = os.pipe()
@@ -149,16 +150,19 @@ class MonitorProcessOutput(object):
         pass
 
 
-    def update(self):
+    def update(self, timeout=None):
         """ return whether the program wrote anything. If this is the case, the
         callbacks are called accordingly. """
+        if timeout is None:
+            timeout = self.timeout
+        
         ready, _, _ = select.select([self._pipe_out_r, self._pipe_err_r], [],
                                     [], self.timeout)
         if ready:
             if self._pipe_out_r in ready:
-                self.handle_stdout(os.read(self._pipe_out_r, 1024))
+                self.handle_stdout(os.read(self._pipe_out_r, self.bufsize))
             if self._pipe_err_r in ready:
-                self.handle_stderr(os.read(self._pipe_err_r, 1024))
+                self.handle_stderr(os.read(self._pipe_err_r, self.bufsize))
             return True
         else:
             return False
@@ -172,6 +176,7 @@ class MonitorProcessOutput(object):
 
     def wait(self):
         """ wait for the program to finish """
+        # wait until the process is no longer alive
         while self.alive:
             self.update()
         return self._process.returncode            

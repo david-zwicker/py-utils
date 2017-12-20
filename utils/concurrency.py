@@ -6,6 +6,9 @@ Created on Feb 15, 2015
 
 from __future__ import division
 
+import select
+import subprocess as sp
+import os
 import threading
 
 
@@ -90,3 +93,86 @@ class WorkerThread(object):
         # retrieve the result
         return self._result
     
+    
+
+class MonitorProcessOutput(object):
+    """ class that starts a process and monitors its output while it is running
+    
+    Inspired by https://gist.github.com/mckaydavis/e96c1637d02bcf8a78e7
+    """
+    
+    
+    def __init__(self, args, env=None, timeout=0.1):
+        """
+        `args` is a list or string setting the program to call
+        `env` can be a dictionary that defines additonal environmental variables
+        `timeout` determines the frequency of polling the results. A value of 
+            `None` implies indefinite waiting time.
+        """
+        self.timeout = timeout
+        
+        # create pipes to receive stdout and stderr from process
+        (self._pipe_out_r, self._pipe_out_w) = os.pipe()
+        (self._pipe_err_r, self._pipe_err_w) = os.pipe()
+        
+        # create environment
+        exec_env = dict()
+        exec_env.update(os.environ)
+
+        # copy the OS environment into our local environment
+        if env is not None:
+            exec_env.update(env)
+
+        # start the process
+        self._process = sp.Popen(args, shell=False, env=exec_env,
+                                 stdout=self._pipe_out_w,
+                                 stderr=self._pipe_err_w)
+        self.pid = self._process.pid
+
+
+    def __del__(self):
+        os.close(self._pipe_out_r)
+        os.close(self._pipe_out_w)
+        os.close(self._pipe_err_r)
+        os.close(self._pipe_err_w)
+
+
+    def handle_stdout(self, output):
+        """ callback function that is called when the program writes to its 
+        stdout """
+        pass
+
+
+    def handle_stderr(self, output):
+        """ callback function that is called when the program writes to its 
+        stderr """
+        pass
+
+
+    def update(self):
+        """ return whether the program wrote anything. If this is the case, the
+        callbacks are called accordingly. """
+        ready, _, _ = select.select([self._pipe_out_r, self._pipe_err_r], [],
+                                    [], self.timeout)
+        if ready:
+            if self._pipe_out_r in ready:
+                self.handle_stdout(os.read(self._pipe_out_r, 1024))
+            if self._pipe_err_r in ready:
+                self.handle_stderr(os.read(self._pipe_err_r, 1024))
+            return True
+        else:
+            return False
+        
+        
+    @property
+    def alive(self):
+        """ check whether the program is still running """
+        return self._process.poll() is None 
+
+
+    def wait(self):
+        """ wait for the program to finish """
+        while self.alive:
+            self.update()
+        return self._process.returncode            
+                

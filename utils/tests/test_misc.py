@@ -6,6 +6,7 @@ Created on Aug 29, 2016
 
 from __future__ import division
 
+import datetime
 import functools
 import logging
 import unittest
@@ -59,6 +60,30 @@ class TestMisc(unittest.TestCase):
             for w in messages:
                 self.assertTrue(issubclass(w.category, DeprecationWarning))
                 self.assertIn("class was renamed", str(w.message))
+            
+            
+    def test_classproperty(self):
+        """ test the classproperty decorator """
+        class Test(object):
+            _value = 1
+                
+            @misc.classproperty
+            def cls_value(cls):  # @NoSelf
+                return cls._value
+        
+        self.assertEqual(Test.cls_value, 1)
+        
+        
+    def test_format_timedelta(self):
+        """ test the timedelta formatter """
+        
+        self.assertEqual(misc.format_timedelta(1), '0 days, 00:00:01')
+        d = datetime.timedelta(minutes=2)
+        self.assertEqual(misc.format_timedelta(d), '0 days, 00:02:00')
+        d = datetime.timedelta(hours=3)
+        self.assertEqual(misc.format_timedelta(d), '0 days, 03:00:00')
+        d = datetime.timedelta(days=4)
+        self.assertEqual(misc.format_timedelta(d), '4 days, 00:00:00')
             
             
     def test_display_progress(self):

@@ -152,7 +152,11 @@ class MonitorProcessOutput(object):
 
     def update(self, timeout=None):
         """ return whether the program wrote anything. If this is the case, the
-        callbacks are called accordingly. """
+        callbacks are called accordingly.
+        
+        `timeout` determines the frequency of polling the results. If it is not
+            given, the value set at instantiation is used.
+        """
         if timeout is None:
             timeout = self.timeout
         
@@ -184,5 +188,10 @@ class MonitorProcessOutput(object):
         # wait until the process is no longer alive
         while self.alive:
             self.update()
+            
+        # capture the remaining output if there is any
+        while self.update(0):
+            pass
+        
         return self._process.returncode            
                 

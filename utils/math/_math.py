@@ -546,7 +546,7 @@ def safe_typecast(data, dtype):
     return dtype(np.clip(data, info.min, info.max))
     
 
-    
+
 def range_alternating(stop, step=1):
     """ returns a generator that iterates over alternating numbers starting at 0
     until `stop` is reached. The step size can be given by `step`.
@@ -557,11 +557,15 @@ def range_alternating(stop, step=1):
     """
     if step == 0:
         raise ValueError('range_alternating() step argument must not be zero')
+    if stop == 0:
+        return
     
     i = 0
-    while abs(i) < abs(stop):
+    while True:
         yield i
         i = -i + step
+        if abs(i) >= abs(stop):
+            return
         yield i
         i *= -1
     yield i

@@ -367,6 +367,19 @@ class TestMath(unittest.TestCase):
             self.assertEqual(val.dtype, dtype)
     
     
+    def test_range_alternating(self):
+        """ test the range_alternating function """
+        self.assertSequenceEqual(list(m.range_alternating(0)), [0])
+        self.assertSequenceEqual(list(m.range_alternating(3)),
+                                 [0, 1, -1, 2, -2, 3, -3])
+        self.assertSequenceEqual(list(m.range_alternating(3, -1)),
+                                 [0, -1, 1, -2, 2, -3, 3])
+        self.assertSequenceEqual(list(m.range_alternating(4, 2)),
+                                 [0, 2, -2, 4, -4])
+        self.assertSequenceEqual(list(m.range_alternating(-4, 2)),
+                                 [0, 2, -2, 4, -4])
+    
+    
     
 if __name__ == "__main__":
     unittest.main()

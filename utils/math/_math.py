@@ -26,7 +26,7 @@ __all__ = ['xlog2x', 'heaviside', 'average_angles', 'euler_phi', 'arrays_close',
            'popcount', 'to_array', 'take_popcount', 'get_number_range',
            'homogenize_arraylist', 'homogenize_unit_array', 'is_equidistant',
            'contiguous_true_regions', 'contiguous_int_regions_iter',
-           'safe_typecast']
+           'safe_typecast', 'range_alternating']
 
 
 # constants
@@ -546,4 +546,23 @@ def safe_typecast(data, dtype):
     return dtype(np.clip(data, info.min, info.max))
     
 
+    
+def range_alternating(stop, step=1):
+    """ returns a generator that iterates over alternating numbers starting at 0
+    until `stop` is reached. The step size can be given by `step`.
+    
+    Example:
+        >>> list(range_alternating(4, 2))
+        [0, 2, -2, 4, -4]
+    """
+    if step == 0:
+        raise ValueError('range_alternating() step argument must not be zero')
+    
+    i = 0
+    while abs(i) < abs(stop):
+        yield i
+        i = -i + step
+        yield i
+        i *= -1
+    yield i
     

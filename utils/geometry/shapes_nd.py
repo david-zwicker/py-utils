@@ -448,7 +448,7 @@ class Cuboid(object):
     
     @property
     def corners(self):
-        return self.pos, self.pos + self.size
+        return np.copy(self.pos), self.pos + self.size
     
     @corners.setter
     def corners(self, points):

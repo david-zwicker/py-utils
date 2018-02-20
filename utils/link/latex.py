@@ -113,7 +113,12 @@ def tex2pdf(tex_source, outfile, use_pdflatex=True):
     output = ('Compiling TeX document in folder `%s`\n' % tmp).encode('utf-8')
 
     def call(cmd):
-        return sp.check_output(cmd, stderr=sp.STDOUT)
+        try:
+            return sp.check_output(cmd, stderr=sp.STDOUT)
+        except OSError:
+            logging.getLogger(__name__).error('`%s` program was not found',
+                                              cmd[0])
+            raise
 
     # create PDF
     with files.change_directory(tmp):

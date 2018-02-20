@@ -182,7 +182,8 @@ class AffineTransformation(object):
         if self.dim_to == self.dim_from:
             return np.linalg.solve(self.matrix, coords - self.offset)
         else:
-            return np.linalg.lstsq(self.matrix, coords - self.offset)[0]
+            return np.linalg.lstsq(self.matrix, coords - self.offset,
+                                   rcond=-1)[0]
         
         
     def project(self, coords):

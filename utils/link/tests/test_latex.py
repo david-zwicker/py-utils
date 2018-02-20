@@ -67,9 +67,13 @@ class Test(unittest.TestCase):
                          \end{document}"""
         outfile = tempfile.NamedTemporaryFile(suffix='.pdf')
         
-        output = latex.tex2pdf(tex_source, outfile.name, use_pdflatex=True)
-        self.assertGreater(len(output), 0)
-        self.assertGreater(os.path.getsize(outfile.name), 0)
+        try:
+            output = latex.tex2pdf(tex_source, outfile.name, use_pdflatex=True)
+        except OSError:
+            pass  # latex was not installed
+        else:
+            self.assertGreater(len(output), 0)
+            self.assertGreater(os.path.getsize(outfile.name), 0)
 
 
 

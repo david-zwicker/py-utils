@@ -103,7 +103,7 @@ def lognorm_sum(count, mean, variance, method='fenton'):
     else:
         raise ValueError('Unknown method `%s` for determining the sum of '
                          'lognormal distributions. Accepted methods are '
-                         '[`fenton`, `fit`].')
+                         '[`fenton`, `leastsq`].')
     
 
 

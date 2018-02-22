@@ -20,10 +20,11 @@ from ..misc import estimate_computation_speed
 
 
 __all__ = ['xlog2x', 'heaviside', 'average_angles', 'euler_phi', 'arrays_close',
-           'logspace', 'is_pos_semidef', 'trim_nan', 'diff1d_periodic', 'mean',
-           'moving_average', 'Interpolate_1D_Extrapolated', 'round_to_even',
-           'round_to_odd', 'get_fastest_entropy_function', 'calc_entropy',
-           'popcount', 'to_array', 'take_popcount', 'get_number_range',
+           'logspace', 'logspace_int', 'is_pos_semidef', 'trim_nan',
+           'diff1d_periodic', 'mean', 'moving_average',
+           'Interpolate_1D_Extrapolated', 'round_to_even', 'round_to_odd',
+           'get_fastest_entropy_function', 'calc_entropy', 'popcount',
+           'to_array', 'take_popcount', 'get_number_range',
            'homogenize_arraylist', 'homogenize_unit_array', 'is_equidistant',
            'contiguous_true_regions', 'contiguous_int_regions_iter',
            'safe_typecast', 'range_alternating']

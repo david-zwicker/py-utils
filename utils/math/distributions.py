@@ -175,7 +175,7 @@ class LogUniformDistribution_gen(stats.rv_continuous):
         res = np.zeros_like(x)
         idx = (1 < x*s) & (x < s)
         res[idx] = 1/(x[idx] * np.log(s*s))
-        return res         
+        return res
         
         
     def _cdf(self, x, s): 

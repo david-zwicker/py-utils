@@ -141,10 +141,89 @@ def arrays_close(arr1, arr2, rtol=1e-05, atol=1e-08, equal_nan=False):
 def logspace(start, end, num=None, **kwargs):
     """ Returns an ordered sequence of `num` numbers from `start` to `end`,
     which are spaced logarithmically """
+    if start < 0 or end < 0:
+        raise ValueError('`start` and `end` must be positive numbers')
     if num is None:
         return np.logspace(np.log10(start), np.log10(end), **kwargs)
     else:
         return np.logspace(np.log10(start), np.log10(end), num=num, **kwargs)
+
+
+
+def logspace_int(start, end, num=50):
+    """ Returns an ordered sequence of at most `num` integers from `start` to
+    `end`, which are approximately spaced logarithmically. Here, `end` is
+    included in the sequence. """
+    # check whether the supplied number is valid
+    num = int(num)
+    if num < 0:
+        raise ValueError('Number of samples, %s, must be non-negative.' % num)
+    if num == 0:
+        return np.array([])
+    
+    # check corner cases
+    start = int(start)
+    end = int(end)
+    if start < 0 or end < 0:
+        raise ValueError('`start` and `end` must be positive numbers')
+    if num == 1 or start == end:
+        return np.array([start])
+    
+    if start > end:
+        # inverted sequence
+        return logspace_int(end, start, num)[::-1]
+    
+    if num > end - start:
+        # all integers need to be returned
+        return np.arange(start, end + 1)
+    
+    # calculate the maximal size of underlying logarithmic range
+    if start == 0:
+        start = 1
+        num -= 1
+        add_zero = True
+    else:
+        add_zero = False
+        
+    num_max = int(np.ceil(
+            (math.log(end) - math.log(start)) / 
+            (math.log(end) - math.log(end - 1))
+        ))
+    a, b = num, num_max  # interval of log-range
+    n = a
+     
+    # try different log-ranges
+    while True:
+        # determine discretized logarithmic range
+        ys = np.logspace(np.log10(start), np.log10(end), num=n)
+        ys = np.unique(ys.astype(np.int))
+        ys_len = len(ys)
+
+        if ys_len == num:
+            break  # reached correct number
+            
+        elif ys_len < num:
+            # n is too small
+            a = n
+            n = int(math.sqrt(n * b))
+            if a == n:
+                n += 1
+                if n == b:
+                    break
+            
+        elif ys_len > num:
+            # n is too large
+            b = n
+            n = int(math.sqrt(a * n))
+            if b == n:
+                n -= 1
+                if n == a:
+                    break
+
+    if add_zero:
+        return np.r_[0, ys]
+    else:
+        return ys
 
 
 

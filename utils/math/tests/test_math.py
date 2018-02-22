@@ -111,6 +111,16 @@ class TestMath(unittest.TestCase):
                 np.testing.assert_allclose(d, d.mean())
                 
                 
+    def test_logspace_int(self):
+        """ test the logspace_int function """
+        for num in [3, 20]:
+            for a, b in [[0, 5], [1, 100]]:
+                x = m.logspace_int(a, b, num)
+                self.assertAlmostEqual(x[0], a)
+                self.assertAlmostEqual(x[-1], b)
+                self.assertLessEqual(len(x), num)
+                
+                
     def test_is_pos_semidef(self):
         """ test the is_pos_semidef function """
         self.assertTrue(m.is_pos_semidef([[1, 0], [0, 1]]))

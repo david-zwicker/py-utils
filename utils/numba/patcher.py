@@ -51,13 +51,17 @@ class NumbaPatcher(object):
         """ initialize to patch functions and classes in module `module` """
         self.module = module
         self.numba_methods = {}
-        self.saved_python_functions = False
-        self.enabled = False  # whether numba speed-up is enabled or not
+        self._enabled = False  # whether numba speed-up is enabled or not
     
 
     @property
+    def enabled(self):
+        return self._enabled
+
+
+    @property
     def disabled(self):
-        return not self.enabled
+        return not self._enabled
 
 
     def register_method(self, name, numba_function,
@@ -65,8 +69,17 @@ class NumbaPatcher(object):
         """ register a new numba method """
         if test_arguments is None:
             test_arguments = {}
+            
+        # make the python function accessible from the numba function in case
+        # the numba version does not support all arguments and needs to fall
+        # back onto the pure python version 
+        python_function = self._resolve_object(name)
+        numba_function._python_function = python_function
+            
+        # store the information about the function
         numba_function = copy_func(numba_function)
         self.numba_methods[name] = {'numba_function': numba_function,
+                                    'python_function': python_function,
                                     'test_function': test_function,
                                     'test_arguments': test_arguments}
 
@@ -76,27 +89,15 @@ class NumbaPatcher(object):
         return reduce(getattr, class_name.split('.'), self.module)
 
     
-    def _save_python_function(self):
-        """ save the original function such that they can be restored later """
-        for name, data in self.numba_methods.items():
-            python_function = self._resolve_object(name)
-            data['python_function'] = python_function
-            data['numba_function']._python_function = python_function
-        self.saved_python_functions = True
-
-
     def enable(self):
         """ enables the numba methods """
         old_state = self.enabled
-        
-        if not self.saved_python_functions:
-            self._save_python_function()
         
         for name, data in self.numba_methods.items():
             class_name, method_name = name.rsplit('.', 1)
             class_obj = self._resolve_object(class_name)
             setattr(class_obj, method_name, data['numba_function'])
-        self.enabled = True
+        self._enabled = True
         
         return old_state
             
@@ -109,7 +110,7 @@ class NumbaPatcher(object):
             class_name, method_name = name.rsplit('.', 1)
             class_obj = self._resolve_object(class_name)
             setattr(class_obj, method_name, data['python_function'])
-        self.enabled = False
+        self._enabled = False
         
         return old_state
         

@@ -186,10 +186,8 @@ def logspace_int(start, end, num=50):
     else:
         add_zero = False
         
-    num_max = int(np.ceil(
-            (math.log(end) - math.log(start)) / 
-            (math.log(end) - math.log(end - 1))
-        ))
+    num_max = int(np.ceil((math.log(end) - math.log(start)) / 
+                          (math.log(end) - math.log(end - 1))))
     a, b = num, num_max  # interval of log-range
     n = a
      

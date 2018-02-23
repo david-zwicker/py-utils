@@ -6,6 +6,7 @@ Created on Aug 21, 2015
 
 from __future__ import division
 
+import itertools
 import unittest
 
 import numpy as np
@@ -74,7 +75,7 @@ class TestMathDistributions(unittest.TestCase):
             
     def test_lognorm_mean_var(self):
         """ test the lognorm_mean_var function """
-        for mean, var in [(0.1, 1), (1, 0.1)]:
+        for mean, var in itertools.product((0.1, 1), (1, 0.1, 0)):
             dist = distributions.lognorm_mean_var(mean, var)
             self.assertAlmostEqual(dist.mean(), mean)
             self.assertAlmostEqual(dist.var(), var)

@@ -45,7 +45,10 @@ def lognorm_mean_var(mean, variance):
     """ returns a lognormal distribution parameterized by its mean and its
     variance. """
     scale, sigma = lognorm_mean_var_to_mu_sigma(mean, variance, 'scipy')
-    return stats.lognorm(scale=scale, s=sigma)
+    if sigma == 0:
+        return DeterministicDistribution(mean)
+    else:
+        return stats.lognorm(scale=scale, s=sigma)
 
 
 

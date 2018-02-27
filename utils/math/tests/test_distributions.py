@@ -134,6 +134,14 @@ class TestMathDistributions(unittest.TestCase):
         # test our distribution and the scipy distribution
         dist = distributions.loguniform_mean(S0, sigma)
         self.assertAlmostEqual(dist.mean(), S0)
+        
+        
+    def test_deterministic_dist(self):
+        val = np.random.random()
+        dist = distributions.DeterministicDistribution(val)
+        self.assertEqual(dist.mean(), val)
+        self.assertEqual(dist.var(), 0)
+        self.assertAllClose(dist.rvs(5), np.full(5, val))
                     
     
 

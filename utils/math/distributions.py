@@ -153,6 +153,9 @@ class DeterministicDistribution_gen(stats.rv_continuous):
     
     def _stats(self):
         return 0., 0., 0., 0.
+    
+    def _rvs(self):
+        return np.zeros(self._size)
 
 
 DeterministicDistribution = DeterministicDistribution_gen(

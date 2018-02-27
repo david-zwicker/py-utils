@@ -44,10 +44,10 @@ def lognorm_mean(mean, sigma):
 def lognorm_mean_var(mean, variance):
     """ returns a lognormal distribution parameterized by its mean and its
     variance. """
-    scale, sigma = lognorm_mean_var_to_mu_sigma(mean, variance, 'scipy')
-    if sigma == 0:
+    if variance == 0:
         return DeterministicDistribution(mean)
     else:
+        scale, sigma = lognorm_mean_var_to_mu_sigma(mean, variance, 'scipy')
         return stats.lognorm(scale=scale, s=sigma)
 
 
@@ -338,10 +338,10 @@ class PartialLogNormDistribution_gen(stats.rv_continuous):
     
     def _rvs(self, s, frac):
         """ random variates """
-        # choose the receptor response characteristics
+        # choose the items response characteristics
         res = np.exp(s * np.random.standard_normal(self._size))
         if frac != 1:
-            # switch off receptors randomly
+            # switch off items randomly
             res[np.random.random(self._size) > frac] = 0
         return res
     

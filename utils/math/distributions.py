@@ -36,8 +36,11 @@ def lognorm_mean_var_to_mu_sigma(mean, variance, definition='scipy'):
 def lognorm_mean(mean, sigma):
     """ returns a lognormal distribution parameterized by its mean and a spread
     parameter `sigma` """
-    mu = mean * np.exp(-0.5 * sigma**2)
-    return stats.lognorm(scale=mu, s=sigma)
+    if sigma == 0:
+        return  DeterministicDistribution(mean)
+    else:
+        mu = mean * np.exp(-0.5 * sigma**2)
+        return stats.lognorm(scale=mu, s=sigma)
 
 
 
@@ -156,6 +159,7 @@ class DeterministicDistribution_gen(stats.rv_continuous):
     
     def _rvs(self):
         return np.zeros(self._size)
+    
 
 
 DeterministicDistribution = DeterministicDistribution_gen(

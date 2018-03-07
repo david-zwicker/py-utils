@@ -37,7 +37,7 @@ def lognorm_mean(mean, sigma):
     """ returns a lognormal distribution parameterized by its mean and a spread
     parameter `sigma` """
     if sigma == 0:
-        return  DeterministicDistribution(mean)
+        return DeterministicDistribution(mean)
     else:
         mu = mean * np.exp(-0.5 * sigma**2)
         return stats.lognorm(scale=mu, s=sigma)

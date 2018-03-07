@@ -23,15 +23,17 @@ import ply.lex
 
 def strip_comments(source):
     """ strip comments from Latex source using a parser """
-#     tokens=('PERCENT', 'BEGINCOMMENT', 'ENDCOMMENT',
-#             'BACKSLASH', 'CHAR', 'BEGINVERBATIM',
-#             'ENDVERBATIM', 'NEWLINE', 'ESCPCT',
-#             'MAKEATLETTER', 'MAKEATOTHER',)
-#     states=(('makeatblock', 'exclusive'),
-#             ('makeatlinecomment', 'exclusive'),
-#             ('linecomment', 'exclusive'),
-#             ('commentenv', 'exclusive'),
-#             ('verbatim', 'exclusive'))
+    # The parser ply.lex inspects the local scope to identify the grammar. Hence,
+    # this function looks as if it defines unused variables and functions
+    tokens=('PERCENT', 'BEGINCOMMENT', 'ENDCOMMENT',  # @UnusedVariable
+            'BACKSLASH', 'CHAR', 'BEGINVERBATIM',
+            'ENDVERBATIM', 'NEWLINE', 'ESCPCT',
+            'MAKEATLETTER', 'MAKEATOTHER',)
+    states=(('makeatblock', 'exclusive'),  # @UnusedVariable
+            ('makeatlinecomment', 'exclusive'),
+            ('linecomment', 'exclusive'),
+            ('commentenv', 'exclusive'),
+            ('verbatim', 'exclusive'))
 
     # Deal with escaped backslashes, so we don't think they're escaping %
     def t_BACKSLASH(t):

@@ -30,6 +30,7 @@ Package       | Usage
 cython        | Compiling code to accelerate some calculations
 h5py          | Handling hdf5 files
 pandas        | Managing data
+ply           | Parsing text
 portalocker   | Locking files on different platforms
 matplotlib    | Plotting graphs
 networkx      | Handling graph theory

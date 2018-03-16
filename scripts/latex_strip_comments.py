@@ -17,12 +17,14 @@ from __future__ import division
 
 import argparse
 import io
-import ply.lex
+import re
 
 
 
-def strip_comments(source):
+def strip_comments_lexer(source):
     """ strip comments from Latex source using a parser """
+    import ply.lex
+    
     # The parser ply.lex inspects the local scope to identify the grammar. Hence,
     # this function looks as if it defines unused variables and functions
     tokens=('PERCENT', 'BEGINCOMMENT', 'ENDCOMMENT',  # @UnusedVariable
@@ -159,22 +161,35 @@ def strip_comments(source):
 
     lexer = ply.lex.lex()
     lexer.input(source)
-    return u"".join([tok.value for tok in lexer])
+    return u"".join(tok.value for tok in lexer)
 
+
+
+def strip_comments_simple(source):
+    """ strip comments from Latex source by removing text after percent signs """
+    regex = re.compile(r"(?<!\\)%(.*)")
+    return u"\n".join(regex.sub("%", line) for line in source.splitlines())
+        
     
     
 def main():
     """ read command line arguments and call the parser """    
     parser = argparse.ArgumentParser()
-    parser.add_argument('filename', help = 'the file to strip comments from')
-    parser.add_argument('--encoding', '-e', default='utf-8')
+    parser.add_argument('filename', help='the file to strip comments from')
+    parser.add_argument('--encoding', '-e', default='utf-8',
+                        help='text encoding of the file')
+    parser.add_argument('--simple', '-s', action='store_true',
+                        help='use simple stripping, keeping percent signs')
     
     args = parser.parse_args()
     
     with io.open(args.filename, encoding=args.encoding) as f:
         source = f.read()
     
-    print(strip_comments(source))
+    if args.simple:
+        print(strip_comments_simple(source))
+    else:
+        print(strip_comments_lexer(source))
     
     
     

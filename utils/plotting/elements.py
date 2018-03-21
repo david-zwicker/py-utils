@@ -52,12 +52,15 @@ def log_slope_indicator(xmin=1., xmax=2., factor=None, ymax=None, exponent=1.,
     catheti. The parameter `loc` determines whether the catheti are
     above or below the diagonal. Additionally, kwargs can be used to
     set the style of the triangle
+    
+    `loc` determines whether the triangle appears above (`loc='upper'`) or below
+        (`loc='lower'; default) the diagonal line.
     """
 
     # prepare the axes and determine 
     if ax is None:
         ax = plt.gca()
-    lower = (loc == 'lower')
+    lower = not (loc == 'lower') != (exponent > 0)
 
     if ymax is not None:
         factor = ymax/max(xmin**exponent, xmax**exponent)
@@ -196,14 +199,13 @@ if __name__ == "__main__":
     print('This file is intended to be used as a module.')
     print('This code serves as a test for the defined methods.')
 
-    from ..math import logspace
-
     tests = (
         'log_slope_indicator',
+        'log_slope_indicator_neg',
     )
 
     if 'log_slope_indicator' in tests:
-        test_x = logspace(1, 1000, 20)
+        test_x = np.logspace(0, 3, 20)
         test_y = test_x**2
         test_y *= (1 + 0.1*np.random.randn(20))
 
@@ -215,6 +217,24 @@ if __name__ == "__main__":
         )
         log_slope_indicator(
             xmin=100, xmax=300, factor=2., exponent=2.,
+            label_x='1', label_y='2', loc='upper'
+        )
+
+        plt.show()
+
+    if 'log_slope_indicator_neg' in tests:
+        test_x = np.logspace(0, 3, 20)
+        test_y = test_x**-2
+        test_y *= (1 + 0.1*np.random.randn(20))
+
+        plt.loglog(test_x, test_y, '+')
+
+        log_slope_indicator(
+            xmin=10, xmax=100, factor=0.5, exponent=-2.,
+            label_x='1', label_y='2', ec='red'
+        )
+        log_slope_indicator(
+            xmin=100, xmax=300, factor=2., exponent=-2.,
             label_x='1', label_y='2', loc='upper'
         )
 

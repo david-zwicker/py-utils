@@ -60,7 +60,13 @@ def log_slope_indicator(xmin=1., xmax=2., factor=None, ymax=None, exponent=1.,
     # prepare the axes and determine 
     if ax is None:
         ax = plt.gca()
-    lower = not (loc == 'lower') != (exponent > 0)
+        
+    if loc == 'lower':
+        lower = (exponent > 0)
+    elif loc == 'upper':
+        lower = (exponent < 0)
+    else:
+        raise ValueError('`loc` must be either `lower` or `upper`.')
 
     if ymax is not None:
         factor = ymax/max(xmin**exponent, xmax**exponent)

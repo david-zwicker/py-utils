@@ -11,6 +11,8 @@ import subprocess as sp
 import os
 import threading
 
+import six
+
 
 
 class WorkerThread(object):
@@ -102,12 +104,16 @@ class MonitorProcessOutput(object):
     """
     
     
-    def __init__(self, args, env=None, timeout=0.1, bufsize=1024):
+    def __init__(self, args, env=None, timeout=0.1, bufsize=1024, stdin=False):
         """
         `args` is a list or string setting the program to call
-        `env` can be a dictionary that defines additonal environmental variables
+        `env` can be a dictionary that defines additional environmental
+            variables
         `timeout` determines the frequency of polling the results. A value of 
             `None` implies indefinite waiting time.
+        `stdin` is a flag determining whether a pipe is opened to the stdin of
+            the process. Alternatively, `stdin` can be a string, which is send
+            to the process and stdin is closed afterwards.
         """
         self.timeout = timeout
         self.bufsize = bufsize
@@ -124,10 +130,23 @@ class MonitorProcessOutput(object):
         if env is not None:
             exec_env.update(env)
 
+        # check whether we need to attach a pipe to the standard input
+        if stdin:
+            _pipe_in = sp.PIPE
+        else:
+            _pipe_in = None
+        
         # start the process
         self._process = sp.Popen(args, shell=False, env=exec_env,
-                                 stdout=self._pipe_out_w,
+                                 stdin=_pipe_in, stdout=self._pipe_out_w,
                                  stderr=self._pipe_err_w)
+        
+        if isinstance(stdin, six.string_types):
+            # assume it is a string
+            self._process.stdin.write(stdin.encode())
+            self._process.stdin.close()
+        
+        # save information about the process
         self.pid = self._process.pid
 
 
@@ -136,6 +155,13 @@ class MonitorProcessOutput(object):
         os.close(self._pipe_out_w)
         os.close(self._pipe_err_r)
         os.close(self._pipe_err_w)
+
+
+    def write(self, data):
+        """ write data to the standard input of the process """
+        if self._process.stdin is None:
+            raise RuntimeError('Process was not started with `stdin=True`')
+        self._process.stdin.write(data)
 
 
     def handle_stdout(self, output):

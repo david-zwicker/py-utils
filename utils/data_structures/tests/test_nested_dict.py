@@ -249,6 +249,13 @@ class TestNestedDict(unittest.TestCase):
         self.assertEqual(d, self.dict_cls({'a': {'b': 1, 'c': 2}}))
         d.from_dict({'a': {'c': 3}})
         self.assertEqual(d, self.dict_cls({'a': {'b': 1, 'c': 3}}))
+        
+        # test inplace operation
+        d = self.dict_cls({'a': {'b': 1}})
+        d['a/b'] += 1
+        self.assertEqual(d, self.dict_cls({'a': {'b': 2}}))
+        d['a/b'] *= 2
+        self.assertEqual(d, self.dict_cls({'a': {'b': 4}}))
             
             
     def test_deleting_data(self):

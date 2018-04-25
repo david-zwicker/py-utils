@@ -232,6 +232,17 @@ class TestShapesND(unittest.TestCase):
         np.testing.assert_array_equal(c.pos, [-1, 0])
         np.testing.assert_array_equal(c.size, [2, 3])
         
+        c = shapes_nd.Cuboid([0, 0], [2, 2])
+        np.testing.assert_array_equal(c.contains_point([]), [])
+        np.testing.assert_array_equal(c.contains_point([1, 1]), [True])
+        np.testing.assert_array_equal(c.contains_point([3, 3]), [False])
+        np.testing.assert_array_equal(c.contains_point([[1, 1], [3, 3]]),
+                                                        [True, False])
+        np.testing.assert_array_equal(c.contains_point([[1, 3], [3, 1]]),
+                                                        [False, False])
+        np.testing.assert_array_equal(c.contains_point([[1, -1], [-1, 1]]),
+                                                        [False, False])
+        
         def test():
             c.mutable = False 
             c.centroid = [0, 0]

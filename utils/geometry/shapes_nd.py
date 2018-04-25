@@ -503,6 +503,20 @@ class Cuboid(object):
     def volume(self):
         return np.prod(self.size)
     
+    
+    def contains_point(self, points):
+        """ returns a True when `points` are within the Cuboid """
+        points = np.asarray(points)
+        if len(points) == 0:
+            return points
+        
+        if points.shape[-1] != self.dim:
+            raise ValueError('Last dimension of `points` must agree with '
+                             'cuboid dimension %d' % self.dim)
+        
+        c1, c2 = self.corners
+        return np.all(c1 <= points, axis=-1) & np.all(points <= c2, axis=-1)
+    
 
     def translate(self, distance=0, inplace=False):
         """ translates the cuboid by a certain distance in all directions """

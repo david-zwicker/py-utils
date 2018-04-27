@@ -224,7 +224,7 @@ class PeristentObject(object):
         When the context manager is left, the data is written back on the disk.
         This is useful to modify simple configuration files or databases:
          
-        with SimpleDatabase('config.yaml', db_format='yaml') as config:
+        with PeristentObject('config.yaml', db_format='yaml') as config:
             config['user'] = 'name'
          
         Now, the file `config.yaml` will read "user: name".

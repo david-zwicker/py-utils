@@ -538,6 +538,14 @@ def prepare_data_for_yaml(data, _key=None):
         return data
     
     else:
-        warnings.warn('Encountered unknown instance of `%s` at `%s` in YAML '
-                      'preparation' % (data.__class__, _key))
+        class_name = data.__class__.__name__
+        if class_name == 'Quantity' or class_name == 'Unit':
+            # this is likely an instance of pint.quantity.Quantity or 
+            # pint.unit.Unit, but we do not want to make pint a dependence of
+            # this this module 
+            return str(data)
+        
+        else:
+            warnings.warn('Encountered unknown instance of `%s` at `%s` in '
+                          'YAML preparation' % (data.__class__, _key))
     return data    

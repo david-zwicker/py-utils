@@ -209,8 +209,15 @@ def determine_label_positions(pos, sigma=0.05, repulsion=0.1, attraction=0.1,
     all other labels possess repulsive potentials of strength `repulsion` and
     range `sigma`. The physical system is solved by iterating `step` times and
     we additionally put noise of strength `noise` to break some degenerate
-    situations """
-    pos = np.array(pos)  # turn into array and make a copy
+    situations.
+    
+    Note that this function assumes that labels are positioned on a linear scale.
+    If labels should be positioned on a log-scale, the positions should be
+    transformed to a linear scale before and after applying this function.    
+    """
+    pos = np.array(pos, dtype=np.double)  # turn into array and make a copy
+    if pos.ndim != 2 or pos.shape[1] != 2:
+        raise ValueError('Input data does not seem to be a 2d coordinate list')
     dim = len(pos)
     
     # scale positions to unity

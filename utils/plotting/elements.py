@@ -201,6 +201,47 @@ def render_table(data, col_width=3.0, row_height=0.625, font_size=14,
 
 
 
+def determine_label_positions(pos, sigma=0.05, repulsion=0.1, attraction=0.1,
+                              steps=100, noise=1e-3):
+    """ determines label positions automatically by moving labels that are too
+    close a bit apart. The algorithm is based on a physical system with labels
+    connected to the given position by springs of stiffness `attraction`, while
+    all other labels possess repulsive potentials of strength `repulsion` and
+    range `sigma`. The physical system is solved by iterating `step` times and
+    we additionally put noise of strength `noise` to break some degenerate
+    situations """
+    pos = np.array(pos)  # turn into array and make a copy
+    dim = len(pos)
+    
+    # scale positions to unity
+    pos_mean = pos.mean(axis=0)
+    pos -= pos_mean
+    pos_scale = np.abs(pos).max(axis=0)
+    pos /= pos_scale
+
+    pos_orig = pos.copy()
+    
+    # iterate several times to find a good position
+    for _ in range(steps):
+        # apply noise term
+        pos += noise * (np.random.random(dim)[:, None] - 0.5)
+        
+        # iterate over all positions
+        for i in range(dim):
+            # evaluate distance to original position
+            pos[i] -= attraction * (pos[i] - pos_orig[i])
+
+            # evaluate distance to all other positions
+            diff = pos[i] - pos
+            dist = np.linalg.norm(diff, axis=1)
+            j = (dist != 0)
+            force = diff[j] / dist[j, None] * np.exp(-(dist[j, None]/sigma)**2)
+            pos[i] += repulsion * np.sum(force, axis=0)
+    
+    return pos * pos_scale + pos_mean
+
+
+
 if __name__ == "__main__":
     print('This file is intended to be used as a module.')
     print('This code serves as a test for the defined methods.')

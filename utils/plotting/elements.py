@@ -211,9 +211,9 @@ def determine_label_positions(pos, sigma=0.05, repulsion=0.1, attraction=0.1,
     we additionally put noise of strength `noise` to break some degenerate
     situations.
     
-    Note that this function assumes that labels are positioned on a linear scale.
-    If labels should be positioned on a log-scale, the positions should be
-    transformed to a linear scale before and after applying this function.    
+    Note that this function assumes that labels are positioned on a linear
+    scale. If labels should be positioned on a log-scale, the positions should
+    be transformed to a linear scale before and after applying this function.    
     """
     pos = np.array(pos, dtype=np.double)  # turn into array and make a copy
     if pos.ndim != 2 or pos.shape[1] != 2:

@@ -121,12 +121,36 @@ def gamma_mean_var(mean, variance):
 
 
 
-def loguniform_mean(mean, sigma):
+def loguniform_mean(mean, width):
     """ returns a loguniform distribution parameterized by its mean and a spread
-    parameter `sigma`. The ratio between the maximal value and the minimal value
-    is given by sigma**2 """
-    scale = mean * (2*sigma*np.log(sigma)) / (sigma**2 - 1)
-    return LogUniformDistribution(scale=scale, s=sigma)
+    parameter `width`. The ratio between the maximal value and the minimal value
+    is given by width**2 """
+    if width == 1:
+        # treat special case separately
+        return DeterministicDistribution(mean)
+    else:
+        scale = mean * (2*width*np.log(width)) / (width**2 - 1)
+        return LogUniformDistribution(scale=scale, s=width)
+
+
+
+def loguniform_mean_var(mean, var):
+    """ returns a loguniform distribution parameterized by its mean and
+    variance. Here, we need to solve a non-linear equation numerically, which
+    might degrade accuracy and performance of the result """
+    if var < 0:
+        raise ValueError('Variance must be positive')
+    elif var == 0:
+        # treat special case separately
+        return DeterministicDistribution(mean)
+    else:
+        # determine width parameter numerically
+        cv2 = var / mean**2  # match square coefficient of variation
+        def _rhs(q):
+            """ match the coefficient of variation """
+            return 0.5 * (q + 1) * np.log(q) / (q - 1) - 1 - cv2
+        width = optimize.newton(_rhs, 1.1)
+        return loguniform_mean(mean, np.sqrt(width))
 
 
 

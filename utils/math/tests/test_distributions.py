@@ -129,11 +129,21 @@ class TestMathDistributions(unittest.TestCase):
     def test_log_uniform(self):
         """ test the log uniform distribution """
         S0 = np.random.random() + 0.1
-        sigma = np.random.random() + 1.1
+        width = np.random.random() + 1.1
         
         # test our distribution and the scipy distribution
-        dist = distributions.loguniform_mean(S0, sigma)
+        dist = distributions.loguniform_mean(S0, width)
         self.assertAlmostEqual(dist.mean(), S0)
+        
+        # test setting variance
+        dist = distributions.loguniform_mean_var(S0, width)
+        self.assertAlmostEqual(dist.mean(), S0)
+        self.assertAlmostEqual(dist.var(), width)
+        
+        # test special case
+        dist = distributions.loguniform_mean(S0, 1)
+        self.assertAlmostEqual(dist.mean(), S0)
+        self.assertEqual(dist.var(), 0)
         
         
     def test_deterministic_dist(self):

@@ -197,6 +197,22 @@ class LogUniformDistribution_gen(stats.rv_continuous):
     Log-uniform distribution.
     """ 
     
+    def freeze(self, *args, **kwds):
+        frozen = super(LogUniformDistribution_gen, self).freeze(*args, **kwds)
+        frozen.support = self.support(*args, **kwds)
+        return frozen
+
+    
+    def support(self, *args, **kwds):
+        """ return the interval in which the PDF of the distribution is
+        non-zero """
+        extra_args, _, _, _ = self._parse_args_stats(*args, **kwds)
+        mean = self.mean(*args, **kwds)
+        scale = extra_args[0]
+        width = mean * (2*scale*np.log(scale)) / (scale**2 - 1)
+        return (width / scale, width * scale)
+    
+
     def _rvs(self, s):
         """ random variates """
         # choose the receptor response characteristics

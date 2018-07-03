@@ -134,12 +134,14 @@ class TestMathDistributions(unittest.TestCase):
         # test our distribution and the scipy distribution
         dist = distributions.loguniform_mean(S0, width)
         self.assertAlmostEqual(dist.mean(), S0)
+        a, b = dist.support
+        self.assertAlmostEqual(b / a, width**2)
         
         # test setting variance
         dist = distributions.loguniform_mean_var(S0, width)
         self.assertAlmostEqual(dist.mean(), S0)
         self.assertAlmostEqual(dist.var(), width)
-        
+
         # test special case
         dist = distributions.loguniform_mean(S0, 1)
         self.assertAlmostEqual(dist.mean(), S0)

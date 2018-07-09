@@ -322,5 +322,16 @@ class StatisticsAccumulator(object):
         """ adds many values from an array or an iterator """
         for value in iterator:
             self.add(value)
+            
+            
+    def to_uncertainties(self):
+        """ converts the current representation to one that is compatible with
+        the `uncertainties` package """
+        if self.shape is None:
+            from uncertainties import ufloat
+            return ufloat(self.mean, self.std)
+        else:
+            from uncertainties import unumpy
+            return unumpy.uarray(self.mean, self.std)
                     
         

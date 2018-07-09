@@ -78,6 +78,17 @@ class TestStats(unittest.TestCase):
         np.testing.assert_allclose(acc.std, x.std(axis=0, ddof=ddof))
         
         self.assertIsInstance(str(acc), six.string_types)
+        
+        try:
+            import uncertainties
+        except ImportError:
+            pass
+        else:
+            if shape is None:
+                self.assertIsInstance(acc.to_uncertainties(),
+                                      uncertainties.core.Variable)
+            else:
+                self.assertIsInstance(acc.to_uncertainties(), np.ndarray)
     
     
     def test_StatisticsAccumulator(self):

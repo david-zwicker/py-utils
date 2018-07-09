@@ -9,6 +9,7 @@ from __future__ import division
 import unittest
 
 import numpy as np
+import six
 
 from .. import stats
 
@@ -67,9 +68,16 @@ class TestStats(unittest.TestCase):
             x = np.random.random([10] + shape)
         
         acc = stats.StatisticsAccumulator(shape=shape, ddof=ddof)
-        acc.add_many(x)
+        self.assertIsInstance(str(acc), six.string_types)
+        
+        acc.add(x[0])
+        self.assertIsInstance(str(acc), six.string_types)
+
+        acc.add_many(x[1:])
         np.testing.assert_allclose(acc.mean, x.mean(axis=0))
         np.testing.assert_allclose(acc.std, x.std(axis=0, ddof=ddof))
+        
+        self.assertIsInstance(str(acc), six.string_types)
     
     
     def test_StatisticsAccumulator(self):

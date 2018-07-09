@@ -222,6 +222,16 @@ class StatisticsAccumulator(object):
                 self._M2 = np.zeros(size, dtype=dtype)
             
             
+    def __str__(self):
+        """ return a string representation of the data """
+        if self.count == 0:
+            return '? +- ? (n=0)'
+        elif self.count <= self.ddof:
+            return '{} +- ? (n={:d})'.format(self.mean, self.count)
+        else:
+            return '{} +- {} (n={:d})'.format(self.mean, self.std, self.count)
+            
+            
     @property
     def mean(self):
         """ return the mean """

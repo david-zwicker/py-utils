@@ -177,7 +177,7 @@ class TestShapesND(unittest.TestCase):
         self.assertEqual(c.volume, 4)
         self.assertAlmostEqual(c.diagonal, np.sqrt(8))
         np.testing.assert_array_equal(c.centroid, [0, 0])
-
+        
         c = shapes_nd.Cuboid([0, 0], [1, -1])
         self.assertAlmostEqual(c.diagonal, np.sqrt(2))
         np.testing.assert_array_equal(c.pos, [0, -1])
@@ -192,6 +192,14 @@ class TestShapesND(unittest.TestCase):
         self.assertAlmostEqual(c.diagonal, np.sqrt(8))
         np.testing.assert_array_equal(c.pos, [-1, -1])
         np.testing.assert_array_equal(c.size, [2, 2])
+        
+        c = shapes_nd.Cuboid.from_points([0, 1], [2, 3])
+        verts = set(c.vertices)
+        self.assertEqual(len(verts), 4)
+        self.assertIn((0, 1), verts)
+        self.assertIn((2, 3), verts)
+        self.assertIn((0, 1), verts)
+        self.assertIn((2, 3), verts)
 
         c = shapes_nd.Cuboid([-1, -1], [2, 2])
         self.assertAlmostEqual(c.diagonal, np.sqrt(8))

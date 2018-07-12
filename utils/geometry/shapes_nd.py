@@ -6,6 +6,8 @@ Created on Nov 5, 2015
 
 from __future__ import division
 
+import itertools
+
 import numpy as np
 
 
@@ -448,15 +450,23 @@ class Cuboid(object):
     
     @property
     def corners(self):
+        """ return coordinates of two extreme corners defining the cuboid """
         return np.copy(self.pos), self.pos + self.size
     
     @corners.setter
     def corners(self, points):
+        """ set coordinates of two extreme corners defining the cuboid """
         points = np.asarray(points)
         if points.shapes != (2, self.dim):
             raise ValueError('Expect two points with correct dimensions.')
         self.pos[:] = points[0, :]
         self.size = points[1, :] - points[0, :]
+
+
+    @property
+    def vertices(self):
+        """ return the coordinates of all the corners """
+        return list(itertools.product(*self.bounds))
 
 
     @property

@@ -15,11 +15,10 @@ import numpy as np
 class Line(object):
     """ represents a line in n dimensions """
     
-    _mutable = False  # determines whether the defining vectors can be changed 
     
-    
-    def __init__(self, origin, direction):
+    def __init__(self, origin, direction, mutable=False):
         """ initialize the line with an `origin` point and a `direction` """
+        self._mutable = mutable 
         self.origin = asanyarray_flags(origin, np.double,
                                        writeable=self.mutable) 
         self.direction = direction  # normalizes the direction
@@ -142,11 +141,10 @@ class Line(object):
 class Segment(object):
     """ represents a segment in n dimensions """
     
-    _mutable = False  # determines whether the defining vectors can be changed 
     
-    
-    def __init__(self, start, end):
+    def __init__(self, start, end, mutable=False):
         """ initialize the straight segment from point p1 to p2 """
+        self._mutable = mutable
         self.start = asanyarray_flags(start, np.double, writeable=self.mutable) 
         self.end = asanyarray_flags(end, np.double, writeable=self.mutable)
         
@@ -205,12 +203,11 @@ class Segment(object):
         
 class Plane(object):
     """ represents a plane in n dimensions """
+
     
-    _mutable = False  # determines whether the defining vectors can be changed
-    
-    
-    def __init__(self, origin, normal):
-        """ initialize the plane with an `origin` and a `normal` vector """ 
+    def __init__(self, origin, normal, mutable=False):
+        """ initialize the plane with an `origin` and a `normal` vector """
+        self._mutable = mutable 
         self.origin = asanyarray_flags(origin, np.double,
                                        writeable=self.mutable) 
         self.normal = normal  # normalizes the vector and checks consistency
@@ -353,12 +350,11 @@ class Plane(object):
 class Cuboid(object):
     """ class that represents a cuboid in n dimensions """
     
-    _mutable = True  # determines whether the defining vectors can be changed
     
-    
-    def __init__(self, pos, size):
+    def __init__(self, pos, size, mutable=True):
         """ defines a cuboid from a position of one corner and a vector defining
         its size """
+        self._mutable = mutable
         self.pos = asanyarray_flags(pos, writeable=self.mutable)
         self.size = size  # implicitly sets correct shape 
         
@@ -625,12 +621,11 @@ class Cuboid(object):
 class Cylinder(object):
     """ represents a single cylinder """
     
-    _mutable = False  # determines whether the defining vectors can be changed
     
-    
-    def __init__(self, center_1, center_2, radius):
+    def __init__(self, center_1, center_2, radius, mutable=False):
         """ defines a cylinder from the two centers of the circles and a
         radius """
+        self._mutable = mutable
         self.center_1 = asanyarray_flags(center_1, np.double, self.mutable)
         self.center_2 = asanyarray_flags(center_2, np.double, self.mutable)
         self.radius = float(radius)

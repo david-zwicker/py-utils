@@ -45,13 +45,22 @@ def number2latex(val, **kwargs):
             unit = "\\,{:L}".format(val.units)
         else:
             unit = "\\,{:L~}".format(val.units)
-        return number2latex(val.magnitude) + unit
+            
+        add_dollar = kwargs.pop('add_dollar', False)
+        result = number2latex(val.magnitude, **kwargs) + unit
+        if add_dollar:
+            result = '$' + result + '$'
+        return result
     
     # read parameters
     exponent_threshold = kwargs.pop('exponent_threshold', 3)
     add_dollar = kwargs.pop('add_dollar', False)
     precision = kwargs.pop('precision', None)
-
+    
+    if kwargs:
+        raise ValueError('Do not understand argument `%s`'
+                         % list(kwargs.keys()))
+    
     # represent the input as mantissa + exponent
     val = float(val)
     if val == 0:
@@ -60,7 +69,7 @@ def number2latex(val, **kwargs):
         exponent = int(np.log10(abs(val)))
         if exponent < 0:
             exponent -= 1
-    mantissa = val/10**exponent
+    mantissa = val / 10**exponent
 
     # process these values further
     if precision is not None:
@@ -99,7 +108,7 @@ def number2latex(val, **kwargs):
 
     # check, whether to enclose the expression in dollar signs
     if add_dollar:
-        res = '$%s$' % res
+        res = '$' + res + '$'
 
     return res
 

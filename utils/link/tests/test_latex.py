@@ -76,6 +76,8 @@ class Test(unittest.TestCase):
         self.assertEqual(n2l(2 * ureg.m / ureg.s),
                          r'2\,\frac{\mathrm{m}}{\mathrm{s}}')
         self.assertEqual(n2l(2 * ureg.m, long_unit=True), r'2\,\mathrm{meter}')
+        self.assertEqual(n2l(2 * ureg.m, add_dollar=True),
+                         r'$2\,\mathrm{m}$')
         
         # arrays
         self.assertEqual(ns2l([1, 2] * ureg.m),

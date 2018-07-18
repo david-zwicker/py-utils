@@ -27,10 +27,11 @@ def numbers2latex(values, **kwargs):
     Additional parameters are passed on to `number2latex`
     """
 
-    # apply function to all parts of a list recursively
-    if hasattr(values, '__iter__'):
+    try:
+        # try applying function to all parts of a list recursively
         return [numbers2latex(v, **kwargs) for v in values]
-    else:
+    except:
+        # fall back on simple evaluation if this fails
         return number2latex(values, **kwargs)
 
 
@@ -38,11 +39,14 @@ def numbers2latex(values, **kwargs):
 def number2latex(val, **kwargs):
     """ Converts a number into a representation nicely displayed by latex """
 
-    # apply function to all parts of a potential list
-    if hasattr(val, '__iter__'):
-        print('Using the iterative version of `number2latex` is deprecated')
-        return [number2latex(v, **kwargs) for v in val]
-
+    if val.__class__.__name__ == 'Quantity':
+        # assume it is a pint quantity
+        if kwargs.pop('long_unit', False):
+            unit = "\\,{:L}".format(val.units)
+        else:
+            unit = "\\,{:L~}".format(val.units)
+        return number2latex(val.magnitude) + unit
+    
     # read parameters
     exponent_threshold = kwargs.pop('exponent_threshold', 3)
     add_dollar = kwargs.pop('add_dollar', False)

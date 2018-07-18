@@ -10,6 +10,11 @@ import os.path
 import unittest
 import tempfile
 
+try:
+    import pint
+except ImportError:
+    pint = None
+
 from .. import latex
 
 
@@ -58,6 +63,24 @@ class Test(unittest.TestCase):
         self.assertEqual(n2l(-9.99e4, precision=1), '-10^{5}')
         self.assertEqual(n2l(0.1, add_dollar=True), '$0.1$')
         
+    
+    @unittest.skipIf(pint is None, 'Missing dependency: pint')
+    def test_number2latex_pint(self):
+        """ test number2latex with quantities """
+        ureg = pint.UnitRegistry()
+        n2l = latex.number2latex
+        ns2l = latex.numbers2latex
+                
+        # scalar quantities
+        self.assertEqual(n2l(2 * ureg.m), r'2\,\mathrm{m}')
+        self.assertEqual(n2l(2 * ureg.m / ureg.s),
+                         r'2\,\frac{\mathrm{m}}{\mathrm{s}}')
+        self.assertEqual(n2l(2 * ureg.m, long_unit=True), r'2\,\mathrm{meter}')
+        
+        # arrays
+        self.assertEqual(ns2l([1, 2] * ureg.m),
+                         [r'1\,\mathrm{m}', r'2\,\mathrm{m}'])
+    
     
     def test_tex2pdf(self):
         """ test the tex2pdf function """

@@ -355,8 +355,10 @@ class Cuboid(object):
         """ defines a cuboid from a position of one corner and a vector defining
         its size """
         self._mutable = mutable
-        self.pos = asanyarray_flags(pos, writeable=self.mutable)
-        self.size = size  # implicitly sets correct shape 
+        # set position and adjust mutable status later
+        self.pos = np.array(pos, copy=True)
+        self.size = size  # implicitly sets correct shape
+        self.pos.flags.writeable = self.mutable 
         
         
     @property

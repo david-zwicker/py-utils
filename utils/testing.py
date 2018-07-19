@@ -7,6 +7,7 @@ Created on Aug 21, 2015
 from __future__ import division
 
 import collections
+import functools
 import logging
 import sys
 import unittest
@@ -188,6 +189,18 @@ def deep_getsizeof(obj, ids=None):
  
     # basic object: neither of the above
     return r 
+
+
+
+def repeat(num):
+    """ decorator for repeating tests several times """
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapper(*args, **kwargs):
+            for _ in range(num):
+                f(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 

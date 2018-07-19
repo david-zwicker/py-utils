@@ -2,9 +2,9 @@
 echo 'Determine coverage of all unittests...'
 
 cd ..
-mkdir -p tests/coverage_python2
+mkdir -p tests/coverage
 
-nosetests-2.7 --with-coverage \
+nosetests --with-coverage \
     --cover-erase --cover-inclusive \
     --cover-package=utils \
-    --cover-html --cover-html-dir="tests/coverage_python2"
+    --cover-html --cover-html-dir="tests/coverage"

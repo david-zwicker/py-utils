@@ -910,13 +910,24 @@ def errorplot(x, y, yerr=None, fmt='', **kwargs):
     traditional matplotlib `errorbar` function and translates them.
     Additionally, the following arguments are accepted
     
+    `yerr` gives the width of the shaded area for each plot point. If yerr is
+        `None` or an empty array, the shaded area is not plotted.
+    `fmt` also to set the format of the plot of the mean data. The special value
+        'none' indicates that the mean should not be plotted, so that only the
+        errorrange is visible. 
     `subsample` allows to plot only a fraction of the actual data points in the
         plot of the mean, while all data points are used for the envelope
         showing the errorbars 
     """
     label = kwargs.pop('label', None)
     subsample = kwargs.pop('subsample', 1)
-    has_error = (yerr is not None)
+    
+    if yerr is None:
+        has_error = False
+    else:
+        y = np.asarray(y)
+        yerr = np.asarray(yerr)
+        has_error = (yerr.size != 0)
     
     # plot the mean
     if fmt != 'none':
@@ -943,9 +954,6 @@ def errorplot(x, y, yerr=None, fmt='', **kwargs):
     if has_error:
         alpha = kwargs.pop('alpha', 0.3)
         kwargs.pop('ls', None)  # ls only applies to centerline
-        
-        y = np.asarray(y)
-        yerr = np.asarray(yerr)
         
         shape_err = plt.fill_between(x, y - yerr, y + yerr, color=color,
                                      edgecolors='none', alpha=alpha, 

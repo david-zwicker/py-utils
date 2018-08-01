@@ -38,6 +38,8 @@ def change_directory(path):
 
 def ensure_directory_exists(folder):
     """ creates a folder if it not already exists """
+    if folder == '':
+        return
     try:
         os.makedirs(folder)
     except OSError as err:

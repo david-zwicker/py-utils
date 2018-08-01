@@ -168,7 +168,7 @@ class Movie(object):
         if self.width is None:
             dpi = None
         else:
-            dpi = self.width/fig.get_figwidth()
+            dpi = self.width / fig.get_figwidth()
 
         # save image
         if self.inverted:

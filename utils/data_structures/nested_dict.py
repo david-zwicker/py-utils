@@ -11,7 +11,6 @@ import datetime
 import os.path
 import warnings
 
-import h5py
 import numpy as np
 import six
 
@@ -98,6 +97,8 @@ class LazyHDFValue(LazyValue):
     @classmethod    
     def create_from_data(cls, key, data, hdf_filename):
         """ store the data in a HDF file and return the storage object """
+        import h5py
+        
         data_cls = data.__class__
         with h5py.File(hdf_filename, 'a') as hdf_file:
             # delete possible previous key to have a clean storage
@@ -129,6 +130,8 @@ class LazyHDFValue(LazyValue):
         
     def load(self):
         """ load the data and return it """
+        import h5py
+
         # open the associated HDF5 file and read the data
         with h5py.File(self.hdf_filename, 'r') as hdf_file:
             data = hdf_file[self.key][:]  # copy data into RAM
@@ -146,6 +149,7 @@ class LazyHDFCollection(LazyHDFValue):
     @classmethod    
     def create_from_data(cls, key, data, hdf_filename):
         """ store the data in a HDF file and return the storage object """
+        import h5py
         data_cls = data.__class__
 
         # save a collection of objects to hdf
@@ -173,6 +177,8 @@ class LazyHDFCollection(LazyHDFValue):
         
     def load(self):
         """ load the data and return it """
+        import h5py
+
         # open the associated HDF5 file and read the data
         item_cls = self.data_cls.item_class
         with h5py.File(self.hdf_filename, 'r') as hdf_file:

@@ -551,6 +551,10 @@ def prepare_data_for_yaml(data, _key=None):
             # this this module 
             return str(data)
         
+        elif class_name == 'NaTType':
+            # this is likely a pandas not-a-time value
+            return None
+        
         else:
             warnings.warn('Encountered unknown instance of `%s` at `%s` in '
                           'YAML preparation' % (data.__class__, _key))

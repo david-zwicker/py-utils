@@ -26,7 +26,11 @@ except ImportError:
 
 
 def estimate_computation_speed(func, *args, **kwargs):
-    """ estimates the computation speed of a function """
+    """ estimates the computation speed of a function
+    
+    Returns the number of times the function can be calculated in one second.
+    The inverse is thus the runtime in seconds per function call
+    """
     test_duration = kwargs.pop('test_duration', 1)
     
     # prepare the function
@@ -40,10 +44,10 @@ def estimate_computation_speed(func, *args, **kwargs):
      
     # call the function until the total time is achieved
     number, duration = 1, 0
-    while duration < 0.1*test_duration:
+    while duration < 0.1 * test_duration:
         number *= 10
         duration = timeit.timeit(test_func, number=number)
-    return number/duration
+    return number / duration
 
 
 

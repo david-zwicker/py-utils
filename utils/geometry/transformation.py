@@ -186,7 +186,7 @@ class AffineTransformation(object):
                                    rcond=-1)[0]
         
         
-    def project(self, coords):
+    def projection(self, coords):
         """ applies the transformation and the inverse successively. This is a 
         projection operation if the defined transformation is toward a lower
         dimensions. In any other case, this does not do anything. """

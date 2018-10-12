@@ -60,7 +60,7 @@ class TestTransformations(TestBase):
         self.assertEqual(trans, trans_inv2)
         
         p = np.random.random(trans.dim_from)
-        self.assertAllClose(p, trans.project(p))
+        self.assertAllClose(p, trans.projection(p))
     
     
     def test_pseudo_inverse(self):

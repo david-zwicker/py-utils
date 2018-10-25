@@ -15,8 +15,8 @@ from .. import tools
 
       
      
-class TestMathDistributions(unittest.TestCase):
-    """ unit tests for the continuous library """
+class TestNumbaTools(unittest.TestCase):
+    """ unit tests for the numba tools """
 
     _multiprocess_can_split_ = True  # let nose know that tests can run parallel
     

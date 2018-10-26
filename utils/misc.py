@@ -145,10 +145,12 @@ class DeprecationHelper(object):
     """
     Helper function for re-routing deprecated classes 
     copied from http://stackoverflow.com/a/9008509/932593
+    
+    Use as `OldClsName = DeprecationHelper(NewClsName)`
     """
     
     def __init__(self, new_target, warning_class=DeprecationWarning):
-        """ intialize the decorator """
+        """ initialize the decorator """
         self.new_target = new_target
         self.warning_class = warning_class
 

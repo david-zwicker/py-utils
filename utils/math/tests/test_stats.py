@@ -6,6 +6,7 @@ Created on Aug 25, 2016
 
 from __future__ import division
 
+import collections
 import unittest
 
 import numpy as np
@@ -56,6 +57,14 @@ class TestStats(unittest.TestCase):
         f = np.bincount(x)
         for ddof in (0, 2):
             mean, std = stats.mean_std_frequency_table(f, ddof=ddof)
+            self.assertAlmostEqual(mean, x.mean())
+            self.assertAlmostEqual(std, x.std(ddof=ddof))
+            
+        c = collections.Counter()
+        for i, freq in enumerate(f):
+            c[i] += freq
+        for ddof in (0, 2):
+            mean, std = stats.mean_std_frequency_table(c, ddof=ddof)
             self.assertAlmostEqual(mean, x.mean())
             self.assertAlmostEqual(std, x.std(ddof=ddof))
 

@@ -6,6 +6,8 @@ Created on Aug 9, 2016
 
 from __future__ import division
 
+import collections
+
 import numpy as np
 from scipy import integrate, optimize, misc, special, stats
 from six.moves import range
@@ -40,16 +42,34 @@ def mean_std_online(arr_or_iter, ddof=0, shape=None):
 def mean_std_frequency_table(frequencies, values=None, ddof=0):
     """ calculates the mean and the standard deviation of the given data.
     `frequencies` is an array with which `values` were observed. If `values` is
-    None, it is set to `values = np.arange(len(frequencies))`.
+    None, it is set to `values = np.arange(len(frequencies))`. Alternatively,
+    `frequencies` can be of type `collections.Counter`, in which case `values`
+    must be None.
     `ddof` is the  delta degrees of freedom, which is used in the formula for
         the standard deviation. 
     """
-    if values is None:
-        values = np.arange(len(frequencies))
+    if isinstance(frequencies, collections.Counter):
+        if values is not None:
+            raise ValueError('`values` must be None when `frequencies` are of '
+                             'type collections.Counter')
+        count, sum1, sum2 = 0, 0, 0
+        for val, freq in frequencies.items():
+            count += freq
+            sum1 += freq * val
+            sum2 += freq * val**2
+
+    else:  # frequencies should be a sequences of numbers    
+        if values is None:
+            values = np.arange(len(frequencies))
+        if len(frequencies) != len(values):
+            raise ValueError('`frequencies` and `values` must be of equal '
+                             'length')
     
-    count = frequencies.sum()
-    sum1 = (values * frequencies).sum()
-    sum2 = (values**2 * frequencies).sum()
+        count = frequencies.sum()
+        sum1 = (values * frequencies).sum()
+        sum2 = (values**2 * frequencies).sum()
+        
+    # calculate statistics
     mean = sum1 / count
     var = (sum2 - sum1**2 / count)/(count - ddof)
     std = np.sqrt(var)

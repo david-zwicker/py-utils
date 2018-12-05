@@ -27,7 +27,7 @@ __all__ = ['xlog2x', 'heaviside', 'average_angles', 'euler_phi', 'arrays_close',
            'to_array', 'take_popcount', 'get_number_range',
            'homogenize_arraylist', 'homogenize_unit_array', 'is_equidistant',
            'contiguous_true_regions', 'contiguous_int_regions_iter',
-           'safe_typecast', 'range_alternating']
+           'safe_typecast', 'range_alternating', 'SmoothData1D']
 
 
 # constants
@@ -647,4 +647,43 @@ def range_alternating(stop, step=1):
         yield i
         i *= -1
     yield i
+    
+    
+    
+class SmoothData1D():
+    """ provide structure for smoothing data in 1d """
+    
+    sigma_auto_scale = 10  # scale for determining automatic values for sigma
+    
+    def __init__(self, x, y, sigma=None):
+        """ initialize with data
+        
+        `sigma` determines the smoothing window using units of `x`
+        """
+        self.x = np.ravel(x)
+        self.y = np.ravel(y)
+        if self.x.shape != self.y.shape:
+            raise ValueError('`x` and `y` must have equal number of elements')
+            
+        if sigma is None:
+            sigma = self.sigma_auto_scale * self.x.ptp() / len(self.x)
+        self._scale = 0.5 * sigma**-2
+        
+        
+    @property
+    def bounds(self):
+        """ return minimal and maximal `x` values """
+        return self.x.min(), self.x.max()
+        
+        
+    def __call__(self, xs):
+        """ return smoothed y values for the positions given in `xs` """
+        xs = np.asanyarray(xs)
+        shape = xs.shape
+        xs = np.ravel(xs)
+        weight = np.exp(-self._scale * (self.x[:, None] - xs[None, :])**2)
+        weight /= weight.sum(axis=0)
+        result = np.dot(self.y, weight)
+        return result.reshape(shape)    
+    
     

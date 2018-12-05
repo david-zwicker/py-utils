@@ -202,7 +202,8 @@ def estimate_cv(data, confidence=0.95):
     std = data.std()
     cv = std/mean
 
-    err = confidence_interval(cv, sampling_distribution_cv, (len(data),))
+    err = confidence_interval(cv, sampling_distribution_cv, (len(data),),
+                              confidence=confidence)
 
     return cv, err
 

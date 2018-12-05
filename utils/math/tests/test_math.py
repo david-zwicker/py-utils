@@ -388,6 +388,21 @@ class TestMath(unittest.TestCase):
         self.assertSequenceEqual(list(m.range_alternating(-4, 2)), [0, 2, -2])
     
     
+    def test_SmoothData1D(self):
+        """ test smoothing """
+        x = np.random.uniform(0, 1, 128)
+        xs = np.linspace(0, 1, 16)[1:-1]
+
+        s = m.SmoothData1D(x, np.ones_like(x))
+        np.testing.assert_allclose(s(xs), 1)
+    
+        s = m.SmoothData1D(x, x)
+        np.testing.assert_allclose(s(xs), xs, atol=0.1)
+    
+        s = m.SmoothData1D(x, np.sin(x))
+        np.testing.assert_allclose(s(xs), np.sin(xs), atol=0.1)
+    
+    
     
 if __name__ == "__main__":
     unittest.main()

@@ -59,17 +59,18 @@ class Movie(object):
     """ Class for creating movies from matplotlib figures using ffmpeg """
 
     def __init__(self, width=None, filename=None, inverted=False, verbose=True,
-                 framerate=None, tempdir=None):
+                 framerate=None, image_folder=None):
         self.width = width          # pixel width of the movie
         self.filename = filename    # filename used to save the movie
         self.inverted = inverted    # colors inverted?
         self.verbose = verbose      # verbose encoding information?
         self.framerate = framerate  # framerate of the movie
+        self.image_folder = image_folder  # folder where images are stored
 
         # internal variables
         self.recording = False
-        self.tempdir = tempdir
         self.frame = 0
+        self._delete_images = False
         self._start()
 
 
@@ -91,8 +92,9 @@ class Movie(object):
     def _start(self):
         """ initializes the video recording """
         # create temporary directory for the image files of the movie
-        if self.tempdir is None:
-            self.tempdir = tempfile.mkdtemp(prefix='movie_')
+        if self.image_folder is None:
+            self.image_folder = tempfile.mkdtemp(prefix='movie_')
+            self._delete_images = True
         self.frame = 0
         self.recording = True
 
@@ -100,7 +102,8 @@ class Movie(object):
     def _end(self):
         """ clear up temporary things if necessary """
         if self.recording:
-            shutil.rmtree(self.tempdir)
+            if self._delete_images:
+                shutil.rmtree(self.image_folder)
             self.recording = False
 
 
@@ -117,7 +120,7 @@ class Movie(object):
         if not self.recording:
             raise ValueError('Movie is not initialized.')
 
-        save_function("%s/frame_%09d.png" % (self.tempdir, self.frame))
+        save_function("%s/frame_%09d.png" % (self.image_folder, self.frame))
         self.frame += 1
 
 
@@ -196,7 +199,7 @@ class Movie(object):
 
         for f in frames:
             shutil.copy(
-                "%s/frame_%09d.png" % (self.tempdir, f),
+                "%s/frame_%09d.png" % (self.image_folder, f),
                 filename_pattern % f
             )
 
@@ -228,7 +231,7 @@ class Movie(object):
         args += [
             "-y",  # don't ask questions
             "-f", "image2",  # input format
-            "-i", "%s/frame_%%09d.png" % self.tempdir,  # input data
+            "-i", "%s/frame_%%09d.png" % self.image_folder,  # input data
             "-pix_fmt", "yuv420p",  # pixel format for compatibility
             "-b:v", "1024k",  # high bit rate for good quality
             filename  # output file

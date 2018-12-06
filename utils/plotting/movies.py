@@ -59,7 +59,7 @@ class Movie(object):
     """ Class for creating movies from matplotlib figures using ffmpeg """
 
     def __init__(self, width=None, filename=None, inverted=False, verbose=True,
-                 framerate=None):
+                 framerate=None, tempdir=None):
         self.width = width          # pixel width of the movie
         self.filename = filename    # filename used to save the movie
         self.inverted = inverted    # colors inverted?
@@ -68,7 +68,7 @@ class Movie(object):
 
         # internal variables
         self.recording = False
-        self.tempdir = None
+        self.tempdir = tempdir
         self.frame = 0
         self._start()
 
@@ -91,7 +91,8 @@ class Movie(object):
     def _start(self):
         """ initializes the video recording """
         # create temporary directory for the image files of the movie
-        self.tempdir = tempfile.mkdtemp(prefix='movie_')
+        if self.tempdir is None:
+            self.tempdir = tempfile.mkdtemp(prefix='movie_')
         self.frame = 0
         self.recording = True
 

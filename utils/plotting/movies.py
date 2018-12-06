@@ -253,6 +253,8 @@ class Movie(object):
         if self.verbose:
             print(out)
             print(err)
+            
+        return out, err
 
 
 

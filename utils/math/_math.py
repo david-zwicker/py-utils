@@ -681,8 +681,9 @@ class SmoothData1D():
         xs = np.asanyarray(xs)
         shape = xs.shape
         xs = np.ravel(xs)
-        weight = np.exp(-self._scale * (self.x[:, None] - xs[None, :])**2)
-        weight /= weight.sum(axis=0)
+        with np.errstate(under='ignore'):
+            weight = np.exp(-self._scale * (self.x[:, None] - xs[None, :])**2)
+            weight /= weight.sum(axis=0)
         result = np.dot(self.y, weight)
         return result.reshape(shape)    
     

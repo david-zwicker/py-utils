@@ -219,8 +219,6 @@ class Movie(object):
             extra_args = []
         if self.framerate is not None:
             extra_args += ["-r", self.framerate]
-        if filename is None:
-            filename = self.filename
 
         # construct the call to ffmpeg
         # add the `-pix_fmt yuv420p` switch for compatibility reasons
@@ -238,22 +236,15 @@ class Movie(object):
         ]
 
         # spawn the subprocess and capture its output
-        p = subprocess.Popen(args, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
-        out = p.stdout.read()
-        err = p.stderr.read()
-
-        # check if error occurred
-        if p.wait():
-            print(out)
-            print(err)
-            raise RuntimeError('An error occurred while producing the movie.')
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        out, err = proc.communicate()
 
         # do output anyway, when verbosity is requested
         if self.verbose:
             print(out)
             print(err)
-            
+
         return out, err
 
 

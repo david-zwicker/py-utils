@@ -19,7 +19,7 @@ import warnings
 from six.moves import zip
 
 try:
-    from tqdm import tqdm
+    from tqdm.auto import tqdm
 except ImportError:
     tqdm = None
 

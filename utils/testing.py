@@ -135,7 +135,7 @@ class WarnAssertionsMixin(object):
 
         with warnings.catch_warnings(record=True) as warning_list:
             warnings.simplefilter("always")
-            for mod in sys.modules.values():
+            for mod in list(sys.modules.values()):
                 if hasattr(mod, '__warningregistry__'):
                     mod.__warningregistry__.clear()
             yield

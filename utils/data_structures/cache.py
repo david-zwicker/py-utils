@@ -553,8 +553,8 @@ class cached_property(_class_cache):
     
     def __get__(self, obj, owner):
         """ call the method to obtain the result for this property """
-        if obj is None:
-            return self
+#         if obj is None:
+#             return self
 
         return self.func(obj)
     

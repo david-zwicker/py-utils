@@ -16,12 +16,12 @@ import numbers
 import os
 import sys
 
-import six
 try:
     from collections.abc import MutableMapping
 except ImportError:  # python 2 fallback
     from collections import MutableMapping
 
+import six
 import numpy as np
 
 

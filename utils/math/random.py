@@ -10,8 +10,12 @@ import itertools
 import random
 
 import numpy as np
-from scipy import misc
 from six.moves import range
+
+try:
+    from scipy.special import comb
+except ImportError:
+    from scipy.misc import comb
 
 
 
@@ -57,11 +61,11 @@ def take_combinations(iterable, r, num='all'):
     else:
         # check how many combinations there are
         data = list(iterable)
-        num_combs = misc.comb(len(data), r, exact=True)
+        num_combs = comb(len(data), r, exact=True)
         if num_combs <= num:
             # yield all combinations
             return itertools.combinations(data, r)
-        elif num_combs <= 10*num:
+        elif num_combs <= 10 * num:
             # yield a chosen sample of the combinations
             choosen = set(random.sample(range(num_combs), num))
             gen = itertools.combinations(data, r)

@@ -6,10 +6,15 @@ Created on Aug 9, 2016
 
 from __future__ import division
 
-import collections
 import datetime
 import os.path
 import warnings
+
+try:
+    from collections.abc import MutableMapping, Mapping
+except ImportError:  # python 2 fallback
+    from collections import MutableMapping, Mapping
+
 
 import numpy as np
 import six
@@ -195,7 +200,7 @@ class LazyHDFCollection(LazyHDFValue):
 
 
 
-class NestedDict(collections.MutableMapping):
+class NestedDict(MutableMapping):
     """ special dictionary class representing nested dictionaries.
     This class allows easy access to nested properties using a single key:
     
@@ -385,7 +390,7 @@ class NestedDict(collections.MutableMapping):
         """ insert new data into the location at key. If the `value` is a
         subclass of collections.Mapping it is turned into a NestedDict, so it
         can be accessed nicely """
-        if isinstance(value, collections.Mapping):
+        if isinstance(value, Mapping):
             self[key] = self.create_dict(value)
         else:
             self[key] = value
@@ -528,7 +533,7 @@ def prepare_data_for_yaml(data, _key=None):
     elif isinstance(data, np.integer):
         return int(data)
     
-    elif isinstance(data, collections.MutableMapping):
+    elif isinstance(data, MutableMapping):
         return {k: prepare_data_for_yaml(v, _key + [k])
                 for k, v in six.iteritems(data)}
         

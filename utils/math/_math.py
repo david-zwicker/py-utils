@@ -9,11 +9,15 @@ This module contains math functions
 from __future__ import division
 
 from collections import Counter
-import fractions
 import math
 
+try:
+    from math import gcd
+except ImportError:
+    from fractions import gcd
+
 import numpy as np
-from scipy import interpolate, stats
+from scipy import interpolate
 from six.moves import range
 
 from ..misc import estimate_computation_speed
@@ -83,7 +87,7 @@ def euler_phi(n):
     amount = 0
 
     for k in range(1, n + 1):
-        if fractions.gcd(n, k) == 1:
+        if gcd(n, k) == 1:
             amount += 1
 
     return amount
@@ -370,16 +374,6 @@ def _entropy_numpy(arr):
     return -np.sum(fs * np.log2(fs))
 
 
-def _entropy_scipy(arr):
-    """
-    calculate the base 2 entropy of the distribution given in `arr` using the
-    scipy.stats.itemfreq function
-    """
-    counts = stats.itemfreq(arr)[:, 1]
-    fs = np.true_divide(counts, len(arr))
-    return -np.sum(fs * np.log2(fs))
-
-
 def _entropy_counter1(arr):
     """
     calculate the base 2 entropy of the distribution given in `arr` using a
@@ -407,8 +401,7 @@ def _entropy_counter2(arr):
 
 
 # compile the list of functions that can calculate an entropy
-_ENTROPY_FUNCTIONS = [_entropy_numpy, _entropy_scipy, _entropy_counter1,
-                      _entropy_counter2]
+_ENTROPY_FUNCTIONS = [_entropy_numpy, _entropy_counter1, _entropy_counter2]
 
 
 def get_fastest_entropy_function():

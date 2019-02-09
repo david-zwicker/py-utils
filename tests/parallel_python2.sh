@@ -3,5 +3,4 @@
 CORES=`python -c 'from multiprocessing import cpu_count; print(cpu_count() // 2)'`
 
 echo 'Run unittests on '$CORES' cores...'
-cd ..
-nosetests-2.7 --processes=$CORES --process-timeout=60 --stop
+python2 -m pytest -n $CORES ..

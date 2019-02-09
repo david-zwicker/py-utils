@@ -17,6 +17,10 @@ import os
 import sys
 
 import six
+try:
+    from collections.abc import MutableMapping
+except ImportError:  # python 2 fallback
+    from collections import MutableMapping
 
 import numpy as np
 
@@ -39,9 +43,8 @@ def hash_mutable(obj):
     if isinstance(obj, (set, frozenset)):
         return hash(frozenset(hash_mutable(v) for v in obj))
     
-    if isinstance(obj, (dict, collections.MutableMapping,
-                        collections.OrderedDict, collections.defaultdict,
-                        collections.Counter)):
+    if isinstance(obj, (dict, MutableMapping, collections.OrderedDict,
+                        collections.defaultdict, collections.Counter)):
         return _hash_iter(frozenset((k, hash_mutable(v))
                           for k, v in sorted(six.iteritems(obj))))
     
@@ -72,9 +75,8 @@ def hash_readable(obj):
     if isinstance(obj, (set, frozenset)):
         return '{' + ', '.join(hash_readable(v) for v in sorted(obj)) + '}'
     
-    if isinstance(obj, (dict, collections.MutableMapping,
-                        collections.OrderedDict, collections.defaultdict,
-                        collections.Counter)):
+    if isinstance(obj, (dict, MutableMapping, collections.OrderedDict,
+                        collections.defaultdict, collections.Counter)):
         return '{' + ', '.join(hash_readable(k) + ': ' + hash_readable(v)
                                for k, v in sorted(six.iteritems(obj))) + '}'
                                
@@ -198,7 +200,7 @@ class DictFiniteCapacity(collections.OrderedDict):
         
 
 
-class PersistentDict(collections.MutableMapping):
+class PersistentDict(MutableMapping):
     """ a key value database which is stored on the disk
     keys and values must be strings.
     """
@@ -279,7 +281,7 @@ class PersistentDict(collections.MutableMapping):
             
             
 
-class SerializedDict(collections.MutableMapping):
+class SerializedDict(MutableMapping):
     """ a key value database which is stored on the disk
     This class provides hooks for converting arbitrary keys and values to
     strings, which are then stored in the database.

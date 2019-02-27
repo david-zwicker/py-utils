@@ -618,6 +618,20 @@ class Cuboid(object):
         normal[axis] = 1 if direction >= 0 else -1
         return Plane(origin, normal)
     
+    
+    def __add__(self, other):
+        """ add two cuboids """
+        if isinstance(other, self.__class__):
+            if self.dim != other.dim:
+                raise ValueError('Dimensionality mismatch (%d != %d)' % 
+                                 (self.dim, other.dim))
+            p1a, p2a = self.corners
+            p1b, p2b = other.corners
+            return self.__class__.from_points(np.minimum(p1a, p1b),
+                                              np.maximum(p2a, p2b))
+        else:
+            return NotImplemented
+    
 
 
 class Cylinder(object):

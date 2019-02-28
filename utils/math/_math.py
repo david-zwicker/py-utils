@@ -23,9 +23,9 @@ from six.moves import range
 from ..misc import estimate_computation_speed
 
 
-__all__ = ['xlog2x', 'heaviside', 'average_angles', 'euler_phi', 'arrays_close',
-           'logspace', 'logspace_int', 'is_pos_semidef', 'trim_nan',
-           'diff1d_periodic', 'mean', 'moving_average',
+__all__ = ['xlog2x', 'unit_vector', 'heaviside', 'average_angles', 'euler_phi',
+           'arrays_close', 'logspace', 'logspace_int', 'is_pos_semidef',
+           'trim_nan', 'diff1d_periodic', 'mean', 'moving_average',
            'Interpolate_1D_Extrapolated', 'round_to_even', 'round_to_odd',
            'get_fastest_entropy_function', 'calc_entropy', 'popcount',
            'to_array', 'take_popcount', 'get_number_range',
@@ -48,6 +48,22 @@ def xlog2x(x):
 
 # vectorize the function above
 xlog2x = np.vectorize(xlog2x, otypes='d')
+
+
+
+def unit_vector(dim, index):
+    """ create a unit vector with a single one and dim - 1 zeros 
+    
+    Args:
+        dim (int): The length of the unit vector, i.e., the space dimension
+        index (int): The index which is set to one
+        
+    Returns:
+        numpy.ndarray: the unit vector
+    """
+    arr = np.zeros(dim)
+    arr[index] = 1
+    return arr
 
 
 

@@ -8,6 +8,7 @@ purpose.
 """
 
 from functools import partial
+import os
 import shutil
 import subprocess
 import tempfile
@@ -210,6 +211,7 @@ class Movie(object):
             if self.filename is None:
                 raise ValueError('`filename` has to be supplied')
             filename = self.filename
+        filename = os.path.expanduser(filename)
         
         if not self.recording:
             raise ValueError('Movie is not initialized.')

@@ -91,13 +91,10 @@ class FigureBase(Figure):
             self.colors = style.COLOR_LIST
 
         # set the number of ticks
-        if num_ticks is not None:
-            if hasattr(num_ticks, '__iter__'):
-                self.num_ticks = num_ticks[:2]
-            else:
-                self.num_ticks = (num_ticks, num_ticks)
+        if hasattr(num_ticks, '__iter__'):
+            self.num_ticks = num_ticks[:2]
         else:
-            self.num_ticks = (None, None)
+            self.num_ticks = (num_ticks, num_ticks)
 
         # calculate the figure size
         if fig_width_pt is None:

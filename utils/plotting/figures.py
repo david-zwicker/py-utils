@@ -91,7 +91,7 @@ class FigureBase(Figure):
             self.colors = style.COLOR_LIST
 
         # set the number of ticks
-        if num_ticks:
+        if num_ticks is not None:
             if hasattr(num_ticks, '__iter__'):
                 self.num_ticks = num_ticks[:2]
             else:

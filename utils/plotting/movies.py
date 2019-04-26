@@ -59,7 +59,7 @@ def invert_colors(fig):
 class Movie(object):
     """ Class for creating movies from matplotlib figures using ffmpeg """
 
-    def __init__(self, width=None, filename=None, inverted=False, verbose=True,
+    def __init__(self, width=None, filename=None, inverted=False, verbose=False,
                  framerate=None, image_folder=None):
         self.width = width          # pixel width of the movie
         self.filename = filename    # filename used to save the movie

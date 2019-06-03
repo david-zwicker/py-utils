@@ -171,10 +171,13 @@ class DeprecationHelper(object):
     
     
 
-def display_progress(iterator, total=None, **kwargs):
+def display_progress(iterator, total=None, enabled=True, **kwargs):
     """
     displays a progress bar when iterating
     """
+    if not enabled:
+        return iterator
+    
     if tqdm is not None:
         return tqdm(iterator, total=total, **kwargs)
     else:

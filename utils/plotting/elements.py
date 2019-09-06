@@ -249,6 +249,26 @@ def determine_label_positions(pos, sigma=0.05, repulsion=0.1, attraction=0.1,
 
 
 
+def add_scaled_colorbar(im, ax, aspect=20, pad_fraction=0.5, **kwargs):
+    """ add a vertical color bar to an image plot
+    
+    The height of the colorbar is now adjusted to the plot, so that the width
+    determined by `aspect` is now given relative to the height. Moreover, the
+    gap between the colorbar and the plot is now given in units of the fraction
+    of the width by `pad_fraction`. 
+    
+    Inspired by https://stackoverflow.com/a/33505522/932593
+    """
+    from mpl_toolkits import axes_grid1
+    divider = axes_grid1.make_axes_locatable(im.axes)
+    width = axes_grid1.axes_size.AxesY(im.axes, aspect=1./aspect)
+    pad = axes_grid1.axes_size.Fraction(pad_fraction, width)
+    cax = divider.append_axes("right", size=width, pad=pad)
+    plt.sca(ax)
+    return im.axes.figure.colorbar(im, cax=cax, **kwargs)            
+       
+
+
 if __name__ == "__main__":
     print('This file is intended to be used as a module.')
     print('This code serves as a test for the defined methods.')

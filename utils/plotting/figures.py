@@ -37,7 +37,7 @@ def crop_pdf_file(file_input, file_output=None, silence_output=True):
     output
     """
     if file_output is None:
-        file_output = file_input 
+        file_output = file_input
     
     cmd = ['pdfcrop', str(file_input), str(file_output)]
     
@@ -46,7 +46,17 @@ def crop_pdf_file(file_input, file_output=None, silence_output=True):
             from subprocess import DEVNULL  # py3k
         except ImportError:
             DEVNULL = open(os.devnull, 'wb')
-        subprocess.check_call(cmd, stdout=DEVNULL, stderr=subprocess.STDOUT)
+        try:
+            subprocess.check_call(cmd, stdout=DEVNULL, stderr=subprocess.STDOUT)
+        except FileNotFoundError as err:
+            msg = str(err)
+            if 'pdfcrop' in msg:
+                raise FileNotFoundError(
+                    "`pdfcrop` does seem to be missing. This tool is for "
+                    "instance contained in the `texlive-bin-extra` package "
+                    "of macports. The original error was: " + msg)
+            else:
+                raise  # Unknown error has been raised
         
     else:
         subprocess.check_call(cmd)

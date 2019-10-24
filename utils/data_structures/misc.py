@@ -218,7 +218,7 @@ class PeristentObject(object):
                         'allow_classes': False}}
                             
 
-    def __init__(self, filename, locking=True, factory=dict, db_format='yaml',
+    def __init__(self, filename, locking=None, factory=dict, db_format='yaml',
                  format_parameters=None):
         """ a context manager that opens a database file and yields its content.
         When the context manager is left, the data is written back on the disk.
@@ -231,8 +231,10 @@ class PeristentObject(object):
          
         `filename` gives the name of the database file
         `locking` determines whether the file will be locked the entire time so
-            other processes cannot use it. This is turned on by default to
-            prevent data corruption and race conditions.
+            other processes cannot use it. This should be turned on by default
+            to prevent data corruption and race conditions. The default is to
+            turn it on when the module `portalocker` is installed, otherwise it
+            is disabled.
         `factory` defines how the database should be initialized in case the
             file is not present or is empty.
         `db_format` is the file format that is used to read and write the data.
@@ -243,9 +245,21 @@ class PeristentObject(object):
     
         # save some options for using this decorator
         self._filename = filename
-        self._locking = locking
         self.logger = logging.getLogger(__name__) 
         self.factory = factory
+
+        if locking is None:
+            try:
+                import portalocker
+            except ImportError:
+                warnings.warn('Locking is not supported since python module '
+                              '`portalocker` is not available.')
+                self._locking = False
+            else:
+                self._locking = True
+        else:
+            self._locking = locking
+
         
         self.format = db_format
         try:

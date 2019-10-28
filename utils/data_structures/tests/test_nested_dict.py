@@ -21,7 +21,7 @@ from ... import testing
 
 
 
-class TestValue(object):
+class MockValue(object):
     """ test class for LazyHDFValue """
     
     hdf_attributes = {'name': 'value'}
@@ -58,9 +58,9 @@ class TestLazyHDFValue(unittest.TestCase):
             nested_dict.LazyHDFValue.compression = compression
         
         key = 'key'
-        data = TestValue([1, 2, 3])
+        data = MockValue([1, 2, 3])
         
-        value = nested_dict.LazyHDFValue(TestValue, key, self.hdf_file.name)
+        value = nested_dict.LazyHDFValue(MockValue, key, self.hdf_file.name)
             
         # test simple method
         self.assertIsInstance(repr(value), six.string_types)
@@ -73,7 +73,7 @@ class TestLazyHDFValue(unittest.TestCase):
         with self.assertRaises(ValueError):
             nested_dict.LazyHDFValue.create_from_yaml_string('', str, '')
         value2 = nested_dict.LazyHDFValue.create_from_yaml_string(
-                                          yaml_str, TestValue, self.hdf_folder)
+                                          yaml_str, MockValue, self.hdf_folder)
         
         self.assertEqual(value, value2)
         value.set_hdf_folder(self.hdf_folder)
@@ -101,7 +101,7 @@ class TestLazyHDFValue(unittest.TestCase):
         
         
         
-class TestElement(TestValue):
+class MockElement(MockValue):
     """ test class describing an item in the test collection """
     
     def save_to_hdf5(self, hdf_file, key):
@@ -117,9 +117,9 @@ class TestElement(TestValue):
 
         
 
-class TestCollection(list):
+class MockCollection(list):
     """ test class for LazyHDFCollection """
-    item_class = TestElement  # the class of the single item
+    item_class = MockElement  # the class of the single item
     hdf_attributes = {'name': 'collection'}
 
 
@@ -136,12 +136,12 @@ class TestLazyHDFCollection(unittest.TestCase):
     def test_element(self, chunk_elements=None, compression=None):
         """ test basic functionality """
         key = 'key'
-        item_cls = TestCollection.item_class
+        item_cls = MockCollection.item_class
         data_list = [item_cls([1, 2, 3]), item_cls([5, 6, 7])]
-        data = TestCollection(data_list)
+        data = MockCollection(data_list)
         
         cls = nested_dict.LazyHDFCollection
-        value = cls(TestCollection, key, self.hdf_file.name)
+        value = cls(MockCollection, key, self.hdf_file.name)
 
         # test simple method
         self.assertIsInstance(repr(value), six.string_types)
@@ -153,7 +153,7 @@ class TestLazyHDFCollection(unittest.TestCase):
         # try creating class from yaml string
         with self.assertRaises(ValueError):
             cls.create_from_yaml_string('', str, '')
-        value2 = cls.create_from_yaml_string(yaml_str, TestCollection,
+        value2 = cls.create_from_yaml_string(yaml_str, MockCollection,
                                              self.hdf_folder)
         
         self.assertEqual(value, value2)
@@ -332,7 +332,7 @@ class TestNestedDict(unittest.TestCase):
         
     def test_copy(self):
         """ test copies (including copy.copy and copy.deepcopy) """
-        a = nested_dict.NestedDict({'a': {'b': TestValue(1)}})
+        a = nested_dict.NestedDict({'a': {'b': MockValue(1)}})
         
         b = a.copy()
         self.assertEqual(a, b)
@@ -391,7 +391,7 @@ class TestLazyNestedDict(TestNestedDict):
     def test_simple(self):
         """ test the functionality """
         key = 'key'
-        data = TestValue([1, 2, 3])
+        data = MockValue([1, 2, 3])
         
         # try simple storage
         value = nested_dict.LazyHDFValue.create_from_data(key, data,
@@ -399,7 +399,7 @@ class TestLazyNestedDict(TestNestedDict):
         
         # modify original data
         data.arr = np.arange(5)
-        data2 = TestValue([1, 2, 3])
+        data2 = MockValue([1, 2, 3])
         
         d = nested_dict.LazyNestedDict({'a': value})
         
@@ -464,7 +464,7 @@ class TestGeneral(unittest.TestCase, testing.WarnAssertionsMixin):
         for data in valid_data:
             nested_dict.prepare_data_for_yaml(data)
                                 
-        invalid_data = [TestValue([1, 2])]
+        invalid_data = [MockValue([1, 2])]
         for data in invalid_data:
             with self.assertWarnings(['unknown instance']):
                 nested_dict.prepare_data_for_yaml(data)

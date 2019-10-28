@@ -66,9 +66,13 @@ def replace_in_file(infile, outfile=None, *args, **kwargs):
     if outfile is None:
         outfile = infile
     
-    content = open(infile, 'r').read()
+    with open(infile, 'r') as fp:
+        content = fp.read()
+        
     content = content.format(*args, **kwargs)
-    open(outfile, 'w').write(content)    
+    
+    with open(outfile, 'w') as fp:
+        fp.write(content)    
 
 
 
@@ -88,7 +92,8 @@ def is_binary_file(path, bufsize=1024):
         textchars = is_binary_file._textchars
         
     # check whether these characters appear in the file
-    file_content = open(path, 'rb').read(bufsize)
+    with open(path, 'rb') as fp:
+        file_content = fp.read(bufsize)
     return bool(file_content.translate(None, textchars))
 
 

@@ -26,11 +26,10 @@ def numbers2latex(values, **kwargs):
     Converts a list of numbers into a representation nicely displayed by latex.
     Additional parameters are passed on to `number2latex`
     """
-
-    try:
+    if hasattr(values, '__iter__'):
         # try applying function to all parts of a list recursively
         return [numbers2latex(v, **kwargs) for v in values]
-    except:
+    else:
         # fall back on simple evaluation if this fails
         return number2latex(values, **kwargs)
 

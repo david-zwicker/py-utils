@@ -36,7 +36,18 @@ def connect_components(graph, pos_attr, length_attr=None):
                          "attribute `%s`" % pos_attr)
 
     # get all subgraphs and build a list of indices into the distance matrix
-    subgraphs = list(nx.connected_component_subgraphs(graph))
+    try:
+        # networkx version 2
+        from networkx.algorithms.components import connected_components
+    except ImportError:
+        # networkx version 1
+        from networkx import connected_component_subgraphs
+    else:
+        def connected_component_subgraphs(G):
+            """ helper function generating the induced subgraphs """
+            return (G.subgraph(c).copy() for c in connected_components(G))
+    
+    subgraphs = list(connected_component_subgraphs(graph))
     num_subgraphs = len(subgraphs)
     # find the index of each node of each subgraph in the nodes array
     sg_nids_list = [[np.flatnonzero(nodes == n)[0] for n in sg.nodes()]

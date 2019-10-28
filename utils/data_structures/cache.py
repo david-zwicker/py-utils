@@ -380,13 +380,16 @@ class _class_cache(object):
             # cache for each method.
             
         The cache can be cleared by setting foo._cache_methods = {} if the cache
-        factor is a simple dict, i.e, if `factory` == None.        
+        factory is a simple dict, i.e, if `factory` == None.        
         Alternatively, each cached method has a `clear_cache_of_obj` method,
         which clears the cache of this particular method. In the example above
         we could thus call `foo.bar.clear_cache_of_obj(foo)` to clear the cache.
         Note that the object instance has to be passed as a parameter, since the
         method `bar` is defined on the class, not the instance, i.e., we could
-        also call Foo.bar.clear_cache_of_obj(foo).
+        also call Foo.bar.clear_cache_of_obj(foo). To clear the cache from
+        within a method, one can thus call
+            self.method_name.clear_cache_of_obj(self)
+        where `method_name` is the name of the method whose cache is cleared
         
         For convenience there is also the class decorator
         `add_clear_cache_method` that adds a method `clear_cache` that can be
@@ -535,7 +538,10 @@ class cached_property(_class_cache):
                 
     The data is stored in a dictionary named `_cache_methods` attached to the
     instance of each object. The cache can thus be cleared by setting
-    self._cache_methods = {}
+    self._cache_methods = {}. The cache of specific property can be cleared
+    using
+        self._cache_methods[property_name] = {}
+    where `property_name` is the name of the property
 
     Adapted from <http://wiki.python.org/moin/PythonDecoratorLibrary>.
     """

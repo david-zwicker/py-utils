@@ -13,6 +13,7 @@ import tempfile
 
 import six
 import numpy as np
+import pytest
 
 from .. import misc
 
@@ -92,7 +93,11 @@ class TestMisc(unittest.TestCase):
         
     def test_persistent_object(self):
         """ test the PeristentObject class """
-        import portalocker
+        try:
+            import portalocker
+        except ImportError:
+            pytest.skip('portalocka cannot be loaded')
+            
         db_file = tempfile.NamedTemporaryFile(delete=False).name
         
         testcases = {
@@ -132,7 +137,14 @@ class TestMisc(unittest.TestCase):
         """ test the PeristentObject class with a list factory """
         db_file = tempfile.NamedTemporaryFile(delete=False).name
         
-        for locking in (True, False):
+        try:
+            import portlocker
+        except ImportError:
+            locking_cases = [None, False]
+        else:
+            locking_cases = [None, True, False]
+        
+        for locking in locking_cases:
             msg = 'Locking: %s' % locking
             def queue():
                 return misc.PeristentObject(db_file, factory=list,

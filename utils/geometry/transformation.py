@@ -94,7 +94,7 @@ class AffineTransformation(object):
         """
         with open_filename(filename, "r") as fp:
             # read file defining coordinate transform
-            data = yaml.load(fp)
+            data = yaml.full_load(fp)
         
         # read parameters directly
         matrix = data.get('transformation_matrix', None)

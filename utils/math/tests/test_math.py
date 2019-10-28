@@ -364,7 +364,7 @@ class TestMath(unittest.TestCase):
         
     def test_safe_typecast(self):
         """ test the safe_typecast function """
-        for dtype in [np.int8, np.int16, np.int32, np.int64, np.uint8,
+        for dtype in [np.int8, np.int16, np.int32, np.uint8,
                       np.uint16, np.uint32]:
             iinfo = np.iinfo(dtype)
             

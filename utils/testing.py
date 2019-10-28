@@ -14,6 +14,11 @@ import unittest
 import warnings
 from contextlib import contextmanager
 
+try:
+    collectionsAbc = collections.abc  # python 3
+except AttributeError:
+    collectionsAbc = collections  # python 2
+
 import numpy as np
 import six
 from six.moves import zip_longest
@@ -174,12 +179,12 @@ def deep_getsizeof(obj, ids=None):
         # simple string
         return r
  
-    if isinstance(obj, collections.Mapping):
+    if isinstance(obj, collectionsAbc.Mapping):
         # simple mapping
         return r + sum(deep_getsizeof(k, ids) + deep_getsizeof(v, ids)
                        for k, v in six.iteritems(obj))
  
-    if isinstance(obj, collections.Container):
+    if isinstance(obj, collectionsAbc.Container):
         # collection that is neither a string nor a mapping
         return r + sum(deep_getsizeof(x, ids) for x in obj)
     

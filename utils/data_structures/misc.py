@@ -276,8 +276,15 @@ class PeristentObject(object):
     def unlock_file(self):
         """ unlocks the potentially locked file. """
         if self._locking and os.path.isfile(self._filename):
-            import portalocker
-            portalocker.unlock(open(self._filename, 'r'))
+            try:
+                import portalocker
+            except ImportError:
+                self.logger.error('The `portalocker` module must be installed '
+                                  'to support locking of files on all '
+                                  'platforms.')
+                raise
+            else:
+                portalocker.unlock(open(self._filename, 'r'))
 
 
     def __enter__(self):
@@ -318,7 +325,7 @@ class PeristentObject(object):
         if self._database_fh is None:
             self._database = None
         elif self.format == 'yaml':
-            self._database = yaml.load(self._database_fh)
+            self._database = yaml.full_load(self._database_fh)
         else:
             raise NotImplementedError('Unsupported format `%s`' % self.format)
 

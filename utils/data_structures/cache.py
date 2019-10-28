@@ -167,7 +167,11 @@ def make_unserializer(method):
 
     if method == 'yaml':
         import yaml
-        return yaml.load
+        return yaml.full_load
+    
+    if method == 'yaml_unsafe':
+        import yaml
+        return yaml.unsafe_load
     
     raise ValueError('Unknown serialization method `%s`' % method)
     

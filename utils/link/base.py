@@ -115,7 +115,7 @@ class ExecutableBase(object):
                                        stderr=subprocess.PIPE,
                                        env=process_env, shell=shell,
                                        **kwargs)
-            self.stdout, self.stderr = process.communicate()
+            stdout, stderr = process.communicate()
             
         else:
             # run program in a separate process, send stdin, and capture output
@@ -124,7 +124,11 @@ class ExecutableBase(object):
                                        stderr=subprocess.PIPE,
                                        env=process_env, shell=shell,
                                        **kwargs)
-            self.stdout, self.stderr = process.communicate(stdin)
+            stdout, stderr = process.communicate(stdin)
+            
+        # convert output to text
+        self.stdout = stdout.decode("utf-8")
+        self.stderr = stderr.decode("utf-8")
 
         # process output if necessary
         if skip_stdout_lines is None:

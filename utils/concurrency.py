@@ -192,11 +192,11 @@ class MonitorProcessOutput(object):
         if ready:
             if self._pipe_out_r in ready:
                 output = os.read(self._pipe_out_r, self.bufsize)
-                self.handle_stdout(output.decode())
+                self.handle_stdout(output)
                 
             if self._pipe_err_r in ready:
                 output = os.read(self._pipe_err_r, self.bufsize)
-                self.handle_stderr(output.decode())
+                self.handle_stderr(output)
                 
             return True
         else:

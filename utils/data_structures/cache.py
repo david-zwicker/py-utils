@@ -48,11 +48,19 @@ def hash_mutable(obj):
         return _hash_iter(frozenset((k, hash_mutable(v))
                           for k, v in sorted(six.iteritems(obj))))
     
-    # otherwise, just use the internal hash function
+    if isinstance(obj, np.ndarray):
+        return hash(obj.tostring())
+    
     try:    
+        # try using the internal hash function
         return hash(obj)
     except TypeError:
-        return hash(sha1(obj))
+        try:
+            # try hashing the data buffer
+            return hash(sha1(obj))
+        except (ValueError, TypeError):
+            # otherwise, hash the internal dict
+            return hash_mutable(obj.__dict__)
     
     
     

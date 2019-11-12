@@ -186,9 +186,9 @@ def display_progress(iterator, total=None, enabled=True, **kwargs):
                                              'and progress cannot be displayed')
             display_progress._show_warning = False
         return iterator
+
     
 display_progress._show_warning = True
-    
     
     
 def get_loglevel_from_name(name_or_int):

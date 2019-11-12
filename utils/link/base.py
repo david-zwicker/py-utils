@@ -124,7 +124,7 @@ class ExecutableBase(object):
                                        stderr=subprocess.PIPE,
                                        env=process_env, shell=shell,
                                        **kwargs)
-            stdout, stderr = process.communicate(stdin)
+            stdout, stderr = process.communicate(stdin.encode('utf-8'))
             
         # convert output to text
         self.stdout = stdout.decode("utf-8")
@@ -134,7 +134,7 @@ class ExecutableBase(object):
         if skip_stdout_lines is None:
             skip_stdout_lines = self.skip_stdout_lines
         if skip_stdout_lines > 0:
-            self.stdout = self.stdout.split(b"\n", skip_stdout_lines + 1)[-1]
+            self.stdout = self.stdout.split("\n", skip_stdout_lines + 1)[-1]
 
         self.log_output(level=logging.DEBUG)
         

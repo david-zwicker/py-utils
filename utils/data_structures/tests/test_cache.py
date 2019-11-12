@@ -46,6 +46,7 @@ class TestCache(unittest.TestCase):
         class Dummy(object):
             def __init__(self, value):
                 self.value = value
+                
             def __hash__(self):
                 return self.value
 
@@ -226,12 +227,14 @@ class TestCache(unittest.TestCase):
                 
             elif storage_type == 'dict':
                 storage = {}
+                
                 def reinitialize():
                     return storage
                 
             elif storage_type == 'persistent_dict':
                 db = tempfile.NamedTemporaryFile()
                 storage = cache.PersistentDict(db.name)
+                
                 def reinitialize():
                     return cache.PersistentDict(db.name)
                 

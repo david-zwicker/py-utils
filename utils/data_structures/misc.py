@@ -54,6 +54,7 @@ def save_dict_to_csv(data, filename, first_columns=None, **kwargs):
 
     # sort the columns 
     sorted_index = {c: k for k, c in enumerate(sorted(data.keys()))}
+
     def column_key(col):
         """ helper function for sorting the columns in the given order """
         try:

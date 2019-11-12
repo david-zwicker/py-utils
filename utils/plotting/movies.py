@@ -26,6 +26,7 @@ def invert_color(color):
     # keep alpha value intact!
     return (1-c[0], 1-c[1], 1-c[2], c[3])
 
+
 # initialize the color converted and keep it as a static variable
 invert_color.cc = mpl.colors.ColorConverter()
 

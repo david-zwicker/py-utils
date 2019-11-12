@@ -382,9 +382,10 @@ class FigurePresentation(FigureBase):
             'text.usetex': True,
             'text.latex.preamble': preamble,
             'legend.loc': 'best',
-            'font.sans-serif': 'Computer Modern Sans Serif, '
-                'Bitstream Vera Sans, Lucida Grande, Verdana, Geneva, Lucid, '
-                'Arial, Helvetica, Avant Garde, sans-serif',
+            'font.sans-serif': 
+                'Computer Modern Sans Serif, Bitstream Vera Sans, '
+                'Lucida Grande, Verdana, Geneva, Lucid, Arial, Helvetica, '
+                'Avant Garde, sans-serif',
             'pdf.compression': 4,
         })
 

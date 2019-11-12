@@ -146,9 +146,11 @@ def loguniform_mean_var(mean, var):
     else:
         # determine width parameter numerically
         cv2 = var / mean**2  # match square coefficient of variation
+        
         def _rhs(q):
             """ match the coefficient of variation """
             return 0.5 * (q + 1) * np.log(q) / (q - 1) - 1 - cv2
+        
         width = optimize.newton(_rhs, 1.1)
         return loguniform_mean(mean, np.sqrt(width))
 
@@ -410,6 +412,7 @@ class PartialLogNormDistribution_gen(stats.rv_continuous):
         idx = (q_scale > 0)
         res[idx] = np.exp(s * special.ndtri(q_scale[idx]))
         return res
+
 
 PartialLogNormDistribution = PartialLogNormDistribution_gen(
     a=0, name='PartialLogNormDistribution'

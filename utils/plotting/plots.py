@@ -131,11 +131,11 @@ def get_contour_plot_hatched(values, colors, **kwargs):
 
     # define the different orientations of the stripe pattern
     orientation_functions = {
-        '\\': lambda x, y: ((x - y) % stripe_width_diag) * nums[x, y] /
-                            stripe_width_diag,
+        '\\': lambda x, y: (((x - y) % stripe_width_diag) * nums[x, y] /
+                            stripe_width_diag),
         '-': lambda x, y: (x % stripe_width)*nums[x, y]/stripe_width,
-        '/': lambda x, y: ((x + y) % stripe_width_diag) * nums[x, y] / 
-                            stripe_width_diag,
+        '/': lambda x, y: (((x + y) % stripe_width_diag) * nums[x, y] / 
+                           stripe_width_diag),
         '|': lambda x, y: (y % stripe_width) * nums[x, y] / stripe_width
     }
 

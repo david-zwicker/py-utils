@@ -113,9 +113,9 @@ class TestCurves3D(unittest.TestCase):
             # check the unit_vector system
             for k, (p, d) in enumerate(c.iter(data=['unit_vectors'])):
                 np.testing.assert_array_equal(p, ps[k])
-                uv = [[ np.cos(a[k]), -np.sin(a[k]),  0],
-                      [-np.sin(a[k]), -np.cos(a[k]),  0],
-                      [            0,             0, -1]]
+                uv = [[np.cos(a[k]), -np.sin(a[k]), 0],
+                      [-np.sin(a[k]), -np.cos(a[k]), 0],
+                      [0, 0, -1]]
                 np.testing.assert_allclose(d['unit_vectors'], uv, atol=2e-2)
             
             for k, (_, d) in enumerate(c.iter(data=['curvature'])):
@@ -130,9 +130,9 @@ class TestCurves3D(unittest.TestCase):
             a = a[::-1]
             
             for k, (_, d) in enumerate(c.iter(data=['unit_vectors'])):
-                uv = [[-np.cos(a[k]),  np.sin(a[k]), 0],
+                uv = [[-np.cos(a[k]), np.sin(a[k]), 0],
                       [-np.sin(a[k]), -np.cos(a[k]), 0],
-                      [            0,             0, 1]]
+                      [0, 0, 1]]
                 np.testing.assert_allclose(d['unit_vectors'], uv, atol=2e-2)
             
             for k, (_, d) in enumerate(c.iter(data='all')):
@@ -186,7 +186,7 @@ class TestCurves3D(unittest.TestCase):
                                            atol=0.1)
                 if 1 < k < len(t) - 2:
                     np.testing.assert_allclose(d['torsion'], torsion[k],
-                                               atol=0.1, err_msg='%d' % k )
+                                               atol=0.1, err_msg='%d' % k)
                 f = 0.5 if k == 0 or k == len(t) - 1 else 1
                 np.testing.assert_allclose(d['stretching_factor'], f*arc_len[k],
                                            atol=0.01, rtol=0.2)

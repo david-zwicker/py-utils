@@ -65,6 +65,7 @@ def get_color_iter(color=None):
 
     return color_iter
 
+
 plot_colors = get_color_iter
 
 
@@ -100,6 +101,7 @@ def get_style_iter(color=True, dashes=None, extra=None):
             yield res
 
     return _style_generator()
+
 
 plot_styles = get_style_iter
 

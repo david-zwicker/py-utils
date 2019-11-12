@@ -46,6 +46,7 @@ def xlog2x(x):
     else:
         return x * np.log2(x)
 
+
 # vectorize the function above
 xlog2x = np.vectorize(xlog2x, otypes='d')
 

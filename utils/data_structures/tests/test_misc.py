@@ -146,6 +146,7 @@ class TestMisc(unittest.TestCase):
         
         for locking in locking_cases:
             msg = 'Locking: %s' % locking
+            
             def queue():
                 return misc.PeristentObject(db_file, factory=list,
                                             locking=locking)

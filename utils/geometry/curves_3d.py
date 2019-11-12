@@ -234,8 +234,8 @@ class Curve3D(object):
             return np.zeros(len(self.points))
         
         # get the two adjacent vectors to each point and their length
-        v1 = self.points[1:-1] - self.points[ :-2]
-        v2 = self.points[2:  ] - self.points[1:-1] 
+        v1 = self.points[1:-1] - self.points[:-2]
+        v2 = self.points[2:] - self.points[1:-1] 
         n1 = np.linalg.norm(v1, axis=-1)
         n2 = np.linalg.norm(v2, axis=-1)
         
@@ -268,7 +268,7 @@ class Curve3D(object):
 
         
     def iter(self, data=None):
-        """ iterates over the points and returns their coordinates
+        r""" iterates over the points and returns their coordinates
         
         `data` lists extra quantities that are returned for each point. Possible
             values include ('tangent', 'normal', 'binormal', 'unit_vectors',

@@ -60,7 +60,7 @@ class ExecutableBase(object):
         `find_executable` to discover the path and any problems."""
         try:
             cls.find_executable()
-        except:
+        except Exception:
             return False
         else:
             return True  

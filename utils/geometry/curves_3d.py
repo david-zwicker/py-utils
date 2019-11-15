@@ -452,6 +452,8 @@ class Curve3D(object):
         u = np.linspace(0, 1, num_points)
         try:
             # do spline fitting to smooth the line
+            degree = min(degree, num_points - 1)
+            
             tck, _ = interpolate.splprep(np.transpose(self.points), u=u,
                                          k=degree, s=smoothing*len(self.points))
         except ValueError:

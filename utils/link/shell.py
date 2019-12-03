@@ -8,10 +8,17 @@ from __future__ import division
 
 import pipes
 import subprocess as sp
+import logging
 
 
 
 shellquote = pipes.quote
+
+
+
+def shell_join(split_command):
+    """ inverse of shlex.split """
+    return ' '.join(shellquote(arg) for arg in split_command)
 
 
 
@@ -34,6 +41,7 @@ def run_command_over_ssh(host, command, user=None):
     args.append(command)
     
     # run the command 
+    logging.getLogger(__name__).info('Run command `%s`', shell_join(args))
     proc = sp.Popen(args, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
     stdout_data, stderr_data = proc.communicate()
     

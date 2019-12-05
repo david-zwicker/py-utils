@@ -94,6 +94,30 @@ class RedirectedStdout(object):
 def silent_stdout():
     """ context manager that silence the standard output """
     return RedirectedStdout(DummyFile())
+
+
+
+class RedirectedStderr(object):
+    """
+    context manager that redirects the standard error stream to the given stream
+    """
+
+    def __init__(self, stream):
+        self._target = stream
+        self._saved_stderr = None
+    
+    def __enter__(self):
+        self._saved_stdoerr = sys.stderr
+        sys.stderr = self._target
+        
+    def __exit__(self, type, value, traceback):  # @ReservedAssignment
+        sys.stderr = self._saved_stderr
+        
+
+
+def silent_stderr():
+    """ context manager that silence the standard error stream """
+    return RedirectedStderr(DummyFile())
     
     
     

@@ -251,7 +251,8 @@ class PersistentDict(MutableMapping):
             
         
     def __del__(self):
-        self._con.close()
+        if hasattr(self, '_con') and self._con:
+            self._con.close()
         
         
     def __len__(self):

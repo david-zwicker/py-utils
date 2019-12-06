@@ -227,7 +227,12 @@ class PersistentDict(MutableMapping):
         """ opens the database assuming that it is not open """
         # lazy import
         import sqlite3
-        self._con = sqlite3.connect(self.filename)
+        try:
+            self._con = sqlite3.connect(self.filename)
+        except sqlite3.OperationalError as e:
+            msg = str(e) + ' (path: ' + self.filename + ')'
+            six.reraise(type(e), type(e)(msg), sys.exc_info()[2])
+            
         self._con.text_factory = bytes  # make sure that we mainly handle bytes 
         
         # make sure that the cache table exists

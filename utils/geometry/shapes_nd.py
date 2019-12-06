@@ -453,7 +453,7 @@ class Cuboid(object):
     @property
     def bounds(self):
         return [(p, p + s) for p, s in zip(self.pos, self.size)]
-            
+        
     
     @property
     def corners(self):

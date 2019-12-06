@@ -411,6 +411,15 @@ class Cuboid(object):
         return cls(centerpoint - size / 2, size, **kwargs)
     
     
+    @classmethod
+    def from_pointcloud(cls, points, **kwargs):
+        """ create bounding box from a point cloud """
+        points = np.atleast_2d(points)
+        p1 = np.min(points, axis=0)
+        p2 = np.max(points, axis=0)
+        return cls.from_points(p1, p2, **kwargs)
+    
+    
     def copy(self):
         return self.__class__(self.pos, self.size)
         

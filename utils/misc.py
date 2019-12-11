@@ -9,6 +9,7 @@ from __future__ import division, absolute_import
 import functools
 import logging
 import itertools
+import importlib
 import math
 import sys
 import re
@@ -332,3 +333,21 @@ def replace_words(text, replacements):
     pattern = '|'.join(r'\b%s\b' % re.escape(s) for s in replacements) 
     return re.sub(pattern, replace, text)
 
+
+
+def import_class(identifier):
+    """ import a class or module given an identifier 
+    
+    The identifier can be a module or a class:
+        identifier == 'numpy.linalg.norm'
+    is equivalent to
+        from numpy.linalg import norm
+    and would return a reference to `norm`
+    """
+    module_path, _, class_name = identifier.rpartition('.')
+    if module_path:
+        module = importlib.import_module(module_path)
+        return getattr(module, class_name)
+    else:
+        # this happens when identifier does not contain a dot
+        return importlib.import_module(class_name)

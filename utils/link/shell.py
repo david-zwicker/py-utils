@@ -41,7 +41,7 @@ def run_command_over_ssh(host, command, user=None, ssh_args=None):
         if isinstance(ssh_args, six.string_types):
             raise ValueError('`ssh_args` must be a list of arguments that '
                              'can be passed to subprocess.Popen.')
-            args += ssh_args
+        args += ssh_args
     # add the host, optionally including a username
     if user:
         args.append(user + '@' + host)

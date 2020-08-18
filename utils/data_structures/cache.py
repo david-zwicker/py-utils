@@ -49,7 +49,7 @@ def hash_mutable(obj):
                           for k, v in sorted(six.iteritems(obj))))
     
     if isinstance(obj, np.ndarray):
-        return hash(obj.tostring())
+        return hash(obj.tobytes())
     
     try:    
         # try using the internal hash function
@@ -239,7 +239,8 @@ class PersistentDict(MutableMapping):
         with self._con:
             self._con.execute("CREATE table IF NOT EXISTS cache ("
                                   "key BLOB PRIMARY KEY, "
-                                  "value BLOB"
+                                  "value BLOB, "
+                                  "time TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                               ");")
             
             
@@ -275,15 +276,15 @@ class PersistentDict(MutableMapping):
                 isinstance(value, six.binary_type)):
             raise TypeError('Keys and values must be bytes')
         with self._con:
-            self._con.execute("INSERT OR REPLACE INTO cache VALUES (?, ?)",
-                              (key, value))
+            self._con.execute("INSERT OR REPLACE INTO cache (key, value) "
+                              "VALUES (?, ?)", (key, value))
 
 
     def __delitem__(self, key):
         if not isinstance(key, six.binary_type):
             raise TypeError('Key must be bytes, but was %r' % key)
         with self._con:
-            self._con.execute("DELETE FROM cache where key=?", (key,))
+            self._con.execute("DELETE FROM cache WHERE key=?", (key,))
     
     
     def __contains__(self, key):

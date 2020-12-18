@@ -344,6 +344,17 @@ class Plane(object):
             return self
         else:
             return self.copy(origin=self.origin + vector)
+        
+        
+    def scale(self, factor, inplace=False):
+        """ scales the plane by a constant factor """
+        assert factor != 0
+        if inplace:
+            self.origin *= factor
+            self.normal *= np.sign(factor) 
+        else:
+            return self.copy(origin=self.origin * factor,
+                             normal=self.normal * np.sign(factor))
 
     
 

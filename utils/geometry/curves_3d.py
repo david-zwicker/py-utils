@@ -372,6 +372,12 @@ class Curve3D(object):
         return np.atleast_2d(result) 
 
         
+    def make_scaled(self, scaling):
+        """ return a copy of the current curve which has been scaled by `scaling` """
+        return self.__class__(self.points * scaling,
+                              smoothing_distance=self.smoothing_distance * scaling)
+        
+        
     def make_equidistant(self, spacing=None, count=None):
         """ returns a copy of the current curve in which points have been
         chosen equidistantly.

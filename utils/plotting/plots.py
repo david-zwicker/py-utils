@@ -928,6 +928,9 @@ def errorplot(x, y, yerr=None, fmt='', **kwargs):
         y = np.asarray(y)
         yerr = np.asarray(yerr)
         has_error = (yerr.size != 0)
+        
+    if x is None:
+        x = np.arange(len(y))
     
     # plot the mean
     if fmt != 'none':

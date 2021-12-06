@@ -102,7 +102,14 @@ def main():
         if args.library:
             # search the entries in the library
             if args.minimal:
-                ignore_fields = ["abstract", "bdsk-.*", "keywords", "local-url"]
+                ignore_fields = [
+                    "abstract",
+                    "bdsk-.*",
+                    "date-added",
+                    "date-modified",
+                    "keywords",
+                    "local-url",
+                ]
             else:
                 ignore_fields = None
 

@@ -362,14 +362,13 @@ class FigurePresentation(FigureBase):
         font_size = kwargs.pop('font_size', 11)
 
         # setup latex preamble
-        preamble = \
-            mpl.rcsetup.validate_stringlist(plt.rcParams['text.latex.preamble'])
+        preamble = plt.rcParams['text.latex.preamble']
         if r'\usepackage{sfmath}' not in preamble:
-            preamble += [
-                r'\sffamily',
-                r'\usepackage{sfmath}',
+            preamble += ( 
+                r'\sffamily'
+                r'\usepackage{sfmath}'
                 r'\renewcommand{\familydefault}{\sfdefault}'
-            ]
+            )
 
         # setup all parameters
         plt.rcParams.update({

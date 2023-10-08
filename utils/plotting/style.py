@@ -11,7 +11,7 @@ import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mclr
-from matplotlib.ticker import FormatStrFormatter, FuncFormatter, MaxNLocator
+from matplotlib.ticker import FormatStrFormatter, FuncFormatter, MaxNLocator, LogLocator
 import six
 
 from ..link.latex import number2latex
@@ -224,6 +224,8 @@ def set_presentation_style_of_axis(axis, num_ticks=7, use_tex=True):
         axis.set_ticks([])
     elif axis.get_scale() == 'linear':
         axis.set_major_locator(MaxNLocator(num_ticks, steps=[1, 2, 5, 10]))
+    elif axis.get_scale() == 'log':
+        axis.set_major_locator(LogLocator(numticks=num_ticks))
 
 
 
